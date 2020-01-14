@@ -8,7 +8,7 @@ stop:
 
 image:
 	@echo "building image..."
-	-@docker build -t networker .
+	-@docker build --no-cache -t networker .
 
 start: stop image
 	@echo "starting container..."
@@ -17,3 +17,8 @@ start: stop image
 lint:
 	@goimports -w $(shell find . -type f -name *.go)
 	@echo "go files have been linted"
+
+append_commit: lint
+	@git add .
+	@git commit --amend --no-edit
+	@echo "appended commit"

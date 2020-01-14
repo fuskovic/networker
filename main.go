@@ -1,7 +1,13 @@
 package main
 
-import "github.com/fuskovic/networker/cmd"
+import (
+	"log"
+
+	"github.com/fuskovic/networker/cmd"
+)
 
 func main() {
-	cmd.Networker.Execute()
+	if err := cmd.Networker.Execute(); err != nil {
+		log.Fatalf("failed to execute networker\nerror : %v\n", err)
+	}
 }
