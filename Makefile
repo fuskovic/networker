@@ -13,3 +13,7 @@ image:
 start: stop image
 	@echo "starting container..."
 	-@docker run -it --rm --network host networker
+
+lint:
+	@goimports -w $(shell find . -type f -name *.go)
+	@echo "go files have been linted"
