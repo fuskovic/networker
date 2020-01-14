@@ -8,7 +8,7 @@ import (
 
 // Networker is the root cmd.
 var Networker = &cobra.Command{
-	Use:  "networker",
+	Use:   "networker",
 	Short: "networker is an easy to use networking CLI tool",
 	Run: func(cmd *cobra.Command, args []string) {
 		if err := cmd.Usage(); err != nil {

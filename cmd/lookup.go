@@ -3,8 +3,8 @@ package cmd
 import (
 	"log"
 
-	"github.com/spf13/cobra"
 	"github.com/fuskovic/networker/pkg/lookup"
+	"github.com/spf13/cobra"
 )
 
 type lookUpFunc func(string) error
@@ -13,17 +13,17 @@ var (
 	hostName, ipAddress, nameServer, domain string
 
 	supportedLookUps = map[*string]lookUpFunc{
-		&hostName : lookup.HostNamesByIP,
-		&ipAddress: lookup.IPsByHostName,
-		&nameServer:lookup.NameServersByHostName,
-		&domain:	lookup.MxRecordsForDomain,
+		&hostName:   lookup.HostNamesByIP,
+		&ipAddress:  lookup.IPsByHostName,
+		&nameServer: lookup.NameServersByHostName,
+		&domain:     lookup.MxRecordsForDomain,
 	}
 
 	lookUpCmd = &cobra.Command{
-		Use : "lookup",
-		Aliases : []string{"lu"},
-		Short: "lookup hostnames, IP addresses, MX records, and nameservers.",
-		Run : func(cmd *cobra.Command, args []string) {
+		Use:     "lookup",
+		Aliases: []string{"lu"},
+		Short:   "lookup hostnames, IP addresses, MX records, and nameservers.",
+		Run: func(cmd *cobra.Command, args []string) {
 			for value, lookUp := range supportedLookUps {
 				if *value != "" {
 					if err := lookUp(*value); err != nil {

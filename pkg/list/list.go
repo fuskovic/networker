@@ -18,13 +18,13 @@ func Device(name string) error {
 	if lastDevice == 0 {
 		return fmt.Errorf("no devices found")
 	}
-	
+
 	for i, d := range devices {
 		if d.Name == name {
 			print(d)
 			return nil
 		}
-		
+
 		if i+1 == lastDevice && !match(d.Name, name) {
 			return fmt.Errorf("device : %s not found", name)
 		}
