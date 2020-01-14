@@ -15,7 +15,8 @@ start: stop image
 	-@docker run -it --rm --network host networker
 
 lint:
-	@goimports -w $(shell find . -type f -name *.go)
+	@goimports -w cmd/*.go
+	@goimports -w pkg/{capture,list,lookup}/*.go
 	@echo "go files have been linted"
 
 append_commit: lint
