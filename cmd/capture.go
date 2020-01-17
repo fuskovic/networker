@@ -11,16 +11,16 @@ import (
 )
 
 var (
-	devices      []string
-	seconds      int64
-	longExample  = "long form:\n./networker capture --devices en1 --seconds 10 --out myCaptureSession --limit --num 100"
-	shortExample = "short form:\n./networker c -d en1 -s 10 -o myCaptureSession -l -n 100"
-	outFile      string
-	limit        bool
-	numToCapture int64
-	writer       *pcapgo.Writer
-	file         *os.File
-	err          error
+	devices        []string
+	seconds        int64
+	longExample    = "long form:\n./networker capture --devices en1 --seconds 10 --out myCaptureSession --limit --num 100 --verbose"
+	shortExample   = "short form:\n./networker c -d en1 -s 10 -o myCaptureSession -l -n 100 -v"
+	outFile        string
+	limit, verbose bool
+	numToCapture   int64
+	writer         *pcapgo.Writer
+	file           *os.File
+	err            error
 
 	captureCmd = &cobra.Command{
 		Use:     "capture",
@@ -56,7 +56,7 @@ var (
 				defer file.Close()
 			}
 
-			if err := capture.Packets(devices, seconds, numToCapture, writer, limit); err != nil {
+			if err := capture.Packets(devices, seconds, numToCapture, writer, limit, verbose); err != nil {
 				log.Printf("error during packet capture : %v\n", err)
 				cmd.Usage()
 				return
@@ -66,6 +66,7 @@ var (
 )
 
 func init() {
+	captureCmd.PersistentFlags().BoolVarP(&verbose, "verbose", "v", false, "enable verbose logging.")
 	captureCmd.PersistentFlags().Int64VarP(&seconds, "seconds", "s", 0, "Amount of seconds to run capture")
 	captureCmd.PersistentFlags().StringSliceVarP(&devices, "devices", "d", []string{}, "devices on which to capture network packets (comma separated).")
 	captureCmd.PersistentFlags().StringVarP(&outFile, "out", "o", "", "specify outfile to write captured packets to")
