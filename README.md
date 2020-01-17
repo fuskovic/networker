@@ -11,7 +11,7 @@ Usage:
     networker [command]
 
 Available Commands:
-    capture     capture network packets on specified devices. (not yet functional)
+    capture     capture network packets on specified devices.
     list        list information on connected device(s).
     lookup      lookup hostnames, IP addresses, MX records, and nameservers.
     help        Help about any command
