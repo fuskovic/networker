@@ -31,8 +31,13 @@ var (
 		Use:     "lookup",
 		Aliases: []string{"lu"},
 		Example: lookUpEx,
-		Short:   "lookup hostnames, IP addresses, MX records, and nameservers.",
+		Short:   "lookup hostnames, IP addresses, MX records, nameservers, and general network information.",
 		Run: func(cmd *cobra.Command, args []string) {
+			if len(args) == 0 {
+				log.Println("no arguments passed to subcommand lookup")
+				cmd.Usage()
+				return
+			}
 			for value, lookUp := range supportedLookUps {
 				if *value != "" {
 					if err := lookUp(*value); err != nil {
