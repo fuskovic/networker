@@ -6,6 +6,10 @@ stop:
 	@echo "removing image..."
 	-@docker rmi networker
 
+binary:
+	@echo "building binary..." && \
+	go build -o nw main.go
+
 image:
 	@echo "building image..."
 	-@docker build --no-cache -t networker .
