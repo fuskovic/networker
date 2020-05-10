@@ -67,12 +67,12 @@ var (
 )
 
 func init() {
-	captureCmd.PersistentFlags().BoolVarP(&verbose, "verbose", "v", false, "enable verbose logging.")
-	captureCmd.PersistentFlags().Int64VarP(&seconds, "seconds", "s", 0, "Amount of seconds to run capture")
-	captureCmd.PersistentFlags().StringSliceVarP(&devices, "devices", "d", []string{}, "devices on which to capture network packets (comma separated).")
-	captureCmd.PersistentFlags().StringVarP(&outFile, "out", "o", "", "specify outfile to write captured packets to")
-	captureCmd.PersistentFlags().BoolVarP(&limit, "limit", "l", false, "enable packet capture limiting(must use with --num || -n to specify number).")
-	captureCmd.PersistentFlags().Int64VarP(&numToCapture, "num", "n", 0, "number of packets to capture (accumulative for all devices)")
-	captureCmd.MarkPersistentFlagRequired("seconds")
+	captureCmd.Flags().BoolVarP(&verbose, "verbose", "v", false, "enable verbose logging.")
+	captureCmd.Flags().Int64VarP(&seconds, "seconds", "s", 0, "Amount of seconds to run capture")
+	captureCmd.Flags().StringSliceVarP(&devices, "devices", "d", []string{}, "devices on which to capture network packets (comma separated).")
+	captureCmd.Flags().StringVarP(&outFile, "out", "o", "", "specify outfile to write captured packets to")
+	captureCmd.Flags().BoolVarP(&limit, "limit", "l", false, "enable packet capture limiting(must use with --num || -n to specify number).")
+	captureCmd.Flags().Int64VarP(&numToCapture, "num", "n", 0, "number of packets to capture (accumulative for all devices)")
+	captureCmd.MarkFlagRequired("seconds")
 	Networker.AddCommand(captureCmd)
 }
