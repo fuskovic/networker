@@ -90,6 +90,25 @@ func MxRecordsForDomain(domain string) error {
 	return nil
 }
 
+// NetworkByHostName looks up the network for a hostname.
+func NetworkByHostName(hostName string) error {
+	ip, err := net.ResolveIPAddr("ip", hostName)
+	if err != nil {
+		return fmt.Errorf("failed to resolve IP address from hostname : %s\nerror : %v", hostName, err)
+	}
+
+	addr := net.ParseIP(ip.String())
+	if addr == nil {
+		return fmt.Errorf("failed to validate the resolved IP : %s for hostname : %s", addr, hostName)
+	}
+
+	mask := addr.DefaultMask()
+	network := addr.Mask(mask)
+	format := "Hostname : %s\nAddress : %s\nNetwork : %s\n"
+	fmt.Printf(format, hostName, addr.String(), network)
+	return nil
+}
+
 func trim(s string) string {
 	return strings.TrimSpace(s)
 }

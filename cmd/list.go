@@ -8,9 +8,10 @@ import (
 )
 
 var (
-	device  string
-	rootErr = "failed to find devices - are you root?"
-	listCmd = &cobra.Command{
+	device     string
+	rootErr    = "failed to find devices - are you root?"
+	longListEx = ""
+	listCmd    = &cobra.Command{
 		Use:     "list",
 		Aliases: []string{"ls"},
 		Short:   "list information on connected device(s).",

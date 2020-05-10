@@ -13,7 +13,7 @@ Usage:
 Available Commands:
     capture     capture network packets on specified devices.
     list        list information on connected device(s).
-    lookup      lookup hostnames, IP addresses, MX records, and nameservers.
+    lookup      lookup hostnames, IP's, MX records, nameservers, and general network information.
     help        Help about any command
 
 Flags:

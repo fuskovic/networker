@@ -11,22 +11,23 @@ import (
 )
 
 var (
-	devices        []string
-	seconds        int64
-	longExample    = "long form:\n./networker capture --devices en1 --seconds 10 --out myCaptureSession --limit --num 100 --verbose"
-	shortExample   = "short form:\n./networker c -d en1 -s 10 -o myCaptureSession -l -n 100 -v"
-	outFile        string
-	limit, verbose bool
-	numToCapture   int64
-	writer         *pcapgo.Writer
-	file           *os.File
-	err            error
+	devices         []string
+	seconds         int64
+	longCapExample  = "capture pkts on en1 for 10s or until 100 pkts captured:\nnetworker capture --devices en1 --seconds 10 --out myCaptureSession --limit --num 100 --verbose"
+	shortCapExample = "\nshort form: networker c -d en1 -s 10 -o myCaptureSession -l -n 100 -v"
+	capExample      = fmt.Sprintf("%s\n%s\n", longCapExample, shortCapExample)
+	outFile         string
+	limit, verbose  bool
+	numToCapture    int64
+	writer          *pcapgo.Writer
+	file            *os.File
+	err             error
 
 	captureCmd = &cobra.Command{
 		Use:     "capture",
 		Aliases: []string{"c", "cap"},
 		Short:   "capture network packets on specified devices.",
-		Example: fmt.Sprintf("%s\n%s\n", longExample, shortExample),
+		Example: capExample,
 		Run: func(cmd *cobra.Command, args []string) {
 			if len(devices) == 0 {
 				log.Printf("no designated devices")
