@@ -5,6 +5,21 @@ import (
 	"net"
 )
 
+// LocalIP lists the local IP address of the node executing this command.
+func LocalIP() {
+	// TODO: implement
+}
+
+// RemoteIP lists the remote IP address of the node executing this command.
+func RemoteIP() {
+	// TODO: implement
+}
+
+// Router lists the IP address of the gateway on this subnet.
+func Router() {
+	// TODO: implement
+}
+
 // Device lists a device by its name.
 func Device(name string) error {
 	devices, err := net.Interfaces()
