@@ -8,8 +8,8 @@ A practical CLI tool for network administration.
 
 # Exploring Commands
 
-- [Lookup](#lookup)
 - [List](#list)
+- [Lookup](#lookup)
 - [Capture](#capture)
 - [Scan](#scan)
 
@@ -34,6 +34,25 @@ Flags:
 Use "networker [command] --help" for more information about a command.
 
 ```
+
+# List
+
+    list information on connected device(s).
+
+    Usage:
+    networker list [flags]
+
+    Aliases:
+    list, ls
+
+    Flags:
+        --all             enable this to list all connected network interface devices and associated information
+    -d, --device string   list details of a specific network interface device by name
+    -h, --help            help for list
+        --my-local-ip     enable this to list the local IP address of this node
+        --my-remote-ip    enable this to list the remote IP address of this node
+        --my-router       enable this to list the IP address of the gateway for this network
+
 
 
 # Lookup
@@ -61,21 +80,6 @@ Use "networker [command] --help" for more information about a command.
     -m, --mx string            look up MX records by domain
     -n, --nameservers string   look up name server by hostname
         --network string       look up the network for a hostname
-
-# List
-
-    list information on connected device(s).
-
-    Usage:
-    networker list [flags]
-
-    Aliases:
-    list, ls
-
-    Flags:
-    -d, --device string   name of network interface device
-    -h, --help            help for list
-
 
 # Capture
 

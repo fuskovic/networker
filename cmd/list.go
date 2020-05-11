@@ -8,35 +8,42 @@ import (
 )
 
 var (
-	device                          string
-	myLocalIP, myRemoteIP, myRouter bool
-	rootErr                         = "failed to find devices - are you root?"
-	longListEx                      = ""
-	listCmd                         = &cobra.Command{
+	device                               string
+	myLocalIP, myRemoteIP, myRouter, all bool
+	longListEx                           = ""
+	listCmd                              = &cobra.Command{
 		Use:     "list",
 		Aliases: []string{"ls"},
 		Short:   "list information on connected device(s).",
 		Run: func(cmd *cobra.Command, args []string) {
 			if myLocalIP {
-				list.LocalIP()
+				if err := list.LocalIP(); err != nil {
+					log.Println("failed to get local IP", "err =", err)
+				}
 			}
 
 			if myRemoteIP {
-				list.RemoteIP()
+				if err := list.RemoteIP(); err != nil {
+					log.Println("failed to get remote IP", "err =", err)
+				}
 			}
 
 			if myRouter {
-				list.Router()
+				if err := list.Router(); err != nil {
+					log.Println("failed to get gateway IP", "err =", err)
+				}
 			}
 
 			if device != "" {
 				if err := list.Device(device); err != nil {
-					log.Println(rootErr)
+					log.Println("failed to find device", "device =", device, "err =", err)
 					cmd.Usage()
 				}
-			} else {
+			}
+
+			if all {
 				if err := list.AllDevices(); err != nil {
-					log.Println(rootErr)
+					log.Println("failed to find devices", "err =", err)
 					cmd.Usage()
 				}
 			}
@@ -45,9 +52,10 @@ var (
 )
 
 func init() {
-	listCmd.Flags().StringVarP(&device, "device", "d", "", "name of network interface device")
+	listCmd.Flags().StringVarP(&device, "device", "d", "", "list details of a specific network interface device by name")
 	listCmd.Flags().BoolVar(&myLocalIP, "my-local-ip", myLocalIP, "enable this to list the local IP address of this node")
 	listCmd.Flags().BoolVar(&myRemoteIP, "my-remote-ip", myRemoteIP, "enable this to list the remote IP address of this node")
-	listCmd.Flags().BoolVar(&myRouter, "my-router", myRouter, "enable this to list the IP address of the router for this subnet")
+	listCmd.Flags().BoolVar(&myRouter, "my-router", myRouter, "enable this to list the IP address of the gateway for this network")
+	listCmd.Flags().BoolVar(&all, "all", all, "enable this to list all connected network interface devices and associated information")
 	Networker.AddCommand(listCmd)
 }

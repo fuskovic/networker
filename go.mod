@@ -4,6 +4,7 @@ go 1.13
 
 require (
 	github.com/google/gopacket v1.1.17
+	github.com/jackpal/gateway v1.0.6
 	github.com/spf13/cobra v1.0.0
 )
 

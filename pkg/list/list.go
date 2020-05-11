@@ -2,22 +2,57 @@ package list
 
 import (
 	"fmt"
+	"io/ioutil"
+	"log"
 	"net"
+	"net/http"
+
+	gw "github.com/jackpal/gateway"
 )
 
 // LocalIP lists the local IP address of the node executing this command.
-func LocalIP() {
-	// TODO: implement
+func LocalIP() error {
+	conn, err := net.Dial("udp", "8.8.8.8:80")
+	if err != nil {
+		return fmt.Errorf("failed to dial google dns : %s", err)
+	}
+	defer conn.Close()
+	localAddr, ok := conn.LocalAddr().(*net.UDPAddr)
+	if !ok {
+		return fmt.Errorf("failed to resolve local IP")
+	}
+	host, _, err := net.SplitHostPort(localAddr.String())
+	if err != nil {
+		return err
+	}
+	log.Printf("local IP : %s\n", host)
+	return nil
 }
 
 // RemoteIP lists the remote IP address of the node executing this command.
-func RemoteIP() {
-	// TODO: implement
+func RemoteIP() error {
+	resp, err := http.Get("http://myexternalip.com/raw")
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+
+	data, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return err
+	}
+	log.Printf("Remote IP address : %s\n", string(data))
+	return nil
 }
 
 // Router lists the IP address of the gateway on this subnet.
-func Router() {
-	// TODO: implement
+func Router() error {
+	gatewayAddr, err := gw.DiscoverGateway()
+	if err != nil {
+		return err
+	}
+	log.Printf("Gateway : %s\n", gatewayAddr.String())
+	return nil
 }
 
 // Device lists a device by its name.
