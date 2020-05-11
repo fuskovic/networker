@@ -26,3 +26,10 @@ append_commit: lint
 	@git add .
 	@git commit --amend --no-edit
 	@echo "appended commit"
+
+remove_binary:
+	@echo "removing old binary..."
+	-@rm nw
+
+reset: remove_binary binary
+	clear
