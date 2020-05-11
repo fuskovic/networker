@@ -2,13 +2,12 @@ package list
 
 import (
 	"fmt"
-
-	p "github.com/google/gopacket/pcap"
+	"net"
 )
 
 // Device lists a device by its name.
 func Device(name string) error {
-	devices, err := p.FindAllDevs()
+	devices, err := net.Interfaces()
 	if err != nil {
 		return err
 	}
@@ -35,7 +34,7 @@ func Device(name string) error {
 
 // AllDevices lists all connected network interfaces.
 func AllDevices() error {
-	devices, err := p.FindAllDevs()
+	devices, err := net.Interfaces()
 	if err != nil {
 		return err
 	}
@@ -51,10 +50,21 @@ func AllDevices() error {
 	return nil
 }
 
-func print(d p.Interface) {
-	fmt.Printf("\nName: %s\nDescription: %s\n", d.Name, d.Description)
-	for _, a := range d.Addresses {
-		fmt.Printf("\n- IP address: %s\n- Subnet mask: %s\n", a.IP, a.Netmask)
+func print(d net.Interface) {
+	fmt.Printf("\nIndex : %d\nName: %s\nHardware Address: %s\nMTU : %d\nFlags : %s\n",
+		d.Index,
+		d.Name,
+		d.HardwareAddr.String(),
+		d.MTU,
+		d.Flags.String(),
+	)
+	addrs, _ := d.Addrs()
+	for _, a := range addrs {
+		fmt.Printf("\n- IP address: %s\n- Network: %s\n", a.String(), a.Network())
+	}
+	mcAddrs, _ := d.MulticastAddrs()
+	for _, ma := range mcAddrs {
+		fmt.Printf("\n- IP address: %s\n- Network: %s\n", ma.String(), ma.Network())
 	}
 }
 
