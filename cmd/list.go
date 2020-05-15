@@ -56,6 +56,6 @@ func init() {
 	listCmd.Flags().BoolVar(&myLocalIP, "my-local-ip", myLocalIP, "enable this to list the local IP address of this node")
 	listCmd.Flags().BoolVar(&myRemoteIP, "my-remote-ip", myRemoteIP, "enable this to list the remote IP address of this node")
 	listCmd.Flags().BoolVar(&myRouter, "my-router", myRouter, "enable this to list the IP address of the gateway for this network")
-	listCmd.Flags().BoolVar(&all, "all", all, "enable this to list all connected network interface devices and associated information")
+	listCmd.Flags().BoolVarP(&all, "all", "a", all, "enable this to list all connected network interface devices and associated information")
 	Networker.AddCommand(listCmd)
 }
