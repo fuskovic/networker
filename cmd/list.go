@@ -10,12 +10,12 @@ import (
 var (
 	device      string
 	me, all     bool
-	listExample = "\nnetworker ls --me -a"
+	listExample = "\nsudo networker ls --me -a"
 	listCmd     = &cobra.Command{
 		Use:     "list",
 		Aliases: []string{"ls"},
 		Example: listExample,
-		Short:   "list information on connected device(s).",
+		Short:   "list information on connected device(s).\nMust be run as root to get accurate connection statuses.",
 		Run: func(cmd *cobra.Command, args []string) {
 			if me {
 				if err := list.Me(); err != nil {
@@ -35,7 +35,7 @@ var (
 )
 
 func init() {
-	listCmd.Flags().BoolVar(&me, "me", me, "enable this to list the name, local IP, remote IP, and router IP for this machine")
+	listCmd.Flags().BoolVar(&me, "me", me, "enable this to list the name, local IP, remote IP, and router IP for this machine(must be run as root)")
 	listCmd.Flags().BoolVarP(&all, "all", "a", all, "enable this to list all connected network interface devices and associated information")
 	Networker.AddCommand(listCmd)
 }

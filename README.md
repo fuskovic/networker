@@ -40,6 +40,7 @@ Use "networker [command] --help" for more information about a command.
 # List
 
     list information on connected device(s).
+    Must be run as root for accurate connection statuses of devices.
 
     Usage:
     networker list [flags]
@@ -49,10 +50,10 @@ Use "networker [command] --help" for more information about a command.
 
     Examples:
 
-    networker ls --me -a
+    sudo networker ls --me -a
 
     Flags:
-    -a, --all    enable this to list all connected network interface devices and associated information
+    -a, --all    enable this to list all connected network interface devices and associated information(must be run as root)
     -h, --help   help for list
         --me     enable this to list the name, local IP, remote IP, and router IP for this machine
 
