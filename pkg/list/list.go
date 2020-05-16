@@ -1,18 +1,50 @@
 package list
 
 import (
+	"context"
 	"fmt"
 	"io/ioutil"
-	"log"
 	"net"
 	"net/http"
+	"os/exec"
+	"strings"
 
 	gw "github.com/jackpal/gateway"
 )
 
-// LocalIP lists the local IP address of the node executing this command.
-func LocalIP() error {
-	conn, err := net.Dial("udp", "8.8.8.8:80")
+const (
+	googleDNS = "8.8.8.8:80"
+	getExtURL = "http://myexternalip.com/raw"
+	notFound  = "not found"
+)
+
+var stars = strings.Repeat("*", 30)
+
+type pong struct {
+	name string
+	ip   string
+	up   bool
+}
+
+// Me prints out the device name, remote, and local IP addresses of this machine.
+// It also prints out the router IP.
+func Me() error {
+	if err := localIP(); err != nil {
+		return err
+	}
+
+	if err := remoteIP(); err != nil {
+		return err
+	}
+
+	if err := router(); err != nil {
+		return err
+	}
+	return nil
+}
+
+func localIP() error {
+	conn, err := net.Dial("udp", googleDNS)
 	if err != nil {
 		return fmt.Errorf("failed to dial google dns : %s", err)
 	}
@@ -25,13 +57,16 @@ func LocalIP() error {
 	if err != nil {
 		return err
 	}
-	log.Printf("local IP : %s\n", host)
+	names, _ := net.LookupAddr(host)
+	if len(names) > 0 {
+		fmt.Printf("Name : %s\n", names[0])
+	}
+	fmt.Printf("Local IP : %s\n", host)
 	return nil
 }
 
-// RemoteIP lists the remote IP address of the node executing this command.
-func RemoteIP() error {
-	resp, err := http.Get("http://myexternalip.com/raw")
+func remoteIP() error {
+	resp, err := http.Get(getExtURL)
 	if err != nil {
 		return err
 	}
@@ -41,80 +76,107 @@ func RemoteIP() error {
 	if err != nil {
 		return err
 	}
-	log.Printf("Remote IP address : %s\n", string(data))
+	fmt.Printf("Remote IP : %s\n", string(data))
 	return nil
 }
 
-// Router lists the IP address of the gateway on this subnet.
-func Router() error {
+func router() error {
 	gatewayAddr, err := gw.DiscoverGateway()
 	if err != nil {
 		return err
 	}
-	log.Printf("Gateway : %s\n", gatewayAddr.String())
+	fmt.Printf("Gateway : %s\n", gatewayAddr.String())
 	return nil
 }
 
-// Device lists a device by its name.
-func Device(name string) error {
-	devices, err := net.Interfaces()
-	if err != nil {
-		return err
-	}
-
-	lastDevice := len(devices)
-
-	if lastDevice == 0 {
-		return fmt.Errorf("no devices found")
-	}
-
-	for i, d := range devices {
-		if d.Name == name {
-			print(d)
-			return nil
-		}
-
-		if i+1 == lastDevice && !match(d.Name, name) {
-			return fmt.Errorf("device : %s not found", name)
-		}
-	}
-
-	return nil
-}
-
-// AllDevices lists all connected network interfaces.
+// AllDevices lists IP address, name, and host of all connected network devices.
 func AllDevices() error {
-	devices, err := net.Interfaces()
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	hosts, err := hosts("192.168.1.0/24")
 	if err != nil {
 		return err
 	}
+	concurrentMax := 100
+	pingChan := make(chan string, concurrentMax)
+	pongChan := make(chan pong, len(hosts))
+	doneChan := make(chan pong)
 
-	if len(devices) == 0 {
-		return fmt.Errorf("no devices found")
+	for i := 0; i < concurrentMax; i++ {
+		go ping(pingChan, pongChan)
 	}
 
-	fmt.Printf("found %d devices", len(devices))
-	for _, d := range devices {
-		print(d)
+	go receivePong(cancel, len(hosts), pongChan, doneChan)
+
+	for _, ip := range hosts {
+		pingChan <- ip
+	}
+
+processing:
+	for {
+		select {
+		case d := <-doneChan:
+			fmt.Println(stars)
+			fmt.Printf("Name: %s\nIP: %s\nconnected: %t\n", d.name, d.ip, d.up)
+		case <-ctx.Done():
+			break processing
+		default:
+			continue
+		}
 	}
 	return nil
 }
 
-func print(d net.Interface) {
-	fmt.Printf("\nIndex : %d\nName: %s\nHardware Address: %s\nMTU : %d\nFlags : %s\n",
-		d.Index,
-		d.Name,
-		d.HardwareAddr.String(),
-		d.MTU,
-		d.Flags.String(),
-	)
-	addrs, _ := d.Addrs()
-	for _, a := range addrs {
-		fmt.Printf("\n- IP address: %s\n- Network: %s\n", a.String(), a.Network())
+func ping(pingChan <-chan string, pongChan chan<- pong) {
+	var alive bool
+	var host string
+
+	for ip := range pingChan {
+		if _, err := exec.Command("ping", "-c1", "-t1", ip).Output(); err != nil {
+			alive = false
+		} else {
+			alive = true
+		}
+		names, _ := net.LookupAddr(ip)
+		if len(names) > 0 {
+			host = names[0]
+		} else {
+			host = notFound
+		}
+		pongChan <- pong{host, ip, alive}
 	}
-	mcAddrs, _ := d.MulticastAddrs()
-	for _, ma := range mcAddrs {
-		fmt.Printf("\n- IP address: %s\n- Network: %s\n", ma.String(), ma.Network())
+}
+
+func receivePong(cancel context.CancelFunc, pongNum int, pongChan <-chan pong, doneChan chan<- pong) {
+	for i := 0; i < pongNum; i++ {
+		pong := <-pongChan
+		if pong.name != notFound {
+			doneChan <- pong
+		}
+	}
+	cancel()
+}
+
+func hosts(cidr string) ([]string, error) {
+	ip, ipnet, err := net.ParseCIDR(cidr)
+	if err != nil {
+		return nil, err
+	}
+
+	var ips []string
+	for ip := ip.Mask(ipnet.Mask); ipnet.Contains(ip); inc(ip) {
+		ips = append(ips, ip.String())
+	}
+	return ips[1 : len(ips)-1], nil
+}
+
+func inc(ip net.IP) {
+	for j := len(ip) - 1; j >= 0; j-- {
+		ip[j]++
+		if ip[j] > 0 {
+			break
+		}
 	}
 }
 

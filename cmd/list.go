@@ -8,40 +8,23 @@ import (
 )
 
 var (
-	device                               string
-	myLocalIP, myRemoteIP, myRouter, all bool
-	longListEx                           = ""
-	listCmd                              = &cobra.Command{
+	device      string
+	me, all     bool
+	listExample = "\nnetworker ls --me -a"
+	listCmd     = &cobra.Command{
 		Use:     "list",
 		Aliases: []string{"ls"},
+		Example: listExample,
 		Short:   "list information on connected device(s).",
 		Run: func(cmd *cobra.Command, args []string) {
-			if myLocalIP {
-				if err := list.LocalIP(); err != nil {
-					log.Println("failed to get local IP", "err =", err)
-				}
-			}
-
-			if myRemoteIP {
-				if err := list.RemoteIP(); err != nil {
-					log.Println("failed to get remote IP", "err =", err)
-				}
-			}
-
-			if myRouter {
-				if err := list.Router(); err != nil {
-					log.Println("failed to get gateway IP", "err =", err)
-				}
-			}
-
-			if device != "" {
-				if err := list.Device(device); err != nil {
-					log.Println("failed to find device", "device =", device, "err =", err)
-					cmd.Usage()
+			if me {
+				if err := list.Me(); err != nil {
+					log.Println("failed to list this machine's information", "err =", err)
 				}
 			}
 
 			if all {
+				log.Println("listing network devices...")
 				if err := list.AllDevices(); err != nil {
 					log.Println("failed to find devices", "err =", err)
 					cmd.Usage()
@@ -52,10 +35,7 @@ var (
 )
 
 func init() {
-	listCmd.Flags().StringVarP(&device, "device", "d", "", "list details of a specific network interface device by name")
-	listCmd.Flags().BoolVar(&myLocalIP, "my-local-ip", myLocalIP, "enable this to list the local IP address of this node")
-	listCmd.Flags().BoolVar(&myRemoteIP, "my-remote-ip", myRemoteIP, "enable this to list the remote IP address of this node")
-	listCmd.Flags().BoolVar(&myRouter, "my-router", myRouter, "enable this to list the IP address of the gateway for this network")
+	listCmd.Flags().BoolVar(&me, "me", me, "enable this to list the name, local IP, remote IP, and router IP for this machine")
 	listCmd.Flags().BoolVarP(&all, "all", "a", all, "enable this to list all connected network interface devices and associated information")
 	Networker.AddCommand(listCmd)
 }
