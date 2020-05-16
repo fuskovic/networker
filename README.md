@@ -45,13 +45,14 @@ Use "networker [command] --help" for more information about a command.
     Aliases:
     list, ls
 
+    Examples:
+
+    networker ls --me -a
+
     Flags:
-        --all             enable this to list all connected network interface devices and associated information
-    -d, --device string   list details of a specific network interface device by name
-    -h, --help            help for list
-        --my-local-ip     enable this to list the local IP address of this node
-        --my-remote-ip    enable this to list the remote IP address of this node
-        --my-router       enable this to list the IP address of the gateway for this network
+    -a, --all    enable this to list all connected network interface devices and associated information
+    -h, --help   help for list
+        --me     enable this to list the name, local IP, remote IP, and router IP for this machine
 
 
 
@@ -83,7 +84,7 @@ Use "networker [command] --help" for more information about a command.
 
 # Capture
 
-capture network packets on specified devices.
+    capture network packets on specified devices.
 
     Usage:
     networker capture [flags]
@@ -109,7 +110,6 @@ capture network packets on specified devices.
 
 
 # Scan
-
 
     scan for exposed ports on a designated IP.
 
