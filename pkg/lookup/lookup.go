@@ -70,26 +70,6 @@ func NameServersByHostName(hostName string) error {
 	return nil
 }
 
-// MxRecordsForDomain looks up all mx records for a domain.
-func MxRecordsForDomain(domain string) error {
-	domain = trim(domain)
-
-	fmt.Printf("Looking up MX records for %s\n", domain)
-	mxRecords, err := net.LookupMX(domain)
-	if err != nil {
-		return fmt.Errorf("Failed to lookup mx records for %s\nerror : %v", domain, err)
-	}
-
-	if len(mxRecords) == 0 {
-		return fmt.Errorf("no IP addresses found")
-	}
-
-	for _, mx := range mxRecords {
-		fmt.Printf("Host: %s\tPreference: %d\n", mx.Host, mx.Pref)
-	}
-	return nil
-}
-
 // NetworkByHostName looks up the network for a hostname.
 func NetworkByHostName(hostName string) error {
 	ip, err := net.ResolveIPAddr("ip", hostName)
