@@ -4,6 +4,8 @@ A practical CLI tool for network administration.
 
 # Installation
 
+From project root...
+
     go install .
 
 # Exploring Commands
