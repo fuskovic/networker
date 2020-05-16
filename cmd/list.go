@@ -35,7 +35,7 @@ var (
 )
 
 func init() {
-	listCmd.Flags().BoolVar(&me, "me", me, "enable this to list the name, local IP, remote IP, and router IP for this machine(must be run as root)")
-	listCmd.Flags().BoolVarP(&all, "all", "a", all, "enable this to list all connected network interface devices and associated information")
+	listCmd.Flags().BoolVar(&me, "me", me, "enable this to list the name, local IP, remote IP, and router IP for this machine")
+	listCmd.Flags().BoolVarP(&all, "all", "a", all, "enable this to list all connected network interface devices and associated information(must be run as root)")
 	Networker.AddCommand(listCmd)
 }

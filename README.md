@@ -39,6 +39,26 @@ Use "networker [command] --help" for more information about a command.
 
 # List
 
+    list information on connected device(s).
+    Must be run as root to get accurate connection statuses.
+
+    Usage:
+    networker list [flags]
+
+    Aliases:
+    list, ls
+
+    Examples:
+
+    sudo networker ls --me -a
+
+    Flags:
+    -a, --all    enable this to list all connected network interface devices and associated information(must be run as root)
+    -h, --help   help for list
+        --me     enable this to list the name, local IP, remote IP, and router IP for this machine
+
+# Lookup
+
     lookup hostnames, IP addresses, nameservers, and general network information.
 
     Usage:
@@ -70,33 +90,6 @@ Use "networker [command] --help" for more information about a command.
     -n, --nameservers string   look up name servers by hostname
         --network string       look up the network of a host
 
-
-
-# Lookup
-
-    lookup hostnames, IP addresses, MX records, nameservers, and general network information.
-
-    Usage:
-    networker lookup [flags]
-
-    Aliases:
-    lookup, lu
-
-    Examples:
-
-    lookup network : networker lookup --network www.farishuskovic.dev
-    lookup hostname : networker lookup --hostnames 192.81.212.192
-    lookup nameserver : networker lookup --nameservers farishuskovic.dev
-    lookup ip : networker lookup --addresses farishuskovic.dev
-
-
-    Flags:
-    -a, --addresses string     look up IP addresses by hostname
-    -h, --help                 help for lookup
-        --hostnames string     look up hostnames by IP address
-    -m, --mx string            look up MX records by domain
-    -n, --nameservers string   look up name server by hostname
-        --network string       look up the network for a hostname
 
 # Capture
 
