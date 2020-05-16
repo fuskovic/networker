@@ -30,7 +30,7 @@ type pong struct {
 // Me prints out the device name, remote, and local IP addresses of this machine.
 // It also prints out the router IP.
 func Me() error {
-	if err := localIP(); err != nil {
+	if _, err := localIP(); err != nil {
 		return err
 	}
 
@@ -44,26 +44,26 @@ func Me() error {
 	return nil
 }
 
-func localIP() error {
+func localIP() (string, error) {
 	conn, err := net.Dial("udp", googleDNS)
 	if err != nil {
-		return fmt.Errorf("failed to dial google dns : %s", err)
+		return "", fmt.Errorf("failed to dial google dns : %s", err)
 	}
 	defer conn.Close()
 	localAddr, ok := conn.LocalAddr().(*net.UDPAddr)
 	if !ok {
-		return fmt.Errorf("failed to resolve local IP")
+		return "", fmt.Errorf("failed to resolve local IP")
 	}
 	host, _, err := net.SplitHostPort(localAddr.String())
 	if err != nil {
-		return err
+		return "", err
 	}
 	names, _ := net.LookupAddr(host)
 	if len(names) > 0 {
 		fmt.Printf("Name : %s\n", names[0])
 	}
 	fmt.Printf("Local IP : %s\n", host)
-	return nil
+	return host, nil
 }
 
 func remoteIP() error {
@@ -92,7 +92,12 @@ func router() error {
 
 // AllDevices lists IP address, name, and host of all connected network devices.
 func AllDevices() error {
-	hosts, err := hosts("192.168.1.0/24")
+	cidr, err := getCIDR()
+	if err != nil {
+		return err
+	}
+
+	hosts, err := hosts(cidr)
 	if err != nil {
 		return err
 	}
@@ -156,4 +161,20 @@ func inc(ip net.IP) {
 			break
 		}
 	}
+}
+
+func getCIDR() (string, error) {
+	host, err := localIP()
+	if err != nil {
+		return "", err
+	}
+
+	addr := net.ParseIP(host)
+	if addr == nil {
+		return "", err
+	}
+
+	mask := addr.DefaultMask()
+	cidr := fmt.Sprintf("%s/24", addr.Mask(mask))
+	return cidr, nil
 }
