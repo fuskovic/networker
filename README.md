@@ -148,3 +148,29 @@ Use "networker [command] --help" for more information about a command.
     -t, --tcp-only     enable to scan only tcp ports
         --udp-only     enable to scan only udp ports
     -u, --up-to int    scan all ports up to a specified value
+
+
+# Proxy
+
+    forward network traffic from one network connection to another
+
+    Usage:
+    networker proxy [flags]
+
+    Aliases:
+    proxy, p
+
+    Examples:
+
+    long format:
+
+    networker proxy --listen-on <port> -upstream <host>:<port>
+
+    short format:
+
+    networker p -l <port> -u <host>:<port>
+
+    Flags:
+    -h, --help              help for proxy
+    -l, --listen-on int     port for proxy to listen on
+    -u, --upstream string   <host>:<port> to proxy traffic to

@@ -1,31 +1,34 @@
 package cmd
 
 import (
-	"log"
+	"fmt"
 
 	"github.com/fuskovic/networker/pkg/proxy"
 	"github.com/spf13/cobra"
 )
 
 var (
-	upStream, listenOn string
-	proxyCmd           = &cobra.Command{
+	upStream     string
+	listenOn     int
+	proxyLong    = "\nnetworker proxy --listen-on <port> -upstream <host>:<port>\n"
+	proxyShort   = "\nnetworker p -l <port> -u <host>:<port>"
+	format       = "\nlong format:\n%s\nshort format:\n%s"
+	proxyExmaple = fmt.Sprintf(format, proxyLong, proxyShort)
+	proxyCmd     = &cobra.Command{
 		Use:     "proxy",
 		Aliases: []string{"p"},
-		Example: "TODO: proxy cmd example",
-		Short:   "forward network traffic and splice connections together",
+		Example: proxyExmaple,
+		Short:   "forward network traffic from one network connection to another",
 		Run: func(cmd *cobra.Command, args []string) {
-			if err := proxy.Run(listenOn, up); err != nil {
-				log.Printf("failed to run proxy - err : %s\n", err)
-				cmd.Usage()
-				return
-			}
+			proxy.Run(listenOn, upStream)
 		},
 	}
 )
 
 func init() {
 	proxyCmd.Flags().StringVarP(&upStream, "upstream", "u", upStream, "<host>:<port> to proxy traffic to")
-	proxyCmd.Flags().StringVarP(&listenOn, "listen-on", "l", listenOn, "port for proxy to listen on")
+	proxyCmd.Flags().IntVarP(&listenOn, "listen-on", "l", listenOn, "port for proxy to listen on")
+	proxyCmd.MarkFlagRequired("upstream")
+	proxyCmd.MarkFlagRequired("listen-on")
 	Networker.AddCommand(proxyCmd)
 }
