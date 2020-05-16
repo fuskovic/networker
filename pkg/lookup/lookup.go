@@ -30,7 +30,7 @@ func HostNamesByIP(IP string) error {
 	return nil
 }
 
-// IPsByHostName looks up all IP addresses for a host name.
+// IPsByHostName looks up all IP addresses for a hostname.
 func IPsByHostName(hostName string) error {
 	hostName = trim(hostName)
 
@@ -50,7 +50,7 @@ func IPsByHostName(hostName string) error {
 	return nil
 }
 
-// NameServersByHostName looks up all name servers for a host name.
+// NameServersByHostName looks up all name servers for a hostname.
 func NameServersByHostName(hostName string) error {
 	hostName = trim(hostName)
 

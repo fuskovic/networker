@@ -12,11 +12,11 @@ type lookUpFunc func(string) error
 
 var (
 	hostName, ipAddress, nameServer, network string
-	networkEx                                = "networker lookup --network www.farishuskovic.dev"
-	hostNameEx                               = "networker lookup --hostnames 192.81.212.192"
-	nameServerEx                             = "networker lookup --nameservers farishuskovic.dev"
-	ipEx                                     = "networker lookup --addresses farishuskovic.dev"
-	lookUpExFormat                           = "\nlookup network : %s\nlookup hostname : %s\nlookup nameserver : %s\nlookup ip : %s\n"
+	networkEx                                = "networker lookup --network facebook.com || 31.13.65.36\n"
+	hostNameEx                               = "networker lookup --hostnames 157.240.195.35\n"
+	nameServerEx                             = "networker lookup --nameservers youtube.com\n"
+	ipEx                                     = "networker lookup --addresses youtube.com\n"
+	lookUpExFormat                           = "\nlookup network : \n%s\nlookup hostname : \n%s\nlookup nameserver : \n%s\nlookup ip : \n%s\n"
 	lookUpEx                                 = fmt.Sprintf(lookUpExFormat, networkEx, hostNameEx, nameServerEx, ipEx)
 
 	supportedLookUps = map[*string]lookUpFunc{
@@ -45,9 +45,9 @@ var (
 )
 
 func init() {
-	lookUpCmd.Flags().StringVar(&network, "network", "", "look up the network for a hostname")
+	lookUpCmd.Flags().StringVar(&network, "network", "", "look up the network of a host")
 	lookUpCmd.Flags().StringVarP(&ipAddress, "addresses", "a", "", "look up IP addresses by hostname")
-	lookUpCmd.Flags().StringVarP(&nameServer, "nameservers", "n", "", "look up name server by hostname")
+	lookUpCmd.Flags().StringVarP(&nameServer, "nameservers", "n", "", "look up name servers by hostname")
 	lookUpCmd.Flags().StringVar(&hostName, "hostnames", "", "look up hostnames by IP address")
 	Networker.AddCommand(lookUpCmd)
 }
