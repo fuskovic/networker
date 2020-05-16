@@ -5,7 +5,9 @@ go 1.13
 require (
 	github.com/google/gopacket v1.1.17
 	github.com/jackpal/gateway v1.0.6
+	github.com/sparrc/go-ping v0.0.0-20190613174326-4e5b6552494c
 	github.com/spf13/cobra v1.0.0
+	github.com/tatsushid/go-fastping v0.0.0-20160109021039-d7bb493dee3e
 )
 
 replace (

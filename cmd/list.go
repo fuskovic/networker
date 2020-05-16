@@ -24,7 +24,7 @@ var (
 			}
 
 			if all {
-				log.Println("listing network devices...")
+				log.Println("pinging network devices...")
 				if err := list.AllDevices(); err != nil {
 					log.Println("failed to find devices", "err =", err)
 					cmd.Usage()

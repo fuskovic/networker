@@ -10,6 +10,7 @@ import (
 	"time"
 
 	gw "github.com/jackpal/gateway"
+	fp "github.com/tatsushid/go-fastping"
 )
 
 const (
@@ -111,17 +112,24 @@ func AllDevices() error {
 func process(host string) {
 	var up bool
 
-	_, err := net.DialTimeout("ip", host, time.Second)
+	p := fp.NewPinger()
+	ip, err := net.ResolveIPAddr("ip4:icmp", host)
 	if err != nil {
-		up = false
-	} else {
+		fmt.Println("failed to resolve IP", "error", err)
+		return
+	}
+	p.AddIPAddr(ip)
+	p.OnRecv = func(addr *net.IPAddr, rtt time.Duration) {
+		fmt.Printf("IP Addr: %s receive, RTT: %v\n", addr.String(), rtt)
 		up = true
 	}
+	p.Run()
 
 	names, err := net.LookupAddr(host)
 	if err != nil {
 		return
 	}
+
 	if len(names) > 0 {
 		fmt.Println(stars)
 		fmt.Printf("Host : %s\nIP : %s\nConnected : %t\n", names[0], host, up)
@@ -148,8 +156,4 @@ func inc(ip net.IP) {
 			break
 		}
 	}
-}
-
-func match(a, b string) bool {
-	return a == b
 }
