@@ -1,13 +1,13 @@
 package list
 
 import (
-	"context"
 	"fmt"
 	"io/ioutil"
 	"net"
 	"net/http"
-	"os/exec"
 	"strings"
+	"sync"
+	"time"
 
 	gw "github.com/jackpal/gateway"
 )
@@ -91,71 +91,41 @@ func router() error {
 
 // AllDevices lists IP address, name, and host of all connected network devices.
 func AllDevices() error {
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
-
 	hosts, err := hosts("192.168.1.0/24")
 	if err != nil {
 		return err
 	}
-	concurrentMax := 100
-	pingChan := make(chan string, concurrentMax)
-	pongChan := make(chan pong, len(hosts))
-	doneChan := make(chan pong)
 
-	for i := 0; i < concurrentMax; i++ {
-		go ping(pingChan, pongChan)
+	var wg sync.WaitGroup
+	wg.Add(len(hosts))
+	for _, h := range hosts {
+		go func(host string) {
+			process(host)
+			wg.Done()
+		}(h)
 	}
-
-	go receivePong(cancel, len(hosts), pongChan, doneChan)
-
-	for _, ip := range hosts {
-		pingChan <- ip
-	}
-
-processing:
-	for {
-		select {
-		case d := <-doneChan:
-			fmt.Println(stars)
-			fmt.Printf("Name: %s\nIP: %s\nconnected: %t\n", d.name, d.ip, d.up)
-		case <-ctx.Done():
-			break processing
-		default:
-			continue
-		}
-	}
+	wg.Wait()
 	return nil
 }
 
-func ping(pingChan <-chan string, pongChan chan<- pong) {
-	var alive bool
-	var host string
+func process(host string) {
+	var up bool
 
-	for ip := range pingChan {
-		if _, err := exec.Command("ping", "-c1", "-t1", ip).Output(); err != nil {
-			alive = false
-		} else {
-			alive = true
-		}
-		names, _ := net.LookupAddr(ip)
-		if len(names) > 0 {
-			host = names[0]
-		} else {
-			host = notFound
-		}
-		pongChan <- pong{host, ip, alive}
+	_, err := net.DialTimeout("ip", host, time.Second)
+	if err != nil {
+		up = false
+	} else {
+		up = true
 	}
-}
 
-func receivePong(cancel context.CancelFunc, pongNum int, pongChan <-chan pong, doneChan chan<- pong) {
-	for i := 0; i < pongNum; i++ {
-		pong := <-pongChan
-		if pong.name != notFound {
-			doneChan <- pong
-		}
+	names, err := net.LookupAddr(host)
+	if err != nil {
+		return
 	}
-	cancel()
+	if len(names) > 0 {
+		fmt.Println(stars)
+		fmt.Printf("Host : %s\nIP : %s\nConnected : %t\n", names[0], host, up)
+	}
 }
 
 func hosts(cidr string) ([]string, error) {
