@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"log"
 	"net"
+	"strconv"
+	"strings"
 	"sync"
 	"time"
 )
@@ -15,7 +17,10 @@ const (
 	udp        = "udp"
 )
 
-var timeOut = 3 * time.Second
+var (
+	timeOut = 3 * time.Second
+	stars   = strings.Repeat("*", 30)
+)
 
 // Scanner describes the port scanner.
 type Scanner struct {
@@ -41,52 +46,26 @@ func NewScanner(host string, tcpOnly, udpOnly, openOnly bool) *Scanner {
 
 // ScanPorts scans an explicit set of ports specified.
 func (s *Scanner) ScanPorts(specifiedPorts []int) {
-	var wg sync.WaitGroup
-	wg.Add(len(specifiedPorts))
-
-	for _, port := range specifiedPorts {
-		go func(p int) {
-			s.scan(p)
-			wg.Done()
-		}(port)
-	}
-	wg.Wait()
+	s.start(specifiedPorts)
 }
 
 // ScanUpTo scans all ports up to the value specified.
 func (s *Scanner) ScanUpTo(upTo int) {
-	var wg sync.WaitGroup
 	portsForScanning := portsToScan(upTo)
-	wg.Add(len(portsForScanning))
-
-	for _, port := range portsForScanning {
-		go func(p int) {
-			s.scan(p)
-			wg.Done()
-		}(port)
-	}
-	wg.Wait()
+	s.start(portsForScanning)
 }
 
 // ScanAllPorts scans all ports.
 func (s *Scanner) ScanAllPorts() {
-	var wg sync.WaitGroup
 	portsForScanning := portsToScan(TotalPorts)
-	wg.Add(len(portsForScanning))
-
-	for _, port := range portsToScan(TotalPorts) {
-		go func(p int) {
-			s.scan(p)
-			wg.Done()
-		}(port)
-	}
-	wg.Wait()
+	s.start(portsForScanning)
 }
 
-func (s *Scanner) scan(port int) {
+func (s *Scanner) scan(port int, c chan<- string) {
 	if s.tcpOnly {
 		if s.shouldLog(tcp, port) {
-			log.Printf("port : %s Open : %t\n",
+			c <- fmt.Sprintf("%s\nport : %s\nOpen : %t",
+				stars,
 				fmt.Sprintf("%s/%d", tcp, port),
 				isOpen(tcp, s.host, port),
 			)
@@ -95,7 +74,8 @@ func (s *Scanner) scan(port int) {
 
 	if s.udpOnly {
 		if s.shouldLog(udp, port) {
-			log.Printf("port : %s Open : %t\n",
+			c <- fmt.Sprintf("%s\nport : %s\nOpen : %t",
+				stars,
 				fmt.Sprintf("%s/%d", udp, port),
 				isOpen(udp, s.host, port),
 			)
@@ -126,4 +106,50 @@ func portsToScan(max int) (ports []int) {
 
 func protocolSpecified(tcp, udp bool) bool {
 	return tcp == true || udp == true
+}
+
+func organize(results []string) []string {
+	var organized []string
+	for i := 0; i < len(results); i++ {
+		for _, r := range results {
+			if strings.Contains(r, strconv.Itoa(i)) {
+				organized = append(organized, r)
+			}
+		}
+	}
+	return organized
+}
+
+func (s *Scanner) start(portsForScanning []int) {
+	var wg sync.WaitGroup
+	var results []string
+	wg.Add(len(portsForScanning))
+	ch := make(chan string)
+
+	go func() {
+		for {
+			select {
+			case r, ok := <-ch:
+				results = append(results, r)
+				if !ok {
+					return
+				}
+			}
+		}
+	}()
+
+	log.Println("starting scan...")
+
+	for _, port := range portsForScanning {
+		go func(p int) {
+			s.scan(p, ch)
+			wg.Done()
+		}(port)
+	}
+	wg.Wait()
+	close(ch)
+
+	for _, r := range organize(results) {
+		fmt.Println(r)
+	}
 }
