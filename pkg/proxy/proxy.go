@@ -12,6 +12,8 @@ import (
 
 const tcp = "tcp"
 
+var signals = []os.Signal{syscall.SIGHUP, syscall.SIGINT, syscall.SIGTERM, syscall.SIGQUIT}
+
 // Run initializes and starts a new proxy server and forwards traffic from the listener to the upstream server.
 func Run(listenOn int, upStream string) {
 	port := fmt.Sprintf(":%d", listenOn)
@@ -34,12 +36,7 @@ func Run(listenOn int, upStream string) {
 	defer upStr.Close()
 
 	c := make(chan os.Signal, 1)
-	signal.Notify(c,
-		syscall.SIGHUP,
-		syscall.SIGINT,
-		syscall.SIGTERM,
-		syscall.SIGQUIT,
-	)
+	signal.Notify(c, signals...)
 
 	go func() {
 		for {
