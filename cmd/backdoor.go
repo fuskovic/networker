@@ -19,7 +19,7 @@ var (
 		Use:     "backdoor",
 		Aliases: []string{"bd", "b"},
 		Example: backDoorEx,
-		Short:   "create and connect to backdoors over TCP",
+		Short:   "create and connect to backdoors to gain shell access over TCP",
 		Run: func(cmd *cobra.Command, args []string) {
 			switch {
 			case create:
