@@ -10,6 +10,7 @@ import (
 	"os/signal"
 	"runtime"
 	"syscall"
+	"time"
 )
 
 const tcp = "tcp"
@@ -24,8 +25,9 @@ func Create(port int) {
 		return
 	}
 
-	c := make(chan os.Signal, 1)
-	signal.Notify(c, signals...)
+	stop := make(chan os.Signal, 1)
+	signal.Notify(stop, signals...)
+	connChan := make(chan net.Conn, 1)
 
 	lsnr, err := net.Listen(tcp, fmt.Sprintf(":%d", port))
 	if err != nil {
@@ -34,21 +36,30 @@ func Create(port int) {
 	}
 
 	go func() {
-		defer lsnr.Close()
-		for {
-			sig := <-c
-			log.Printf("received termination signal : %v\n", sig)
-			return
-		}
-	}()
-
-	for {
 		conn, err := lsnr.Accept()
 		if err != nil {
 			log.Println(err)
 			return
 		}
-		go handle(cmd, conn)
+		log.Printf("connection established : %s\n", conn.RemoteAddr().String())
+		connChan <- conn
+	}()
+
+	for {
+		select {
+		case signal := <-stop:
+			log.Printf("\nreceived %s signal\ndisconnecting...", signal)
+			close(connChan)
+			for conn := range connChan {
+				conn.Close()
+			}
+			return
+		case conn := <-connChan:
+			go handle(cmd, conn)
+		default:
+			time.Sleep(time.Millisecond * 250)
+			continue
+		}
 	}
 }
 
