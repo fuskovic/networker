@@ -15,6 +15,7 @@ From project root...
 - [Capture](#capture)
 - [Scan](#scan)
 - [Proxy](#proxy)
+- [Backdoor](#backdoor)
 
 
 # General Usage
@@ -25,6 +26,7 @@ Usage:
     networker [command]
 
 Available Commands:
+    backdoor    create and connect to backdoors to gain shell access over TCP
     capture     capture network packets on specified devices.
     help        Help about any command
     list        list information on connected device(s).
@@ -176,3 +178,30 @@ Use "networker [command] --help" for more information about a command.
         -h, --help              help for proxy
         -l, --listen-on int     port for proxy to listen on
         -u, --upstream string   <host>:<port> to proxy traffic to
+
+# Backdoor
+
+    create and connect to backdoors to gain shell access over TCP
+
+    Usage:
+        networker backdoor [flags]
+
+    Aliases:
+        backdoor, bd, b
+
+    Examples:
+
+        long format:
+
+            networker backdoor --create --port 4444
+
+        short format:
+
+            networker backdoor --connect --address <host>:4444
+
+    Flags:
+        -a, --address string   address of remote target to connect to(format: <host>:<port>))
+            --connect          connect to a TCP backdoor(must be used with --address flag)
+            --create           create a TCP backdoor(must be used with --port flag)
+        -h, --help             help for backdoor
+        -p, --port int         port number to listen for connections on
