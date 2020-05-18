@@ -1,6 +1,8 @@
 package cmd
 
 import (
+	"fmt"
+
 	"github.com/fuskovic/networker/pkg/backdoor"
 	"github.com/spf13/cobra"
 )
@@ -9,17 +11,21 @@ var (
 	create, connect bool
 	port            int
 	address         string
+	createEx        = "networker backdoor --create --port 4444"
+	connectEx       = "networker backdoor --connect --address <host>:4444"
+	backDoorformat  = "\ncreate:\n%s\nconnect:\n%s\n"
+	backDoorEx      = fmt.Sprintf(format, createEx, connectEx)
 	backDoorCmd     = &cobra.Command{
 		Use:     "backdoor",
 		Aliases: []string{"bd", "b"},
-		Example: "TODO: add backdoor cmd syntax",
-		Short:   "Create and connect to backdoors over TCP",
+		Example: backDoorEx,
+		Short:   "create and connect to backdoors over TCP",
 		Run: func(cmd *cobra.Command, args []string) {
 			switch {
 			case create:
 				backdoor.Create(port)
 			case connect:
-				// TODO : implement connect logic
+				backdoor.Connect(address)
 			}
 		},
 	}
