@@ -1,6 +1,9 @@
 package cmd
 
-import "github.com/spf13/cobra"
+import (
+	"github.com/fuskovic/networker/pkg/backdoor"
+	"github.com/spf13/cobra"
+)
 
 var (
 	create, connect bool
@@ -12,7 +15,12 @@ var (
 		Example: "TODO: add backdoor cmd syntax",
 		Short:   "Create and connect to backdoors over TCP",
 		Run: func(cmd *cobra.Command, args []string) {
-			// TODO : implement cmd logic
+			switch {
+			case create:
+				backdoor.Create(port)
+			case connect:
+				// TODO : implement connect logic
+			}
 		},
 	}
 )
