@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/google/gopacket"
@@ -16,6 +17,8 @@ const (
 	snapshotLen int32 = 65535
 	promiscuous       = false
 )
+
+var stars = strings.Repeat("*", 30)
 
 // Config collects the command parameters for the capture sub-command.
 type Config struct {
@@ -92,8 +95,8 @@ capture:
 					return fmt.Errorf("failed to write to pcap - err : %v", err)
 				}
 			} else {
-				// TODO : clean up this output
-				fmt.Println(p)
+				fmt.Println(stars)
+				unWrap(p)
 			}
 
 			pktsCaptured++
@@ -159,4 +162,51 @@ func logProgress(ctx context.Context, d time.Duration, isLimited bool, captured 
 		}
 		fmt.Print(output)
 	}
+}
+
+func unWrap(packet gopacket.Packet) {
+	ethernetLayer := packet.Layer(layers.LayerTypeEthernet)
+	if ethernetLayer != nil {
+		fmt.Println("***Ethernet layer***")
+		ethernetPacket, decoded := ethernetLayer.(*layers.Ethernet)
+		if !decoded {
+			fmt.Println("failed to decode ethernet layer")
+		} else {
+			fmt.Println("Source MAC: ", ethernetPacket.SrcMAC)
+			fmt.Println("Destination MAC: ", ethernetPacket.DstMAC)
+			fmt.Println("Ethernet type: ", ethernetPacket.EthernetType)
+		}
+	}
+
+	ipLayer := packet.Layer(layers.LayerTypeIPv4)
+	if ipLayer != nil {
+		fmt.Println("***IPv4 layer***")
+		ipPacket, decoded := ipLayer.(*layers.IPv4)
+		if !decoded {
+			fmt.Println("failed to decode IPv4 layer")
+		} else {
+			fmt.Printf("From %s to %s\n", ipPacket.SrcIP, ipPacket.DstIP)
+			fmt.Println("Protocol: ", ipPacket.Protocol)
+		}
+	}
+
+	tcpLayer := packet.Layer(layers.LayerTypeTCP)
+	if tcpLayer != nil {
+		fmt.Println("***TCP layer***")
+		tcpPacket, decoded := tcpLayer.(*layers.TCP)
+		if !decoded {
+			fmt.Println("failed to decode TCP layer")
+		} else {
+			fmt.Printf("From port %d to %d\n", tcpPacket.SrcPort, tcpPacket.DstPort)
+			fmt.Println("Sequence number: ", tcpPacket.Seq)
+		}
+	}
+
+	// TODO : add flag so user is allowed to pass a network decryption key
+	// so the payload can be decrypted.
+	// applicationLayer := packet.ApplicationLayer()
+	// if applicationLayer != nil {
+	// 	fmt.Println("***Application layer***")
+	// 	fmt.Printf("Payload: %s\n", applicationLayer.Payload())
+	// }
 }
