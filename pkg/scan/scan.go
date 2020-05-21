@@ -22,46 +22,74 @@ var (
 	stars   = strings.Repeat("*", 30)
 )
 
-// Scanner describes the port scanner.
-type Scanner struct {
-	host                       string
-	tcpOnly, udpOnly, openOnly bool
+type (
+	// Config collects the command parameters for the scan sub-command.
+	Config struct {
+		IP                         string
+		Ports                      []int
+		UpTo                       int
+		TCPonly, UDPonly, OpenOnly bool
+	}
+	scanner struct {
+		host                       string
+		tcpOnly, udpOnly, openOnly bool
+	}
+)
+
+// Run executes the command logic for this package.
+func Run(cfg *Config) error {
+	if net.ParseIP(cfg.IP) == nil {
+		return fmt.Errorf("%s is not a valid IP address", cfg.IP)
+	}
+
+	scanner := newScanner(cfg)
+
+	switch {
+	case cfg.UpTo > TotalPorts:
+		return fmt.Errorf("can not scan more than %d ports", TotalPorts)
+	case cfg.UpTo > TotalPorts:
+		return fmt.Errorf("can not scan more than %d ports", TotalPorts)
+	case len(cfg.Ports) > 0:
+		scanner.scanPorts(cfg.Ports)
+	case cfg.UpTo > 0:
+		scanner.scanUpTo(cfg.UpTo)
+	default:
+		scanner.scanAllPorts()
+	}
+	log.Println("scan complete")
+	return nil
 }
 
-// NewScanner initializes a new scanner.
-func NewScanner(host string, tcpOnly, udpOnly, openOnly bool) *Scanner {
-	if !protocolSpecified(tcpOnly, udpOnly) {
+func newScanner(cfg *Config) *scanner {
+	if !protocolSpecified(cfg.TCPonly, cfg.UDPonly) {
 		log.Println("protocol unspecified enabling scanner for both")
-		tcpOnly = true
-		udpOnly = true
+		cfg.TCPonly = true
+		cfg.UDPonly = true
 	}
 
-	return &Scanner{
-		host:     host,
-		tcpOnly:  tcpOnly,
-		udpOnly:  udpOnly,
-		openOnly: openOnly,
+	return &scanner{
+		host:     cfg.IP,
+		tcpOnly:  cfg.TCPonly,
+		udpOnly:  cfg.UDPonly,
+		openOnly: cfg.OpenOnly,
 	}
 }
 
-// ScanPorts scans an explicit set of ports specified.
-func (s *Scanner) ScanPorts(specifiedPorts []int) {
+func (s *scanner) scanPorts(specifiedPorts []int) {
 	s.start(specifiedPorts)
 }
 
-// ScanUpTo scans all ports up to the value specified.
-func (s *Scanner) ScanUpTo(upTo int) {
+func (s *scanner) scanUpTo(upTo int) {
 	portsForScanning := portsToScan(upTo)
 	s.start(portsForScanning)
 }
 
-// ScanAllPorts scans all ports.
-func (s *Scanner) ScanAllPorts() {
+func (s *scanner) scanAllPorts() {
 	portsForScanning := portsToScan(TotalPorts)
 	s.start(portsForScanning)
 }
 
-func (s *Scanner) scan(port int, c chan<- string) {
+func (s *scanner) scan(port int, c chan<- string) {
 	if s.tcpOnly {
 		if s.shouldLog(tcp, port) {
 			c <- fmt.Sprintf("%s\nport : %s\nOpen : %t",
@@ -83,7 +111,7 @@ func (s *Scanner) scan(port int, c chan<- string) {
 	}
 }
 
-func (s *Scanner) shouldLog(protocol string, port int) bool {
+func (s *scanner) shouldLog(protocol string, port int) bool {
 	return s.openOnly && isOpen(protocol, s.host, port) || !s.openOnly
 }
 
@@ -120,7 +148,7 @@ func organize(results []string) []string {
 	return organized
 }
 
-func (s *Scanner) start(portsForScanning []int) {
+func (s *scanner) start(portsForScanning []int) {
 	var wg sync.WaitGroup
 	var results []string
 	wg.Add(len(portsForScanning))
