@@ -36,7 +36,7 @@ type (
 	}
 )
 
-// Run executes the command logic for this package.
+// Run executes the command logic for the scan package.
 func Run(cfg *Config) error {
 	if net.ParseIP(cfg.IP) == nil {
 		return fmt.Errorf("%s is not a valid IP address", cfg.IP)

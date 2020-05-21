@@ -21,15 +21,34 @@ const (
 
 var stars = strings.Repeat("*", 30)
 
-type pong struct {
-	name string
-	ip   string
-	up   bool
+type (
+	// Config collects the command parameters for the list sub-command.
+	Config struct {
+		Me, All bool
+	}
+	pong struct {
+		name string
+		ip   string
+		up   bool
+	}
+)
+
+// Run executes the command logic for the list package.
+func Run(cfg *Config) error {
+	switch {
+	case cfg.Me:
+		if err := me(); err != nil {
+			return err
+		}
+	case cfg.All:
+		if err := all(); err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
-// Me prints out the device name, remote, and local IP addresses of this machine.
-// It also prints out the router IP.
-func Me() error {
+func me() error {
 	if _, err := localIP(); err != nil {
 		return err
 	}
@@ -90,8 +109,7 @@ func router() error {
 	return nil
 }
 
-// AllDevices lists IP address, name, and host of all connected network devices.
-func AllDevices() error {
+func all() error {
 	cidr, err := getCIDR()
 	if err != nil {
 		return err
