@@ -1,7 +1,7 @@
 package cmd
 
 import (
-	"log"
+	"fmt"
 
 	"github.com/fuskovic/networker/pkg/lookup"
 	"github.com/spf13/cobra"
@@ -28,7 +28,7 @@ var (
 			for value, lookUp := range supportedLookUps {
 				if *value != "" {
 					if err := lookUp(*value); err != nil {
-						log.Printf("failed lookup\nerror : %v\n", err)
+						fmt.Println(err)
 						cmd.Usage()
 					}
 				}

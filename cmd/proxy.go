@@ -1,13 +1,14 @@
 package cmd
 
 import (
+	"fmt"
+
 	"github.com/fuskovic/networker/pkg/proxy"
 	"github.com/spf13/cobra"
 )
 
 var (
-	upStream string
-	listenOn int
+	proxyCfg = &proxy.Config{}
 
 	proxyCmd = &cobra.Command{
 		Use:     "proxy",
@@ -15,14 +16,17 @@ var (
 		Example: proxyExample,
 		Short:   "Forward network traffic from one network connection to another.",
 		Run: func(cmd *cobra.Command, args []string) {
-			proxy.Run(listenOn, upStream)
+			if err := proxy.Run(proxyCfg); err != nil {
+				fmt.Println(err)
+				cmd.Usage()
+			}
 		},
 	}
 )
 
 func init() {
-	proxyCmd.Flags().StringVarP(&upStream, "upstream", "u", upStream, "Address of server to forward traffic to.")
-	proxyCmd.Flags().IntVarP(&listenOn, "listen-on", "l", listenOn, "Port to listen on.")
+	proxyCmd.Flags().StringVarP(&proxyCfg.UpStream, "upstream", "u", proxyCfg.UpStream, "Address of server to forward traffic to.")
+	proxyCmd.Flags().IntVarP(&proxyCfg.ListenOn, "listen-on", "l", proxyCfg.ListenOn, "Port to listen on.")
 	proxyCmd.MarkFlagRequired("upstream")
 	proxyCmd.MarkFlagRequired("listen-on")
 	Networker.AddCommand(proxyCmd)

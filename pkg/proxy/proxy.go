@@ -14,24 +14,29 @@ const tcp = "tcp"
 
 var signals = []os.Signal{syscall.SIGHUP, syscall.SIGINT, syscall.SIGTERM, syscall.SIGQUIT}
 
-// Run initializes and starts a new proxy server and forwards traffic from the listener to the upstream server.
-func Run(listenOn int, upStream string) {
-	port := fmt.Sprintf(":%d", listenOn)
+// Config collects the command parameters for the proxy sub-command.
+type Config struct {
+	ListenOn int
+	UpStream string
+}
 
-	fmt.Printf("starting listener on %s...\n", port)
+// Run initializes and starts a new proxy server and forwards traffic from the listener to the upstream server.
+func Run(cfg *Config) error {
+	port := fmt.Sprintf(":%d", cfg.ListenOn)
+
+	log.Printf("starting listener on %s...\n", port)
+
 	lsnr, err := net.Listen(tcp, port)
 	if err != nil {
-		log.Println(err)
-		return
+		return err
 	}
 	defer lsnr.Close()
 
-	log.Printf("dialing %s\n", upStream)
+	log.Printf("dialing %s\n", cfg.UpStream)
 
-	upStr, err := net.Dial(tcp, upStream)
+	upStr, err := net.Dial(tcp, cfg.UpStream)
 	if err != nil {
-		log.Println(err)
-		return
+		return err
 	}
 	defer upStr.Close()
 
@@ -47,11 +52,11 @@ func Run(listenOn int, upStream string) {
 	}()
 
 	log.Println("proxy started")
+
 	for {
 		conn, err := lsnr.Accept()
 		if err != nil {
-			log.Println(err)
-			return
+			return err
 		}
 		defer conn.Close()
 
