@@ -47,8 +47,6 @@ func Run(cfg *Config) error {
 	switch {
 	case cfg.UpTo > TotalPorts:
 		return fmt.Errorf("can not scan more than %d ports", TotalPorts)
-	case cfg.UpTo > TotalPorts:
-		return fmt.Errorf("can not scan more than %d ports", TotalPorts)
 	case len(cfg.Ports) > 0:
 		scanner.scanPorts(cfg.Ports)
 	case cfg.UpTo > 0:
