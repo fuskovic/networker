@@ -24,6 +24,11 @@ var (
 			longForm:    "networker capture --devices en1 --seconds 10 --out myCaptureSession --limit --num 100 --verbose",
 			shortForm:   "networker c -d en1 -s 10 -out myCaptureSession -l -n 100 -v",
 		},
+		subExample{
+			description: "Don't specify an outfile and instead print captured packets from the en0 interface to stdout",
+			longForm:    "networker capture --device en0 --seconds 10 --limit --num 100 --verbose",
+			shortForm:   "networker c -d en0 -s 10 -l -n 100 -v",
+		},
 	})
 
 	listExample = newExample("list", []subExample{
