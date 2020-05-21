@@ -166,13 +166,13 @@ Use "networker [command] --help" for more information about a command.
 
         Don't specify an outfile and instead print captured packets from the en0 interface to stdout:
 
-                long form:
+            long form:
 
-                        networker capture --device en0 --seconds 10 --limit --num 100 --verbose
+                    networker capture --device en0 --seconds 10 --limit --num 100 --verbose
 
-                short form:
+            short form:
 
-                        networker c -d en0 -s 10 -l -n 100 -v
+                    networker c -d en0 -s 10 -l -n 100 -v
 
 
     Flags:
