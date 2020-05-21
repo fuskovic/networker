@@ -21,21 +21,23 @@ From project root...
 # General Usage
 
 ```
+A practical CLI tool for network administration.
+
 Usage:
-    networker [flags]
-    networker [command]
+  networker [flags]
+  networker [command]
 
 Available Commands:
-    backdoor    create and connect to backdoors to gain shell access over TCP
-    capture     capture network packets on specified devices.
-    help        Help about any command
-    list        list information on connected device(s).
-    lookup      lookup hostnames, IP addresses, nameservers, and general network information.
-    proxy       forward network traffic from one network connection to another
-    scan        scan for exposed ports on a designated IP.
+  backdoor    Create and connect to backdoors to gain shell access over TCP.
+  capture     Capture network packets on specified devices.
+  help        Help about any command
+  list        List information on connected network devices.
+  lookup      Lookup hostnames, IP addresses, nameservers, and general network information.
+  proxy       Forward network traffic from one network connection to another.
+  scan        Scan an IP for exposed ports.
 
 Flags:
-    -h, --help   help for networker
+  -h, --help   help for networker
 
 Use "networker [command] --help" for more information about a command.
 
@@ -43,165 +45,243 @@ Use "networker [command] --help" for more information about a command.
 
 # List
 
-    list information on connected device(s).
-    Must be run as root.
+    List information on connected network devices.
 
     Usage:
-        networker list [flags]
+    networker list [flags]
 
     Aliases:
-        list, ls
+    list, ls
 
     Examples:
 
-        sudo networker ls --me -a
+    List the IP of the current network gateway, local IP of this machine, and remote IP of this machine:
+
+            long form:
+
+                    networker list --me
+
+            short form:
+
+                    networker ls -m
+
+    List the hostname, IP address, and connection status of all devices on the current network:
+
+            long form:
+
+                    sudo networker list --all
+
+            short form:
+
+                    sudo networker ls -a
+
 
     Flags:
-        -a, --all    enable this to list all connected network interface devices and associated information(must be run as root)
-        -h, --help   help for list
-            --me     enable this to list the name, local IP, remote IP, and router IP for this machine
+    -a, --all    List the IP, hostname, and connection status of all devices on this network. (must be run as root)
+    -h, --help   help for list
+    -m, --me     List the name, local IP, remote IP, and router IP for this machine and the network it's connected to.
 
 # Lookup
 
-    lookup hostnames, IP addresses, nameservers, and general network information.
+    Lookup hostnames, IP addresses, nameservers, and general network information.
 
     Usage:
-        networker lookup [flags]
+    networker lookup [flags]
 
     Aliases:
-        lookup, lu
+    lookup, lu
 
     Examples:
 
-    lookup network : 
-        networker lookup --network facebook.com || 31.13.65.36
+    Look up the network for a given hostname or IP:
 
-    lookup hostname : 
-        networker lookup --hostnames 157.240.195.35
+            long form:
 
-    lookup nameserver : 
-        networker lookup --nameservers youtube.com
+                    networker lookup --network 31.13.65.36
 
-    lookup ip : 
-        networker lookup --addresses youtube.com
+            short form:
 
+                    networker lu -n 31.13.65.36
+
+    Look up the hostname for a given IP:
+
+            long form:
+
+                    networker lookup --hostnames 157.240.195.35
+
+            short form:
+
+                    no short form as -h is reserved for help
+
+    Look up nameservers for a given hostname:
+
+            long form:
+
+                    networker lookup --nameservers youtube.com
+
+            short form:
+
+                    networker lu -s youtube.com
+
+    Look up the addresses for a given hostname:
+
+            long form:
+
+                    networker lookup --addresses youtube.com
+
+            short form:
+
+                    networker lu -a youtube.com
 
 
     Flags:
-        -a, --addresses string     look up IP addresses by hostname
-        -h, --help                 help for lookup
-            --hostnames string     look up hostnames by IP address
-        -n, --nameservers string   look up name servers by hostname
-            --network string       look up the network of a host
+    -a, --addresses string     Look up IP addresses for a given hostname.
+    -h, --help                 help for lookup
+        --hostnames string     Look up hostnames for a given IP address.
+    -s, --nameservers string   Look up nameservers for a given hostname.
+    -n, --network string       Look up the network a given hostname belongs to.
 
 
 # Capture
 
-    capture network packets on specified devices.
+    Capture network packets on specified devices.
 
     Usage:
-        networker capture [flags]
+    networker capture [flags]
 
     Aliases:
-        capture, c, cap
+    capture, c, cap
 
     Examples:
-        capture pkts on en1 for 10s or until 100 pkts captured:
-            networker capture --devices en1 --seconds 10 --out myCaptureSession --limit --num 100 --verbose
 
-        short form: 
-            networker c -d en1 -s 10 -o myCaptureSession -l -n 100 -v
+    Capture packets on en1 for 10 seconds or until 100 packets have been captured and log the capture status during capture:
+
+            long form:
+
+                    networker capture --devices en1 --seconds 10 --out myCaptureSession --limit --num 100 --verbose
+
+            short form:
+
+                    networker c -d en1 -s 10 -out myCaptureSession -l -n 100 -v
 
 
     Flags:
-        -d, --devices strings   devices on which to capture network packets (comma separated).
-        -h, --help              help for capture
-        -l, --limit             enable packet capture limiting(must use with --num || -n to specify number).
-        -n, --num int           number of packets to capture (accumulative for all devices)
-        -o, --out string        specify outfile to write captured packets to
-        -s, --seconds int       Amount of seconds to run capture
-        -v, --verbose           enable verbose logging.
+    -d, --devices strings   Comma-separated list of devices to capture packets on.
+    -h, --help              help for capture
+    -l, --limit             Limit the number of packets to capture. (must be used with the --num flag)
+    -n, --num int           Number of total packets to capture across all devices.
+    -o, --out string        Name of an output file to write the packets to.
+    -s, --seconds int       Amount of seconds to run capture for.
+    -v, --verbose           Enable verbose logging.
 
 
 # Scan
 
-    scan for exposed ports on a designated IP.
+    Scan an IP for exposed ports.
 
     Usage:
-        networker scan [flags]
+    networker scan [flags]
 
     Aliases:
-        scan, s
+    scan, s
 
     Examples:
-        scan only a specified set of TCP ports and only log if they're open:
-            networker scan --ip <someIPaddress> --ports 22,80,3389 --open-only
 
-        scan all TCP ports up to port 1024 and only log status if they're open:
-            networker scan --ip <someIPaddress> --up-to 1024 --tcp-only --open-only
+    Scan a comma-separated list of TCP ports of an address and only log out the ones that are open:
 
-        short form: 
-            networker s --ip <someIPaddress> --up-to 1024 -t -o
+            long form:
+
+                    networker scan --ip <address> --ports 22,80,3389 --tcp-only --open-only
+
+            short form:
+
+                    networker s --ip <address> -p 22,80,3389 -t -o
+
+    Scan all TCP ports up to port 1024 and only log out the ones that are open:
+
+            long form:
+
+                    networker scan --ip <someIPaddress> --up-to 1024 --tcp-only --open-only
+
+            short form:
+
+                    networker s --ip <address> -u 1024 -t -o
 
 
     Flags:
-        -h, --help         help for scan      --ip string    IP address to scan
-        -o, --open-only    enable to only log open ports
-        -p, --ports ints   explicitly specify which ports you want scanned (comma separated). If not specifi
-        ed, all ports will be scanned unless up-to flag is specified.
-        -t, --tcp-only     enable to scan only tcp ports
-            --udp-only     enable to scan only udp ports
-        -u, --up-to int    scan all ports up to a specified value
+    -h, --help         help for scan
+        --ip string    IP address to scan.
+    -o, --open-only    Only print the ports that are open.
+    -p, --ports ints   Specify a comma-separated list of ports to scan. (scans all ports if left unspecified)
+    -t, --tcp-only     Only scan TCP ports.
+        --udp-only     Only scan UDP ports.
+    -u, --up-to int    Scan all ports up to a given port number.
 
 
 # Proxy
 
-    forward network traffic from one network connection to another
+    Forward network traffic from one network connection to another.
 
     Usage:
-        networker proxy [flags]
+    networker proxy [flags]
 
     Aliases:
-        proxy, p
+    proxy, p
 
     Examples:
 
-        long format:
+    Start a new proxy server that listens on a given port and forwards traffic to a given address:
 
-            networker proxy --listen-on <port> -upstream <host>:<port>
+            long form:
 
-        short format:
+                    networker proxy --listen-on <port> --upstream <host>:<port>
 
-            networker p -l <port> -u <host>:<port>
+            short form:
+
+                    networker p -l <port> -u <host>:<port>
+
 
     Flags:
-        -h, --help              help for proxy
-        -l, --listen-on int     port for proxy to listen on
-        -u, --upstream string   <host>:<port> to proxy traffic to
+    -h, --help              help for proxy
+    -l, --listen-on int     Port to listen on.
+    -u, --upstream string   Address of server to forward traffic to.
 
 # Backdoor
 
-    create and connect to backdoors to gain shell access over TCP
+    Create and connect to backdoors to gain shell access over TCP.
 
     Usage:
-        networker backdoor [flags]
+    networker backdoor [flags]
 
     Aliases:
-        backdoor, bd, b
+    backdoor, bd, b
 
     Examples:
 
-        long format:
+    Create a new backdoor:
 
-            networker backdoor --create --port 4444
+            long form:
 
-        short format:
+                    networker backdoor --create --port <port>
 
-            networker backdoor --connect --address <host>:4444
+            short form:
+
+                    networker bd --create -p <port>
+
+    Connect to an existing backdoor:
+
+            long form:
+
+                    networker backdoor --connect --address <host>:<port>
+
+            short form:
+
+                    networker bd --connect -a <host>:<port>
+
 
     Flags:
-        -a, --address string   address of remote target to connect to(format: <host>:<port>))
-            --connect          connect to a TCP backdoor(must be used with --address flag)
-            --create           create a TCP backdoor(must be used with --port flag)
-        -h, --help             help for backdoor
-        -p, --port int         port number to listen for connections on
+    -a, --address string   Address of a remote target to connect to. (format: <host>:<port>)
+        --connect          Connect to a TCP backdoor. (must be used with the --address flag)
+        --create           Create a TCP backdoor. (must be used with the --port flag)
+    -h, --help             help for backdoor
+    -p, --port int         Port number to listen for connections on. (format: 80)

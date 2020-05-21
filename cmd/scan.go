@@ -1,7 +1,6 @@
 package cmd
 
 import (
-	"fmt"
 	"log"
 	"net"
 
@@ -15,16 +14,12 @@ var (
 	ports                      []int
 	upTo                       int
 	tcpOnly, udpOnly, openOnly bool
-	specificPortsExample       = "scan only a specified set of TCP ports and only log if they're open:\nnetworker scan --ip <someIPaddress> --ports 22,80,3389 --open-only\n"
-	longScanExample            = "scan all TCP ports up to port 1024 and only log status if they're open:\nnetworker scan --ip <someIPaddress> --up-to 1024 --tcp-only --open-only\n"
-	shortScanExample           = "\nshort form: networker s --ip <someIPaddress> --up-to 1024 -t -o\n"
-	scanExample                = fmt.Sprintf("%s\n%s\n%s\n", specificPortsExample, longScanExample, shortScanExample)
 
 	scanCmd = &cobra.Command{
 		Use:     "scan",
 		Aliases: []string{"s"},
 		Example: scanExample,
-		Short:   "scan for exposed ports on a designated IP.",
+		Short:   "Scan an IP for exposed ports.",
 		Run: func(cmd *cobra.Command, args []string) {
 			if net.ParseIP(ip) == nil {
 				log.Printf("%s is not a valid IP address\n", ip)
@@ -55,12 +50,12 @@ var (
 )
 
 func init() {
-	scanCmd.Flags().StringVar(&ip, "ip", "", "IP address to scan")
-	scanCmd.Flags().IntSliceVarP(&ports, "ports", "p", ports, "explicitly specify which ports you want scanned (comma separated). If not specified, all ports will be scanned unless up-to flag is specified.")
-	scanCmd.Flags().IntVarP(&upTo, "up-to", "u", upTo, "scan all ports up to a specified value")
-	scanCmd.Flags().BoolVarP(&tcpOnly, "tcp-only", "t", tcpOnly, "enable to scan only tcp ports")
-	scanCmd.Flags().BoolVar(&udpOnly, "udp-only", udpOnly, "enable to scan only udp ports")
-	scanCmd.Flags().BoolVarP(&openOnly, "open-only", "o", openOnly, "enable to only log open ports")
+	scanCmd.Flags().StringVar(&ip, "ip", "", "IP address to scan.")
+	scanCmd.Flags().IntSliceVarP(&ports, "ports", "p", ports, "Specify a comma-separated list of ports to scan. (scans all ports if left unspecified)")
+	scanCmd.Flags().IntVarP(&upTo, "up-to", "u", upTo, "Scan all ports up to a given port number.")
+	scanCmd.Flags().BoolVarP(&tcpOnly, "tcp-only", "t", tcpOnly, "Only scan TCP ports.")
+	scanCmd.Flags().BoolVar(&udpOnly, "udp-only", udpOnly, "Only scan UDP ports.")
+	scanCmd.Flags().BoolVarP(&openOnly, "open-only", "o", openOnly, "Only print the ports that are open.")
 	scanCmd.MarkFlagRequired("ip")
 	Networker.AddCommand(scanCmd)
 }

@@ -1,7 +1,6 @@
 package cmd
 
 import (
-	"fmt"
 	"log"
 
 	"github.com/fuskovic/networker/pkg/lookup"
@@ -12,12 +11,6 @@ type lookUpFunc func(string) error
 
 var (
 	hostName, ipAddress, nameServer, network string
-	networkEx                                = "networker lookup --network facebook.com || 31.13.65.36\n"
-	hostNameEx                               = "networker lookup --hostnames 157.240.195.35\n"
-	nameServerEx                             = "networker lookup --nameservers youtube.com\n"
-	ipEx                                     = "networker lookup --addresses youtube.com\n"
-	lookUpExFormat                           = "\nlookup network : \n%s\nlookup hostname : \n%s\nlookup nameserver : \n%s\nlookup ip : \n%s\n"
-	lookUpEx                                 = fmt.Sprintf(lookUpExFormat, networkEx, hostNameEx, nameServerEx, ipEx)
 
 	supportedLookUps = map[*string]lookUpFunc{
 		&hostName:   lookup.HostNamesByIP,
@@ -29,8 +22,8 @@ var (
 	lookUpCmd = &cobra.Command{
 		Use:     "lookup",
 		Aliases: []string{"lu"},
-		Example: lookUpEx,
-		Short:   "lookup hostnames, IP addresses, nameservers, and general network information.",
+		Example: lookUpExample,
+		Short:   "Lookup hostnames, IP addresses, nameservers, and general network information.",
 		Run: func(cmd *cobra.Command, args []string) {
 			for value, lookUp := range supportedLookUps {
 				if *value != "" {
@@ -45,9 +38,9 @@ var (
 )
 
 func init() {
-	lookUpCmd.Flags().StringVar(&network, "network", "", "look up the network of a host")
-	lookUpCmd.Flags().StringVarP(&ipAddress, "addresses", "a", "", "look up IP addresses by hostname")
-	lookUpCmd.Flags().StringVarP(&nameServer, "nameservers", "n", "", "look up name servers by hostname")
-	lookUpCmd.Flags().StringVar(&hostName, "hostnames", "", "look up hostnames by IP address")
+	lookUpCmd.Flags().StringVarP(&network, "network", "n", "", "Look up the network a given hostname belongs to.")
+	lookUpCmd.Flags().StringVarP(&ipAddress, "addresses", "a", "", "Look up IP addresses for a given hostname.")
+	lookUpCmd.Flags().StringVarP(&nameServer, "nameservers", "s", "", "Look up nameservers for a given hostname.")
+	lookUpCmd.Flags().StringVar(&hostName, "hostnames", "", "Look up hostnames for a given IP address.")
 	Networker.AddCommand(lookUpCmd)
 }

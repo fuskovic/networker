@@ -1,7 +1,6 @@
 package cmd
 
 import (
-	"fmt"
 	"log"
 	"os"
 
@@ -11,23 +10,20 @@ import (
 )
 
 var (
-	devices         []string
-	seconds         int64
-	longCapExample  = "capture pkts on en1 for 10s or until 100 pkts captured:\nnetworker capture --devices en1 --seconds 10 --out myCaptureSession --limit --num 100 --verbose"
-	shortCapExample = "\nshort form: networker c -d en1 -s 10 -o myCaptureSession -l -n 100 -v"
-	capExample      = fmt.Sprintf("%s\n%s\n", longCapExample, shortCapExample)
-	outFile         string
-	limit, verbose  bool
-	numToCapture    int64
-	writer          *pcapgo.Writer
-	file            *os.File
-	err             error
+	devices        []string
+	seconds        int64
+	outFile        string
+	limit, verbose bool
+	numToCapture   int64
+	writer         *pcapgo.Writer
+	file           *os.File
+	err            error
 
 	captureCmd = &cobra.Command{
 		Use:     "capture",
 		Aliases: []string{"c", "cap"},
-		Short:   "capture network packets on specified devices.",
-		Example: capExample,
+		Short:   "Capture network packets on specified devices.",
+		Example: captureExample,
 		Run: func(cmd *cobra.Command, args []string) {
 			if len(devices) == 0 {
 				log.Printf("no designated devices")
@@ -67,12 +63,12 @@ var (
 )
 
 func init() {
-	captureCmd.Flags().BoolVarP(&verbose, "verbose", "v", false, "enable verbose logging.")
-	captureCmd.Flags().Int64VarP(&seconds, "seconds", "s", 0, "Amount of seconds to run capture")
-	captureCmd.Flags().StringSliceVarP(&devices, "devices", "d", []string{}, "devices on which to capture network packets (comma separated).")
-	captureCmd.Flags().StringVarP(&outFile, "out", "o", "", "specify outfile to write captured packets to")
-	captureCmd.Flags().BoolVarP(&limit, "limit", "l", false, "enable packet capture limiting(must use with --num || -n to specify number).")
-	captureCmd.Flags().Int64VarP(&numToCapture, "num", "n", 0, "number of packets to capture (accumulative for all devices)")
+	captureCmd.Flags().BoolVarP(&verbose, "verbose", "v", false, "Enable verbose logging.")
+	captureCmd.Flags().Int64VarP(&seconds, "seconds", "s", 0, "Amount of seconds to run capture for.")
+	captureCmd.Flags().StringSliceVarP(&devices, "devices", "d", []string{}, "Comma-separated list of devices to capture packets on.")
+	captureCmd.Flags().StringVarP(&outFile, "out", "o", "", "Name of an output file to write the packets to.")
+	captureCmd.Flags().BoolVarP(&limit, "limit", "l", false, "Limit the number of packets to capture. (must be used with the --num flag)")
+	captureCmd.Flags().Int64VarP(&numToCapture, "num", "n", 0, "Number of total packets to capture across all devices.")
 	captureCmd.MarkFlagRequired("seconds")
 	Networker.AddCommand(captureCmd)
 }
