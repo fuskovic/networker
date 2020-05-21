@@ -17,9 +17,38 @@ const (
 	promiscuous       = false
 )
 
-// Packets captures network packets for the designated devices.
-func Packets(designatedDevices []string, seconds, limit int64, writer *pcapgo.Writer, isLimited, isVerbose bool) error {
-	timeOut := time.Duration(seconds) * time.Second
+// Config collects the command parameters for the capture sub-command.
+type Config struct {
+	Devices        []string
+	Seconds        int64
+	OutFile        string
+	Limit, Verbose bool
+	NumToCapture   int64
+}
+
+// Run executes the command logic for the capture package.
+func Run(cfg *Config) error {
+	if len(cfg.Devices) == 0 {
+		return fmt.Errorf("no designated devices")
+	}
+
+	if cfg.Seconds < 5 {
+		return fmt.Errorf("capture must be at least 5 seconds long - your input : %d", cfg.Seconds)
+	}
+
+	if cfg.Limit && cfg.NumToCapture < 1 {
+		return fmt.Errorf("use of --limit flag without use of --num flag\nPlease specify number of packets to limit capture\nminimum is 1")
+	}
+
+	if err := start(cfg); err != nil {
+		return fmt.Errorf("error during packet capture : %v", err)
+	}
+	return nil
+}
+
+func start(cfg *Config) error {
+	var writer *pcapgo.Writer
+	timeOut := time.Duration(cfg.Seconds) * time.Second
 	ctx, cancel := context.WithTimeout(context.Background(), timeOut)
 	defer cancel()
 
@@ -31,39 +60,50 @@ func Packets(designatedDevices []string, seconds, limit int64, writer *pcapgo.Wr
 	packetChan := make(chan gopacket.Packet)
 	var pktsCaptured int64
 
-	if isVerbose {
-		go logProgress(ctx, timeOut, isLimited, &pktsCaptured, limit)
+	if cfg.OutFile != "" {
+		file, w, err := newWriter(cfg.OutFile)
+		if err != nil {
+			return fmt.Errorf("failed to create a new writer - err : %v", err)
+		}
+		defer file.Close()
+		writer = w
 	}
 
-	for _, designatedDevice := range designatedDevices {
+	if cfg.Verbose {
+		go logProgress(ctx, timeOut, cfg.Limit, &pktsCaptured, cfg.NumToCapture)
+	}
+
+	for _, d := range cfg.Devices {
 		for _, currentDevice := range allDevices {
-			if currentDevice.Name == designatedDevice {
+			if currentDevice.Name == d {
 				go cap(ctx, currentDevice.Name, timeOut, packetChan)
 			}
 		}
 	}
 
+capture:
 	for {
 		select {
 		case <-ctx.Done():
-			fmt.Println("\ncapture complete")
-			return nil
+			break capture
 		case p := <-packetChan:
 			if writer != nil {
 				if err := writer.WritePacket(p.Metadata().CaptureInfo, p.Data()); err != nil {
 					return fmt.Errorf("failed to write to pcap - err : %v", err)
 				}
 			} else {
+				// TODO : clean up this output
 				fmt.Println(p)
 			}
 
 			pktsCaptured++
-			if limitReached(isLimited, limit, pktsCaptured) {
+			if limitReached(cfg.Limit, cfg.NumToCapture, pktsCaptured) {
 				fmt.Println("limit reached")
 				cancel()
 			}
 		}
 	}
+	return nil
 }
 
 func cap(ctx context.Context, device string, timeOut time.Duration, ch chan gopacket.Packet) error {
@@ -87,8 +127,7 @@ func cap(ctx context.Context, device string, timeOut time.Duration, ch chan gopa
 	}
 }
 
-// NewWriter creates a new pcap and a writer for writing to it.
-func NewWriter(outFile string) (*os.File, *pcapgo.Writer, error) {
+func newWriter(outFile string) (*os.File, *pcapgo.Writer, error) {
 	fileName := fmt.Sprintf("%s.pcap", outFile)
 	f, err := os.Create(fileName)
 	if err != nil {
