@@ -1,5 +1,7 @@
 # Networker
 
+[![Go Report Card](https://goreportcard.com/badge/github.com/fuskovic/networker)](https://goreportcard.com/report/github.com/fuskovic/networker)
+
 A practical CLI tool for network administration.
 
 # Installation
