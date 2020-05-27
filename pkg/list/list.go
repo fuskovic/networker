@@ -23,13 +23,11 @@ var stars = strings.Repeat("*", 30)
 
 type (
 	// Config collects the command parameters for the list sub-command.
-	Config struct {
-		Me, All bool
-	}
+	Config struct{ Me, All bool }
+
 	pong struct {
-		name string
-		ip   string
-		up   bool
+		name, ip string
+		up       bool
 	}
 )
 
