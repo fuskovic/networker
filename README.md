@@ -37,6 +37,7 @@ Available Commands:
   list        List information on connected network devices.
   lookup      Lookup hostnames, IP addresses, nameservers, and general network information.
   proxy       Forward network traffic from one network connection to another.
+  request     Send an HTTP request.
   scan        Scan an IP for exposed ports.
 
 Flags:
