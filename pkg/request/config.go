@@ -33,29 +33,29 @@ func (c *Config) hasProtoScheme() bool {
 	return has("http://") || has("https://")
 }
 
-func (c *Config) buildBody() (*bytes.Buffer, error) {
-	if c.Data == "" {
-		return nil, nil
-	}
-
+func (c *Config) buildBody() (bytes.Buffer, error) {
 	var (
-		buf  *bytes.Buffer
+		buf  bytes.Buffer
 		data []byte
 		err  error
 	)
+
+	if c.Data == "" {
+		return buf, nil
+	}
 
 	if path.Ext(c.Data) != jsonExt {
 		data = []byte(c.Data)
 	} else {
 		data, err = ioutil.ReadFile(c.Data)
 		if err != nil {
-			return nil, err
+			return buf, err
 		}
 	}
 
-	enc := json.NewEncoder(buf)
+	enc := json.NewEncoder(&buf)
 	if err := enc.Encode(data); err != nil {
-		return nil, err
+		return buf, err
 	}
 	return buf, nil
 }
