@@ -15,7 +15,7 @@ var (
 		Use:     "request",
 		Aliases: []string{"req", "r"},
 		Example: "TODO: add request example",
-		Short:   "Send an HTTP GET request or POST JSON.",
+		Short:   "Send an HTTP request.",
 		Run: func(cmd *cobra.Command, args []string) {
 			if err := request.Run(reqCfg); err != nil {
 				fmt.Println(err)
@@ -26,11 +26,11 @@ var (
 )
 
 func init() {
+	reqCmd.Flags().StringSliceVarP(&reqCfg.Headers, "add-headers", "a", reqCfg.Headers, "Add a list of comma-separated request headers. (format : key:value,key:value,etc...)")
 	reqCmd.Flags().StringVarP(&reqCfg.URL, "url", "u", reqCfg.URL, "URL to send request.")
-	reqCmd.Flags().StringVarP(&reqCfg.Method, "method", "m", "GET", "Specify method. (default: GET - other supported methods include POST, PUT, PATCH, and DELETE)")
+	reqCmd.Flags().StringVarP(&reqCfg.Method, "method", "m", "GET", "Specify method. (supported methods include GET, POST, PUT, PATCH, and DELETE)")
 	reqCmd.Flags().StringVarP(&reqCfg.Data, "data", "d", reqCfg.Data, "JSON string or file to use for request body.")
-	reqCmd.Flags().IntVarP(&reqCfg.TimeOut, "time-out", "t", 3, "Specify number of seconds for time-out. (default : 3)")
+	reqCmd.Flags().IntVarP(&reqCfg.TimeOut, "time-out", "t", 3, "Specify number of seconds for time-out.")
 	reqCmd.MarkFlagRequired("url")
-	reqCmd.MarkFlagRequired("method")
 	Networker.AddCommand(reqCmd)
 }

@@ -15,6 +15,7 @@ var supportedMethods = []string{"GET", "POST", "PUT", "PATCH", "DELETE"}
 // Config collects the command parameters for the request sub-command.
 type Config struct {
 	URL, Method, Data string
+	Headers           []string
 	TimeOut           int
 }
 

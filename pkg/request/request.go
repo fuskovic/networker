@@ -5,6 +5,7 @@ import (
 	"io"
 	"net/http"
 	"os"
+	"strings"
 	"time"
 )
 
@@ -30,6 +31,11 @@ func Run(cfg *Config) error {
 	req, err := http.NewRequest(cfg.Method, cfg.URL, body)
 	if err != nil {
 		return err
+	}
+
+	for _, h := range cfg.Headers {
+		kvPair := strings.Split(h, ":")
+		req.Header.Set(kvPair[0], kvPair[1])
 	}
 
 	resp, err := client.Do(req)
