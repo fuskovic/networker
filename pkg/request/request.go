@@ -28,6 +28,8 @@ func Run(cfg *Config) error {
 		return fmt.Errorf("%s is an invalid request method", cfg.Method)
 	}
 
+	//fmt.Println("checking body", body.String())
+
 	req, err := http.NewRequest(cfg.Method, cfg.URL, &body)
 	if err != nil {
 		return err
