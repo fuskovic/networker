@@ -14,7 +14,7 @@ var (
 	reqCmd = &cobra.Command{
 		Use:     "request",
 		Aliases: []string{"req", "r"},
-		Example: "TODO: add request example",
+		Example: requestExample,
 		Short:   "Send an HTTP request.",
 		Run: func(cmd *cobra.Command, args []string) {
 			if err := request.Run(reqCfg); err != nil {

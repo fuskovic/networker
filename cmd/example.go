@@ -87,6 +87,24 @@ var (
 			shortForm:   "networker s --ip <address> -u 1024 -t -o",
 		},
 	})
+
+	requestExample = newExample("request", []subExample{
+		subExample{
+			description: "Explicitly passing the file path of a JSON or XML file to add the file contents to the body of a POST request",
+			longForm:    "networker request --url https://api.thecatapi.com/v1/votes --method POST --file scrap.json --add-headers <key>:<value>,<key>:<value>",
+			shortForm:   "networker r -u https://api.thecatapi.com/v1/votes -m POST -f scrap.json -a <key>:<value>,<key>:<value>",
+		},
+		subExample{
+			description: "Send a Delete request. Supported methods include GET, POST, PATCH, PUT, and DELETE",
+			longForm:    "networker request --url https://api.thecatapi.com/v1/votes/<voteID> --method DELETE --add-headers x-api-key:<api-key>",
+			shortForm:   "networker r -u https://api.thecatapi.com/v1/votes/<voteID> -m DELETE -a x-api-key:<api-key>",
+		},
+		subExample{
+			description: "Networker will set the protocol scheme (defaults to https://) and method (defaults to GET) if not set",
+			longForm:    "networker request --url api.thecatapi.com/v1/votes --add-headers x-api-key:<api-key>",
+			shortForm:   "networker r -u api.thecatapi.com/v1/votes -a x-api-key:<api-key>",
+		},
+	})
 )
 
 type (

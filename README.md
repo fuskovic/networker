@@ -14,6 +14,7 @@ From project root...
 
 - [List](#list)
 - [Lookup](#lookup)
+- [Request](#request)
 - [Capture](#capture)
 - [Scan](#scan)
 - [Proxy](#proxy)
@@ -143,6 +144,55 @@ Use "networker [command] --help" for more information about a command.
     -s, --nameservers string   Look up nameservers for a given hostname.
     -n, --network string       Look up the network a given hostname belongs to.
 
+# Request
+
+    Send an HTTP request.
+
+    Usage:
+    networker request [flags]
+
+    Aliases:
+    request, req, r
+
+    Examples:
+
+    Explicitly passing the file path of a JSON or XML file to add the file contents to the body of a POST request:
+
+                long form:
+
+                        networker request --url https://api.thecatapi.com/v1/votes --method POST --file scrap.json --add-headers <key>:<value>,<key>:<value>
+
+                short form:
+
+                                networker r -u https://api.thecatapi.com/v1/votes -m POST -f scrap.json -a <key>:<value>,<key>:<value>
+
+    Send a Delete request. Supported methods include GET, POST, PATCH, PUT, and DELETE:
+
+                long form:
+
+                        networker request --url https://api.thecatapi.com/v1/votes/<voteID> --method DELETE --add-headers x-api-key:<api-key>
+
+                short form:
+
+                        networker r -u https://api.thecatapi.com/v1/votes/<voteID> -m DELETE -a x-api-key:<api-key>
+
+    Networker will set the protocol scheme (defaults to https://) and method (defaults to GET) if not set:
+
+                long form:
+
+                        networker request --url api.thecatapi.com/v1/votes --add-headers x-api-key:<api-key>
+
+                short form:
+
+                        networker r -u api.thecatapi.com/v1/votes -a x-api-key:<api-key>
+
+    Flags:
+    -a, --add-headers strings   Add a list of comma-separated request headers. (format : key:value,key:value,etc...)
+    -f, --file string           Path to JSON or XML file to use for request body. (content-type headers for each file-type are set automatically)
+    -h, --help                  help for request
+    -m, --method string         Specify method. (supported methods include GET, POST, PUT, PATCH, and DELETE) (default "GET")
+    -t, --time-out int          Specify number of seconds for time-out. (default 3)
+    -u, --url string            URL to send request.
 
 # Capture
 
