@@ -164,7 +164,7 @@ Use "networker [command] --help" for more information about a command.
 
                 short form:
 
-                                networker r -u https://api.thecatapi.com/v1/votes -m POST -f scrap.json -a <key>:<value>,<key>:<value>
+                        networker r -u https://api.thecatapi.com/v1/votes -m POST -f scrap.json -a <key>:<value>,<key>:<value>
 
     Send a Delete request. Supported methods include GET, POST, PATCH, PUT, and DELETE:
 
