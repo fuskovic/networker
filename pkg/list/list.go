@@ -33,17 +33,14 @@ type (
 
 // Run executes the command logic for the list package.
 func Run(cfg *Config) error {
+	var err error
 	switch {
 	case cfg.Me:
-		if err := me(); err != nil {
-			return err
-		}
+		err = me()
 	case cfg.All:
-		if err := all(); err != nil {
-			return err
-		}
+		err = all()
 	}
-	return nil
+	return err
 }
 
 func me() error {
