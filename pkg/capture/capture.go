@@ -31,22 +31,18 @@ type Config struct {
 
 // Run executes the command logic for the capture package.
 func Run(cfg *Config) error {
-	if len(cfg.Devices) == 0 {
-		return fmt.Errorf("no designated devices")
+	var err error
+	switch {
+	case len(cfg.Devices) == 0:
+		err = fmt.Errorf("no designated devices")
+	case cfg.Seconds < 5:
+		err = fmt.Errorf("capture must be at least 5 seconds long - your input : %d", cfg.Seconds)
+	case cfg.Limit && cfg.NumToCapture < 1:
+		err = fmt.Errorf("use of --limit flag without use of --num flag\nPlease specify number of packets to limit capture\nminimum is 1")
+	default:
+		err = start(cfg)
 	}
-
-	if cfg.Seconds < 5 {
-		return fmt.Errorf("capture must be at least 5 seconds long - your input : %d", cfg.Seconds)
-	}
-
-	if cfg.Limit && cfg.NumToCapture < 1 {
-		return fmt.Errorf("use of --limit flag without use of --num flag\nPlease specify number of packets to limit capture\nminimum is 1")
-	}
-
-	if err := start(cfg); err != nil {
-		return fmt.Errorf("error during packet capture : %v", err)
-	}
-	return nil
+	return err
 }
 
 func start(cfg *Config) error {
