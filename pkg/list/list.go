@@ -16,46 +16,42 @@ import (
 const (
 	googleDNS = "8.8.8.8:80"
 	getExtURL = "http://myexternalip.com/raw"
-	notFound  = "not found"
 )
 
 var stars = strings.Repeat("*", 30)
 
-type (
-	// Config collects the command parameters for the list sub-command.
-	Config struct{ Me, All bool }
-
-	pong struct {
-		name, ip string
-		up       bool
-	}
-)
+// Config collects the command parameters for the list sub-command.
+type Config struct{ Me, All bool }
 
 // Run executes the command logic for the list package.
 func Run(cfg *Config) error {
-	var err error
 	switch {
 	case cfg.Me:
-		err = me()
+		fmt.Println(me())
 	case cfg.All:
-		err = all()
-	}
-	return err
-}
-
-func me() error {
-	if _, err := localIP(); err != nil {
-		return err
-	}
-
-	if err := remoteIP(); err != nil {
-		return err
-	}
-
-	if err := router(); err != nil {
-		return err
+		return all()
 	}
 	return nil
+}
+
+func me() string {
+	outputFormat := "local : %s\nremote : %s\nrouter : %s\n"
+
+	local, err := localIP()
+	if err != nil {
+		local = "unknown"
+	}
+
+	remote, err := remoteIP()
+	if err != nil {
+		remote = "unknown"
+	}
+
+	router, err := router()
+	if err != nil {
+		router = "unknown"
+	}
+	return fmt.Sprintf(outputFormat, local, remote, router)
 }
 
 func localIP() (string, error) {
@@ -64,44 +60,39 @@ func localIP() (string, error) {
 		return "", fmt.Errorf("failed to dial google dns : %s", err)
 	}
 	defer conn.Close()
+
 	localAddr, ok := conn.LocalAddr().(*net.UDPAddr)
 	if !ok {
 		return "", fmt.Errorf("failed to resolve local IP")
 	}
+
 	host, _, err := net.SplitHostPort(localAddr.String())
 	if err != nil {
 		return "", err
 	}
-	names, _ := net.LookupAddr(host)
-	if len(names) > 0 {
-		fmt.Printf("Name : %s\n", names[0])
-	}
-	fmt.Printf("Local IP : %s\n", host)
 	return host, nil
 }
 
-func remoteIP() error {
+func remoteIP() (string, error) {
 	resp, err := http.Get(getExtURL)
 	if err != nil {
-		return err
+		return "", err
 	}
 	defer resp.Body.Close()
 
 	data, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		return err
+		return "", err
 	}
-	fmt.Printf("Remote IP : %s\n", string(data))
-	return nil
+	return string(data), nil
 }
 
-func router() error {
+func router() (string, error) {
 	gatewayAddr, err := gw.DiscoverGateway()
 	if err != nil {
-		return err
+		return "", err
 	}
-	fmt.Printf("Gateway : %s\n", gatewayAddr.String())
-	return nil
+	return gatewayAddr.String(), nil
 }
 
 func all() error {
