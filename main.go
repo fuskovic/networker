@@ -1,7 +1,10 @@
 package main
 
-import "github.com/fuskovic/networker/cmd"
+import (
+	"github.com/fuskovic/networker/cmd"
+	"go.coder.com/cli"
+)
 
 func main() {
-	cmd.Networker.Execute()
+	cli.RunRoot(cmd.RootCmd{})
 }

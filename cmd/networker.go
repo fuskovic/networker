@@ -1,25 +1,29 @@
 package cmd
 
 import (
-	"log"
+	"go.coder.com/cli"
 
-	"github.com/spf13/cobra"
+	"github.com/spf13/pflag"
 )
 
-// Networker is the root cmd.
-var Networker = &cobra.Command{
-	Use:   "networker",
-	Short: "A practical CLI tool for network administration.",
-	Run: func(cmd *cobra.Command, args []string) {
-		if err := cmd.Usage(); err != nil {
-			log.Fatalf("failed to print usage - %v\n", err)
-		}
-	},
+// RootCmd is the command that starts the program.
+type RootCmd struct{}
+
+// Run prints the usage of a flag set.
+func (r *RootCmd) Run(fl *pflag.FlagSet) { fl.Usage() }
+
+// Spec returns a command spec containing a description of it's usage.
+func (r *RootCmd) Spec() cli.CommandSpec {
+	return cli.CommandSpec{
+		Name:  "networker",
+		Usage: "[subcommand] [flags]",
+		Desc:  "A practical CLI tool for network administration.",
+	}
 }
 
-// Execute runs the root cmd.
-func Execute() {
-	if err := Networker.Execute(); err != nil {
-		log.Fatalf("failed to execute networker - err : %v\n", err)
+// Subcommands returns a set of any existing child-commands.
+func (r *RootCmd) Subcommands() []cli.Command {
+	return []cli.Command{
+		// TODO : ADD SUB-CMDS
 	}
 }
