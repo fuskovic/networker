@@ -27,5 +27,6 @@ func (r *Root) Subcommands() []cli.Command {
 		&backDoorCmd{},
 		&captureCmd{},
 		&listCmd{},
+		&lookUpCmd{},
 	}
 }
