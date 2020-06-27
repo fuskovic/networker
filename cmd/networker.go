@@ -29,5 +29,6 @@ func (r *Root) Subcommands() []cli.Command {
 		&listCmd{},
 		&lookUpCmd{},
 		&proxyCmd{},
+		&requestCmd{},
 	}
 }

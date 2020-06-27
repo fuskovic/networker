@@ -1,36 +1,133 @@
 package cmd
 
 import (
+	"bytes"
 	"fmt"
+	"io"
+	"io/ioutil"
+	"net/http"
+	"os"
+	"path"
+	"strings"
+	"time"
 
-	"github.com/spf13/cobra"
-
-	"github.com/fuskovic/networker/pkg/request"
+	"github.com/spf13/pflag"
+	"go.coder.com/cli"
+	"go.coder.com/flog"
 )
 
-var (
-	reqCfg = &request.Config{}
+const (
+	jsonExt = ".json"
+	xmlExt  = ".xml"
+)
 
-	reqCmd = &cobra.Command{
-		Use:     "request",
-		Aliases: []string{"req", "r"},
-		Example: requestExample,
-		Short:   "Send an HTTP request.",
-		Run: func(cmd *cobra.Command, args []string) {
-			if err := request.Run(reqCfg); err != nil {
-				fmt.Println(err)
-				cmd.Usage()
-			}
-		},
+var supportedMethods = []string{"GET", "POST", "PUT", "PATCH", "DELETE"}
+
+type requestCmd struct {
+	url, method, file string
+	headers           []string
+	timeOut           int
+}
+
+// Spec returns a command spec containing a description of it's usage.
+func (cmd *requestCmd) Spec() cli.CommandSpec {
+	return cli.CommandSpec{
+		Name:  "request",
+		Usage: "TODO: ADD USAGE",
+		Desc:  "Send an HTTP request.",
 	}
-)
+}
 
-func init() {
-	reqCmd.Flags().StringSliceVarP(&reqCfg.Headers, "add-headers", "a", reqCfg.Headers, "Add a list of comma-separated request headers. (format : key:value,key:value,etc...)")
-	reqCmd.Flags().StringVarP(&reqCfg.URL, "url", "u", reqCfg.URL, "URL to send request.")
-	reqCmd.Flags().StringVarP(&reqCfg.Method, "method", "m", "GET", "Specify method. (supported methods include GET, POST, PUT, PATCH, and DELETE)")
-	reqCmd.Flags().StringVarP(&reqCfg.File, "file", "f", reqCfg.File, "Path to JSON or XML file to use for request body. (content-type headers for each file-type are set automatically)")
-	reqCmd.Flags().IntVarP(&reqCfg.TimeOut, "time-out", "t", 3, "Specify number of seconds for time-out.")
-	reqCmd.MarkFlagRequired("url")
-	Networker.AddCommand(reqCmd)
+// RegisterFlags initializes how a flag set is processed for a particular command.
+func (cmd *requestCmd) RegisterFlags(fl *pflag.FlagSet) {
+	fl.StringSliceVarP(&cmd.headers, "add-headers", "a", cmd.headers, "Add a list of comma-separated request headers. (format : key:value,key:value,etc...)")
+	fl.StringVarP(&cmd.url, "url", "u", cmd.url, "URL to send request.")
+	fl.StringVarP(&cmd.method, "method", "m", "GET", "Specify method. (supported methods include GET, POST, PUT, PATCH, and DELETE)")
+	fl.StringVarP(&cmd.file, "file", "f", cmd.file, "Path to JSON or XML file to use for request body. (content-type headers for each file-type are set automatically)")
+	fl.IntVarP(&cmd.timeOut, "time-out", "t", 3, "Specify number of seconds for time-out.")
+}
+
+// Run crafts an HTTP request out of the specified flag set, sends it, and outputs the response.
+func (cmd *requestCmd) Run(fl *pflag.FlagSet) {
+	seconds := time.Duration(cmd.timeOut)
+	timeOut := time.Duration(seconds * time.Second)
+	client := http.Client{Timeout: timeOut}
+
+	body, err := cmd.buildBody()
+	if err != nil {
+		flog.Fatal(err.Error())
+	}
+
+	if !cmd.hasProtoScheme() {
+		cmd.url = "https://" + cmd.url
+	}
+
+	if !cmd.validMethod() {
+		flog.Fatal(fmt.Errorf("%s is an invalid request method", cmd.method))
+	}
+
+	req, err := http.NewRequest(cmd.method, cmd.url, &body)
+	if err != nil {
+		flog.Fatal(err.Error())
+	}
+
+	for _, h := range cmd.headers {
+		kvPair := strings.Split(h, ":")
+		req.Header.Set(kvPair[0], kvPair[1])
+	}
+
+	resp, err := client.Do(req)
+	if err != nil {
+		flog.Fatal(err.Error())
+	}
+	defer resp.Body.Close()
+
+	io.Copy(os.Stdout, resp.Body)
+	return nil
+}
+
+func (cmd *requestCmd) validMethod() bool {
+	for _, m := range supportedMethods {
+		if m == cmd.method {
+			return true
+		}
+	}
+	return false
+}
+
+func (cmd *requestCmd) hasProtoScheme() bool {
+	has := func(s string) bool { return strings.Contains(cmd.url, s) }
+	return has("http://") || has("https://")
+}
+
+func (cmd *requestCmd) buildBody() (bytes.Buffer, error) {
+	var (
+		buf         bytes.Buffer
+		contentType string
+		data        []byte
+		err         error
+	)
+
+	if cmd.file == "" {
+		return buf, nil
+	}
+
+	ext := path.Ext(cmd.file)
+
+	switch ext {
+	case jsonExt:
+		contentType = "Content-Type:application/json"
+	case xmlExt:
+		contentType = "Content-Type:application/xml"
+	default:
+		return buf, fmt.Errorf("%s is an unsupported file format", ext)
+	}
+
+	data, err = ioutil.ReadFile(cmd.file)
+	if err != nil {
+		return buf, err
+	}
+
+	cmd.headers = append(cmd.headers, contentType)
+	return *bytes.NewBuffer(data), nil
 }
