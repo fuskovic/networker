@@ -6,5 +6,5 @@ import (
 )
 
 func main() {
-	cli.RunRoot(cmd.RootCmd{})
+	cli.RunRoot(cmd.Root{})
 }
