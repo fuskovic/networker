@@ -5,6 +5,7 @@ import (
 	"io/ioutil"
 	"net"
 	"net/http"
+	"strings"
 	"sync"
 	"time"
 
@@ -43,7 +44,7 @@ func (cmd *listCmd) RegisterFlags(fl *pflag.FlagSet) {
 func (cmd *listCmd) Run(fl *pflag.FlagSet) {
 	switch {
 	case cmd.me:
-		flog.Info(me())
+		me()
 	case cmd.all:
 		all()
 	default:
@@ -51,9 +52,7 @@ func (cmd *listCmd) Run(fl *pflag.FlagSet) {
 	}
 }
 
-func me() string {
-	outputFormat := "local : %s\nremote : %s\nrouter : %s\n"
-
+func me() {
 	local, err := localIP()
 	if err != nil {
 		local = "unknown"
@@ -68,7 +67,10 @@ func me() string {
 	if err != nil {
 		router = "unknown"
 	}
-	return fmt.Sprintf(outputFormat, local, remote, router)
+
+	sep := strings.Repeat(" ", 11)
+	flog.Info("LOCAL%sREMOTE%sROUTER", sep, sep)
+	flog.Info("%s   %s   %s", local, remote, router)
 }
 
 func localIP() (string, error) {
@@ -125,6 +127,10 @@ func all() error {
 
 	var wg sync.WaitGroup
 	wg.Add(len(hosts))
+
+	sep := func(n int) string { return strings.Repeat(" ", n) }
+	flog.Info("IP%sHOST%sCONNECTED", sep(12), sep(37))
+
 	for _, h := range hosts {
 		go func(host string) {
 			process(host)
@@ -141,12 +147,11 @@ func process(host string) {
 	p := fp.NewPinger()
 	ip, err := net.ResolveIPAddr("ip4:icmp", host)
 	if err != nil {
-		fmt.Println("failed to resolve IP", "error", err)
+		flog.Error(err.Error())
 		return
 	}
 	p.AddIPAddr(ip)
 	p.OnRecv = func(addr *net.IPAddr, rtt time.Duration) {
-		fmt.Printf("IP Addr: %s receive, RTT: %v\n", addr.String(), rtt)
 		up = true
 	}
 	p.Run()
@@ -157,8 +162,10 @@ func process(host string) {
 	}
 
 	if len(names) > 0 {
-		fmt.Println(stars)
-		fmt.Printf("Host : %s\nIP : %s\nConnected : %t\n", names[0], host, up)
+		for len(names[0]) < 40 {
+			names[0] += " "
+		}
+		flog.Info("%s %s %t", host, names[0], up)
 	}
 }
 
