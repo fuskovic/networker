@@ -5,6 +5,7 @@ import (
 	"io/ioutil"
 	"net"
 	"net/http"
+	"os/user"
 	"strings"
 	"sync"
 	"time"
@@ -42,7 +43,13 @@ func (cmd *listCmd) RegisterFlags(fl *pflag.FlagSet) {
 // Run prints either general network information for this machine or for the entire network
 // depending on how the flag set has been configured.
 func (cmd *listCmd) Run(fl *pflag.FlagSet) {
+	u, err := user.Current()
+	if err != nil {
+		flog.Fatal(err.Error())
+	}
 	switch {
+	case u.Uid != "0":
+		flog.Fatal("Must be root to run this command")
 	case cmd.me:
 		me()
 	case cmd.all:
