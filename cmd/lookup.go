@@ -37,6 +37,10 @@ func (cmd *lookUpCmd) RegisterFlags(fl *pflag.FlagSet) {
 
 // Run iterates over the flagset in search of supported lookups and prints the information requested.
 func (cmd *lookUpCmd) Run(fl *pflag.FlagSet) {
+	if !cmd.lookUpsSpecified() {
+		fl.Usage()
+	}
+
 	for value, lookUp := range cmd.supportedLookUps() {
 		if value != "" {
 			if err := lookUp(value); err != nil {
@@ -53,6 +57,16 @@ func (cmd *lookUpCmd) supportedLookUps() map[string]lookUpFunc {
 		cmd.nameServer: nameServersByHostName,
 		cmd.network:    networkByHostName,
 	}
+}
+
+func (cmd *lookUpCmd) lookUpsSpecified() bool {
+	lookUps := []string{cmd.hostName, cmd.ipAddress, cmd.nameServer, cmd.network}
+	for _, lu := range lookUps {
+		if lu != "" {
+			return true
+		}
+	}
+	return false
 }
 
 func hostNamesByIP(addr string) error {
