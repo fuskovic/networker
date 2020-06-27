@@ -58,7 +58,7 @@ func (cmd *backDoorCmd) Run(fl *pflag.FlagSet) {
 	}
 
 	if err != nil {
-		flog.Fatal(err)
+		flog.Fatal(err.Error())
 	}
 }
 
