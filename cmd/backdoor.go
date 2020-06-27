@@ -80,17 +80,17 @@ func create(port int) error {
 	go func() {
 		conn, err := lsnr.Accept()
 		if err != nil {
-			flog.Error(err)
+			flog.Error(err.Error())
 			return
 		}
-		flog.Info("connection established : %s", conn.RemoteAddr().String())
+		flog.Success("connection established : %s", conn.RemoteAddr().String())
 		connChan <- conn
 	}()
 
 	for {
 		select {
 		case signal := <-stop:
-			flog.Info("received disconnection signal : %s", signal)
+			flog.Info("received disconnect signal : %s", signal)
 			close(connChan)
 			for conn := range connChan {
 				conn.Close()

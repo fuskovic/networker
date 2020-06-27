@@ -116,13 +116,12 @@ capture:
 					return fmt.Errorf("failed to write to pcap - err : %v", err)
 				}
 			} else {
-				fmt.Println(stars)
 				unWrap(p)
 			}
 
 			pktsCaptured++
 			if limitReached(cmd.limit, cmd.numToCapture, pktsCaptured) {
-				fmt.Println("limit reached")
+				flog.Info("limit reached")
 				cancel()
 			}
 		}

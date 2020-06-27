@@ -6,16 +6,11 @@ import (
 	"net"
 	"os"
 	"os/signal"
-	"syscall"
 
 	"github.com/spf13/pflag"
 	"go.coder.com/cli"
 	"go.coder.com/flog"
 )
-
-const tcp = "tcp"
-
-var signals = []os.Signal{syscall.SIGHUP, syscall.SIGINT, syscall.SIGTERM, syscall.SIGQUIT}
 
 type proxyCmd struct {
 	listenOn int

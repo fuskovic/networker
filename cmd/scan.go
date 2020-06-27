@@ -16,14 +16,10 @@ import (
 const (
 	// TotalPorts is the total number of all tcp/udp ports
 	TotalPorts = 65535
-	tcp        = "tcp"
 	udp        = "udp"
 )
 
-var (
-	timeOut = 3 * time.Second
-	stars   = strings.Repeat("*", 30)
-)
+var timeOut = 3 * time.Second
 
 type scanCmd struct {
 	addr                       string
@@ -52,7 +48,7 @@ func (cmd *scanCmd) RegisterFlags(fl *pflag.FlagSet) {
 
 func (cmd *scanCmd) Run(fl *pflag.FlagSet) {
 	if net.ParseIP(cmd.addr) == nil {
-		flog.Fatal(fmt.Errorf("%s is not a valid IP address", cmd.addr))
+		flog.Fatal(fmt.Sprintf("%s is not a valid IP address", cmd.addr))
 	}
 
 	if !protocolSpecified(cmd.tCPonly, cmd.uDPonly) {
@@ -61,64 +57,57 @@ func (cmd *scanCmd) Run(fl *pflag.FlagSet) {
 		cmd.uDPonly = true
 	}
 
-	scanner := &scanner{
-		host:     cmd.addr,
-		tcpOnly:  cmd.tCPonly,
-		udpOnly:  cmd.uDPonly,
-		openOnly: cmd.openOnly,
-	}
-
 	switch {
 	case cmd.upTo > TotalPorts:
-		flog.Fatal(fmt.Errorf("can not scan more than %d ports", TotalPorts))
+		flog.Fatal(fmt.Sprintf("can not scan more than %d ports", TotalPorts))
 	case len(cmd.ports) > 0:
-		scanner.scanPorts(cmd.ports)
+		cmd.scanPorts(cmd.ports)
 	case cmd.upTo > 0:
-		scanner.scanUpTo(cmd.upTo)
+		cmd.scanUpTo(cmd.upTo)
 	default:
-		scanner.scanAllPorts()
+		cmd.scanAllPorts()
 	}
-	flog.Info("scan complete")
+	flog.Success("scan complete")
 }
 
-func (s *scanner) scanPorts(specifiedPorts []int) {
-	s.start(specifiedPorts)
+func (cmd *scanCmd) scanPorts(specifiedPorts []int) {
+	cmd.start(specifiedPorts)
 }
 
-func (s *scanner) scanUpTo(upTo int) {
+func (cmd *scanCmd) scanUpTo(upTo int) {
 	portsForScanning := portsToScan(upTo)
-	s.start(portsForScanning)
+	cmd.start(portsForScanning)
 }
 
-func (s *scanner) scanAllPorts() {
+func (cmd *scanCmd) scanAllPorts() {
 	portsForScanning := portsToScan(TotalPorts)
-	s.start(portsForScanning)
+	cmd.start(portsForScanning)
 }
 
-func (s *scanner) scan(port int, c chan<- string) {
-	if s.tcpOnly {
-		if s.shouldLog(tcp, port) {
+func (cmd *scanCmd) scan(port int, c chan<- string) {
+	if cmd.tCPonly {
+		if cmd.shouldLog(tcp, port) {
 			c <- fmt.Sprintf("%s\nport : %s\nOpen : %t",
 				stars,
 				fmt.Sprintf("%s/%d", tcp, port),
-				isOpen(tcp, s.host, port),
+				isOpen(tcp, cmd.addr, port),
 			)
 		}
 	}
 
-	if s.udpOnly {
-		if s.shouldLog(udp, port) {
+	if cmd.uDPonly {
+		if cmd.shouldLog(udp, port) {
 			c <- fmt.Sprintf("%s\nport : %s\nOpen : %t",
 				stars,
 				fmt.Sprintf("%s/%d", udp, port),
-				isOpen(udp, s.host, port),
+				isOpen(udp, cmd.addr, port),
 			)
 		}
 	}
 }
 
-func (s *scanner) shouldLog(protocol string, port int) bool {
-	return s.openOnly && isOpen(protocol, s.host, port) || !s.openOnly
+func (cmd *scanCmd) shouldLog(protocol string, port int) bool {
+	return cmd.openOnly && isOpen(protocol, cmd.addr, port) || !cmd.openOnly
 }
 
 func isOpen(protocol, host string, port int) bool {
@@ -154,7 +143,7 @@ func organize(results []string) []string {
 	return organized
 }
 
-func (s *scanner) start(portsForScanning []int) {
+func (cmd *scanCmd) start(portsForScanning []int) {
 	var wg sync.WaitGroup
 	var results []string
 	wg.Add(len(portsForScanning))
@@ -176,7 +165,7 @@ func (s *scanner) start(portsForScanning []int) {
 
 	for _, port := range portsForScanning {
 		go func(p int) {
-			s.scan(p, ch)
+			cmd.scan(p, ch)
 			wg.Done()
 		}(port)
 	}

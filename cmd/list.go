@@ -5,9 +5,11 @@ import (
 	"io/ioutil"
 	"net"
 	"net/http"
-	"strings"
 	"sync"
 	"time"
+
+	gw "github.com/jackpal/gateway"
+	fp "github.com/tatsushid/go-fastping"
 
 	"github.com/spf13/pflag"
 	"go.coder.com/cli"
@@ -18,8 +20,6 @@ const (
 	googleDNS = "8.8.8.8:80"
 	getExtURL = "http://myexternalip.com/raw"
 )
-
-var stars = strings.Repeat("*", 30)
 
 type listCmd struct{ me, all bool }
 

@@ -63,7 +63,7 @@ func (cmd *requestCmd) Run(fl *pflag.FlagSet) {
 	}
 
 	if !cmd.validMethod() {
-		flog.Fatal(fmt.Errorf("%s is an invalid request method", cmd.method))
+		flog.Fatal(fmt.Sprintf("%s is an invalid request method", cmd.method))
 	}
 
 	req, err := http.NewRequest(cmd.method, cmd.url, &body)
@@ -83,7 +83,6 @@ func (cmd *requestCmd) Run(fl *pflag.FlagSet) {
 	defer resp.Body.Close()
 
 	io.Copy(os.Stdout, resp.Body)
-	return nil
 }
 
 func (cmd *requestCmd) validMethod() bool {
