@@ -17,19 +17,32 @@ import (
 )
 
 const (
-	snapshotLen int32 = 65535
-	promiscuous       = false
+	unknown                 = "unknown"
+	snapshotLen       int32 = 65535
+	minSpacesSeq            = 12
+	minSpacesProtocol       = 10
+	minSpacesSrc            = 50
 )
 
-var stars = strings.Repeat("*", 30)
+var (
+	sep       = func(n int) string { return strings.Repeat(" ", n) }
+	headerRow = fmt.Sprintf("SEQUENCE%sPROTOCOL%sSRC-MAC:SRC-IP:SRC-PORT%sDEST-MAC:DEST-IP:DEST-PORT", sep(5), sep(3), sep(28))
+)
 
-type captureCmd struct {
-	devices        []string
-	seconds        int64
-	outFile        string
-	limit, verbose bool
-	numToCapture   int64
-}
+type (
+	captureCmd struct {
+		devices      []string
+		seconds      int64
+		outFile      string
+		limit        bool
+		numToCapture int64
+	}
+
+	row struct {
+		srcIp, srcMac, srcPort, destIp, destMac, destPort, protocol string
+		seq                                                         uint32
+	}
+)
 
 // Spec returns a command spec containing a description of it's usage.
 func (cmd *captureCmd) Spec() cli.CommandSpec {
@@ -42,7 +55,6 @@ func (cmd *captureCmd) Spec() cli.CommandSpec {
 
 // RegisterFlags initializes how a flag set is processed for a particular command.
 func (cmd *captureCmd) RegisterFlags(fl *pflag.FlagSet) {
-	fl.BoolVarP(&cmd.verbose, "verbose", "v", cmd.verbose, "Enable verbose logging.")
 	fl.Int64VarP(&cmd.seconds, "seconds", "s", cmd.seconds, "Amount of seconds to run capture for.")
 	fl.StringSliceVarP(&cmd.devices, "devices", "d", cmd.devices, "Comma-separated list of devices to capture packets on.")
 	fl.StringVarP(&cmd.outFile, "out", "o", cmd.outFile, "Name of an output file to write the packets to.")
@@ -70,6 +82,34 @@ func (cmd *captureCmd) Run(fl *pflag.FlagSet) {
 	}
 }
 
+func newRow() row {
+	return row{
+		srcIp:    unknown,
+		srcMac:   unknown,
+		srcPort:  unknown,
+		destIp:   unknown,
+		destMac:  unknown,
+		destPort: unknown,
+		protocol: unknown,
+	}
+}
+
+func (r *row) format() string {
+	pad := func(s string, n int) string {
+		for len(s) < n {
+			s += " "
+		}
+		return s
+	}
+
+	seq := pad(fmt.Sprintf("%d", r.seq), minSpacesSeq)
+	src := pad(fmt.Sprintf("%s:%s:%s", r.srcMac, r.srcIp, r.srcPort), minSpacesSrc)
+	protocol := pad(r.protocol, minSpacesProtocol)
+	dst := fmt.Sprintf("%s:%s:%s", r.destMac, r.destIp, r.destPort)
+
+	return fmt.Sprintf("%s %s %s %s", seq, protocol, src, dst)
+}
+
 func start(cmd *captureCmd) error {
 	var writer *pcapgo.Writer
 	timeOut := time.Duration(cmd.seconds) * time.Second
@@ -93,17 +133,15 @@ func start(cmd *captureCmd) error {
 		writer = w
 	}
 
-	if cmd.verbose {
-		go logProgress(ctx, timeOut, cmd.limit, &pktsCaptured, cmd.numToCapture)
-	}
-
 	for _, d := range cmd.devices {
 		for _, currentDevice := range allDevices {
 			if currentDevice.Name == d {
-				go cap(ctx, currentDevice.Name, timeOut, packetChan)
+				go cap(ctx, d, timeOut, packetChan)
 			}
 		}
 	}
+
+	flog.Info(headerRow)
 
 capture:
 	for {
@@ -115,22 +153,23 @@ capture:
 				if err := writer.WritePacket(p.Metadata().CaptureInfo, p.Data()); err != nil {
 					return fmt.Errorf("failed to write to pcap - err : %v", err)
 				}
-			} else {
-				unWrap(p)
 			}
 
+			unWrap(p)
 			pktsCaptured++
+
 			if limitReached(cmd.limit, cmd.numToCapture, pktsCaptured) {
 				flog.Info("limit reached")
 				cancel()
 			}
 		}
 	}
+	flog.Success("CAPTURE COMPLETE - CAPTURED %d PACKETS", pktsCaptured)
 	return nil
 }
 
 func cap(ctx context.Context, device string, timeOut time.Duration, ch chan gopacket.Packet) error {
-	handle, err := p.OpenLive(device, snapshotLen, promiscuous, timeOut)
+	handle, err := p.OpenLive(device, snapshotLen, false, timeOut)
 	if err != nil {
 		return err
 	}
@@ -169,57 +208,46 @@ func limitReached(isLimited bool, limit, captured int64) bool {
 	return isLimited && captured == limit
 }
 
-func logProgress(ctx context.Context, d time.Duration, isLimited bool, captured *int64, limit int64) {
-	start := time.Now()
-	end := start.Add(d)
-
-	for start.Unix() < end.Unix() {
-		elapsed := time.Since(start).Truncate(time.Second)
-		time.Sleep(500 * time.Millisecond)
-		output := fmt.Sprintf("\r%v/%v elapsed", elapsed, d)
-		if isLimited {
-			output += fmt.Sprintf(" - %d/%d captured", *captured, limit)
-		}
-		fmt.Print(output)
-	}
-}
-
 func unWrap(packet gopacket.Packet) {
+	row := newRow()
+
 	ethernetLayer := packet.Layer(layers.LayerTypeEthernet)
 	if ethernetLayer != nil {
-		fmt.Println("***Ethernet layer***")
 		ethernetPacket, decoded := ethernetLayer.(*layers.Ethernet)
 		if !decoded {
-			fmt.Println("failed to decode ethernet layer")
+			flog.Error("failed to decode ethernet layer")
 		} else {
-			fmt.Println("Source MAC: ", ethernetPacket.SrcMAC)
-			fmt.Println("Destination MAC: ", ethernetPacket.DstMAC)
-			fmt.Println("Ethernet type: ", ethernetPacket.EthernetType)
+			row.srcMac = ethernetPacket.SrcMAC.String()
+			row.destMac = ethernetPacket.DstMAC.String()
 		}
 	}
 
 	ipLayer := packet.Layer(layers.LayerTypeIPv4)
 	if ipLayer != nil {
-		fmt.Println("***IPv4 layer***")
 		ipPacket, decoded := ipLayer.(*layers.IPv4)
 		if !decoded {
-			fmt.Println("failed to decode IPv4 layer")
+			flog.Error("failed to decode IPv4 layer")
 		} else {
-			fmt.Printf("From %s to %s\n", ipPacket.SrcIP, ipPacket.DstIP)
-			fmt.Println("Protocol: ", ipPacket.Protocol)
+			row.srcIp = ipPacket.SrcIP.String()
+			row.destIp = ipPacket.DstIP.String()
+			row.protocol = ipPacket.Protocol.String()
 		}
 	}
 
 	tcpLayer := packet.Layer(layers.LayerTypeTCP)
 	if tcpLayer != nil {
-		fmt.Println("***TCP layer***")
 		tcpPacket, decoded := tcpLayer.(*layers.TCP)
 		if !decoded {
-			fmt.Println("failed to decode TCP layer")
+			flog.Error("failed to decode TCP layer")
 		} else {
-			fmt.Printf("From port %d to %d\n", tcpPacket.SrcPort, tcpPacket.DstPort)
-			fmt.Println("Sequence number: ", tcpPacket.Seq)
+			row.srcPort = tcpPacket.SrcPort.String()
+			row.destPort = tcpPacket.DstPort.String()
+			row.seq = tcpPacket.Seq
 		}
+	}
+
+	if row.protocol != unknown {
+		flog.Info(row.format())
 	}
 
 	// TODO : add flag so user is allowed to pass a network decryption key

@@ -17,6 +17,7 @@ const (
 	// TotalPorts is the total number of all tcp/udp ports
 	TotalPorts = 65535
 	udp        = "udp"
+	stars      = ""
 )
 
 var timeOut = 3 * time.Second
