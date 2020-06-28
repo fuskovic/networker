@@ -39,12 +39,14 @@ func (cmd *lookUpCmd) RegisterFlags(fl *pflag.FlagSet) {
 func (cmd *lookUpCmd) Run(fl *pflag.FlagSet) {
 	if !cmd.lookUpsSpecified() {
 		fl.Usage()
+		return
 	}
 
 	for value, lookUp := range cmd.supportedLookUps() {
 		if value != "" {
 			if err := lookUp(value); err != nil {
-				flog.Fatal(err.Error())
+				flog.Error(err.Error())
+				fl.Usage()
 			}
 		}
 	}

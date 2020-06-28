@@ -55,7 +55,9 @@ func (cmd *requestCmd) Run(fl *pflag.FlagSet) {
 
 	body, err := cmd.buildBody()
 	if err != nil {
-		flog.Fatal(err.Error())
+		flog.Error(err.Error())
+		fl.Usage()
+		return
 	}
 
 	if !cmd.hasProtoScheme() {
@@ -63,12 +65,16 @@ func (cmd *requestCmd) Run(fl *pflag.FlagSet) {
 	}
 
 	if !cmd.validMethod() {
-		flog.Fatal(fmt.Sprintf("%s is an invalid request method", cmd.method))
+		flog.Error(fmt.Sprintf("%s is an invalid request method", cmd.method))
+		fl.Usage()
+		return
 	}
 
 	req, err := http.NewRequest(cmd.method, cmd.url, &body)
 	if err != nil {
-		flog.Fatal(err.Error())
+		flog.Error(err.Error())
+		fl.Usage()
+		return
 	}
 
 	for _, h := range cmd.headers {
@@ -78,7 +84,9 @@ func (cmd *requestCmd) Run(fl *pflag.FlagSet) {
 
 	resp, err := client.Do(req)
 	if err != nil {
-		flog.Fatal(err.Error())
+		flog.Error(err.Error())
+		fl.Usage()
+		return
 	}
 	defer resp.Body.Close()
 

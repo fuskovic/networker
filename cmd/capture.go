@@ -78,7 +78,8 @@ func (cmd *captureCmd) Run(fl *pflag.FlagSet) {
 	}
 
 	if err != nil {
-		flog.Fatal(err.Error())
+		flog.Error(err.Error())
+		fl.Usage()
 	}
 }
 

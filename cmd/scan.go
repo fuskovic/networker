@@ -59,7 +59,9 @@ func (cmd *scanCmd) Run(fl *pflag.FlagSet) {
 
 	switch {
 	case cmd.upTo > TotalPorts:
-		flog.Fatal(fmt.Sprintf("can not scan more than %d ports", TotalPorts))
+		flog.Error("can not scan more than %d ports", TotalPorts)
+		fl.Usage()
+		return
 	case len(cmd.ports) > 0:
 		cmd.scanPorts(cmd.ports)
 	case cmd.upTo > 0:
