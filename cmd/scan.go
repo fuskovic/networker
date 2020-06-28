@@ -17,7 +17,6 @@ const (
 	// TotalPorts is the total number of all tcp/udp ports
 	TotalPorts = 65535
 	udp        = "udp"
-	stars      = ""
 )
 
 var timeOut = 3 * time.Second
@@ -68,7 +67,7 @@ func (cmd *scanCmd) Run(fl *pflag.FlagSet) {
 	default:
 		cmd.scanAllPorts()
 	}
-	flog.Success("scan complete")
+	flog.Success("SCAN COMPLETE")
 }
 
 func (cmd *scanCmd) scanPorts(specifiedPorts []int) {
@@ -86,23 +85,29 @@ func (cmd *scanCmd) scanAllPorts() {
 }
 
 func (cmd *scanCmd) scan(port int, c chan<- string) {
+	pad := func(s string, n int) string {
+		for len(s) < n {
+			s += " "
+		}
+		return s
+	}
+
+	send := func(protocol string) {
+		open := isOpen(protocol, cmd.addr, port)
+		paddedProtocol := pad(protocol, 16)
+		paddedPortNum := pad(fmt.Sprintf("%d", port), 12)
+		c <- fmt.Sprintf("%s%s%t", paddedProtocol, paddedPortNum, open)
+	}
+
 	if cmd.tCPonly {
 		if cmd.shouldLog(tcp, port) {
-			c <- fmt.Sprintf("%s\nport : %s\nOpen : %t",
-				stars,
-				fmt.Sprintf("%s/%d", tcp, port),
-				isOpen(tcp, cmd.addr, port),
-			)
+			send(tcp)
 		}
 	}
 
 	if cmd.uDPonly {
 		if cmd.shouldLog(udp, port) {
-			c <- fmt.Sprintf("%s\nport : %s\nOpen : %t",
-				stars,
-				fmt.Sprintf("%s/%d", udp, port),
-				isOpen(udp, cmd.addr, port),
-			)
+			send(udp)
 		}
 	}
 }
@@ -162,8 +167,6 @@ func (cmd *scanCmd) start(portsForScanning []int) {
 		}
 	}()
 
-	flog.Info("starting scan...")
-
 	for _, port := range portsForScanning {
 		go func(p int) {
 			cmd.scan(p, ch)
@@ -172,6 +175,9 @@ func (cmd *scanCmd) start(portsForScanning []int) {
 	}
 	wg.Wait()
 	close(ch)
+
+	sep := strings.Repeat(" ", 8)
+	flog.Info("PROTOCOL%sPORT%sOPEN", sep, sep)
 
 	for _, r := range organize(results) {
 		flog.Info(r)
