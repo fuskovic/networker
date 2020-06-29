@@ -45,8 +45,11 @@ func (cmd *listCmd) RegisterFlags(fl *pflag.FlagSet) {
 func (cmd *listCmd) Run(fl *pflag.FlagSet) {
 	u, err := user.Current()
 	if err != nil {
-		flog.Fatal(err.Error())
+		flog.Error(err.Error())
+		fl.Usage()
+		return
 	}
+
 	switch {
 	case u.Uid != "0":
 		flog.Error("List command must be run as root")
