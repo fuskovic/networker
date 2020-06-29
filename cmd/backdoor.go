@@ -31,16 +31,16 @@ func (cmd *backDoorCmd) Spec() cli.CommandSpec {
 	return cli.CommandSpec{
 		Name:  "backdoor",
 		Usage: "[flags]",
-		Desc:  "Create and connect to TCP listeners that serve shell access.",
+		Desc:  "Serve shell access over TCP and connect remotely.",
 	}
 }
 
 // RegisterFlags initializes how a flag set is processed for a particular command.
 func (cmd *backDoorCmd) RegisterFlags(fl *pflag.FlagSet) {
-	fl.BoolVar(&cmd.create, "create", cmd.create, "Create a TCP backdoor. (must be used with the --port flag)")
-	fl.BoolVar(&cmd.connect, "connect", cmd.connect, "Connect to a TCP backdoor. (must be used with the --address flag)")
-	fl.StringVarP(&cmd.address, "address", "a", cmd.address, "Address of a remote target to connect to. (format: <host>:<port>)")
-	fl.IntVarP(&cmd.port, "port", "p", cmd.port, "Port number to listen for connections on. (format: 80)")
+	fl.BoolVar(&cmd.create, "create", cmd.create, "Enable create mode. (must be used with the --port flag)")
+	fl.BoolVar(&cmd.connect, "connect", cmd.connect, "Enable connect mode. (must be used with the --address flag)")
+	fl.StringVarP(&cmd.address, "address", "a", cmd.address, "Address to connect to. (format: <host>:<port>)")
+	fl.IntVarP(&cmd.port, "port", "p", cmd.port, "Port number to serve shell access on. (format: 80)")
 }
 
 // Run either creates a new TCP listener or connects to an existing one.

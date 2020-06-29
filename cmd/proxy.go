@@ -22,7 +22,7 @@ func (cmd *proxyCmd) Spec() cli.CommandSpec {
 	return cli.CommandSpec{
 		Name:  "proxy",
 		Usage: "[flags]",
-		Desc:  "Forward network traffic from one network connection to another.",
+		Desc:  "Proxy ingress to an upstream server.",
 	}
 }
 

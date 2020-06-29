@@ -36,7 +36,7 @@ func (cmd *listCmd) Spec() cli.CommandSpec {
 
 // RegisterFlags initializes how a flag set is processed for a particular command.
 func (cmd *listCmd) RegisterFlags(fl *pflag.FlagSet) {
-	fl.BoolVarP(&cmd.me, "me", "m", cmd.me, "List the name, local IP, remote IP, and router IP for this machine and the network it's connected to.")
+	fl.BoolVarP(&cmd.me, "me", "m", cmd.me, "Lists the local and remote IP of this machine and the router IP.")
 	fl.BoolVarP(&cmd.all, "all", "a", cmd.all, "List the IP, hostname, and connection status of all devices on this network. (must be run as root)")
 }
 

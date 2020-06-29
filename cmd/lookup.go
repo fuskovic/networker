@@ -23,7 +23,7 @@ func (cmd *lookUpCmd) Spec() cli.CommandSpec {
 	return cli.CommandSpec{
 		Name:  "lookup",
 		Usage: "[flags]",
-		Desc:  "Lookup hostnames, IP addresses, and nameservers",
+		Desc:  "Lookup hostnames, IP addresses, nameservers, and networks.",
 	}
 }
 
