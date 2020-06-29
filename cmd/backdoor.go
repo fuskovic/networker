@@ -115,7 +115,11 @@ func create(port int) error {
 }
 
 func connect(address string) error {
-	flog.Info("DIALING %s")
+	if address == "" {
+		return fmt.Errorf("Missing address")
+	}
+
+	flog.Info("DIALING %s", address)
 
 	conn, err := net.Dial(tcp, address)
 	if err != nil {
