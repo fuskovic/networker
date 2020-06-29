@@ -29,7 +29,7 @@ type listCmd struct{ me, all bool }
 func (cmd *listCmd) Spec() cli.CommandSpec {
 	return cli.CommandSpec{
 		Name:  "list",
-		Usage: "TODO: ADD USAGE",
+		Usage: "[subcommand] [flags]",
 		Desc:  "List information on connected network devices.",
 	}
 }

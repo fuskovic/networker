@@ -21,7 +21,7 @@ type proxyCmd struct {
 func (cmd *proxyCmd) Spec() cli.CommandSpec {
 	return cli.CommandSpec{
 		Name:  "proxy",
-		Usage: "TODO: ADD USAGE",
+		Usage: "[subcommand] [flags]",
 		Desc:  "Forward network traffic from one network connection to another.",
 	}
 }

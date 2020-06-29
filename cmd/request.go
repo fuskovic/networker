@@ -33,7 +33,7 @@ type requestCmd struct {
 func (cmd *requestCmd) Spec() cli.CommandSpec {
 	return cli.CommandSpec{
 		Name:  "request",
-		Usage: "TODO: ADD USAGE",
+		Usage: "[subcommand] [flags]",
 		Desc:  "Send an HTTP request.",
 	}
 }
