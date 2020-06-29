@@ -6,9 +6,7 @@ A practical CLI tool for network administration.
 
 # Installation
 
-From project root...
-
-    go install .
+    go get -u github.com/fuskovic/networker
 
 # Explore Commands
 
