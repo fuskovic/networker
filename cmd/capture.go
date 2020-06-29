@@ -156,8 +156,12 @@ capture:
 				}
 			}
 
-			unWrap(p)
-			pktsCaptured++
+			row := unWrap(p)
+
+			if row.protocol != unknown {
+				pktsCaptured++
+				flog.Info(row.format())
+			}
 
 			if limitReached(cmd.limit, cmd.numToCapture, pktsCaptured) {
 				flog.Info("limit reached")
@@ -209,7 +213,7 @@ func limitReached(isLimited bool, limit, captured int64) bool {
 	return isLimited && captured == limit
 }
 
-func unWrap(packet gopacket.Packet) {
+func unWrap(packet gopacket.Packet) row {
 	row := newRow()
 
 	ethernetLayer := packet.Layer(layers.LayerTypeEthernet)
@@ -247,10 +251,6 @@ func unWrap(packet gopacket.Packet) {
 		}
 	}
 
-	if row.protocol != unknown {
-		flog.Info(row.format())
-	}
-
 	// TODO : add flag so user is allowed to pass a network decryption key
 	// so the payload can be decrypted.
 	// applicationLayer := packet.ApplicationLayer()
@@ -258,4 +258,6 @@ func unWrap(packet gopacket.Packet) {
 	// 	fmt.Println("***Application layer***")
 	// 	fmt.Printf("Payload: %s\n", applicationLayer.Payload())
 	// }
+
+	return row
 }
