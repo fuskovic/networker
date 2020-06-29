@@ -32,7 +32,7 @@ type scanCmd struct {
 func (cmd *scanCmd) Spec() cli.CommandSpec {
 	return cli.CommandSpec{
 		Name:  "scan",
-		Usage: "[subcommand] [flags]",
+		Usage: "[flags]",
 		Desc:  "Scan a host for exposed ports.",
 	}
 }

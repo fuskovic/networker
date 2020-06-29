@@ -48,7 +48,7 @@ type (
 func (cmd *captureCmd) Spec() cli.CommandSpec {
 	return cli.CommandSpec{
 		Name:  "capture",
-		Usage: "[subcommand] [flags]",
+		Usage: "[flags]",
 		Desc:  "Capture network packets on specified devices.",
 	}
 }

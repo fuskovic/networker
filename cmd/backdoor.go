@@ -30,8 +30,8 @@ type backDoorCmd struct {
 func (cmd *backDoorCmd) Spec() cli.CommandSpec {
 	return cli.CommandSpec{
 		Name:  "backdoor",
-		Usage: "[subcommand] [flags]",
-		Desc:  "Create and connect to TCP listeners that allow incoming connections shell access.",
+		Usage: "[flags]",
+		Desc:  "Create and connect to TCP listeners that serve shell access.",
 	}
 }
 
