@@ -84,7 +84,7 @@ func create(port int) error {
 	}
 
 	flog.Success("NOW SERVING SHELL ACCESS ON :%d", port)
-	flog.Success("READY FOR INBOUND CONNECTIONS")
+	flog.Info("READY FOR INBOUND CONNECTIONS")
 
 	go func() {
 		conn, err := lsnr.Accept()
