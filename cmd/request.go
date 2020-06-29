@@ -53,7 +53,7 @@ func (cmd *requestCmd) Run(fl *pflag.FlagSet) {
 	timeOut := time.Duration(seconds * time.Second)
 	client := http.Client{Timeout: timeOut}
 
-	flog.Info("validating URL")
+	flog.Info("Validating URL")
 
 	if cmd.url == "" {
 		flog.Error("No endpoint")
@@ -72,7 +72,7 @@ func (cmd *requestCmd) Run(fl *pflag.FlagSet) {
 		cmd.url = "https://" + cmd.url
 	}
 
-	flog.Info("validating Method")
+	flog.Info("Validating Method")
 
 	if !cmd.validMethod() {
 		flog.Error(fmt.Sprintf("%s is an invalid request method", cmd.method))
@@ -80,7 +80,7 @@ func (cmd *requestCmd) Run(fl *pflag.FlagSet) {
 		return
 	}
 
-	flog.Info("building request")
+	flog.Info("Building request")
 
 	req, err := http.NewRequest(cmd.method, cmd.url, &body)
 	if err != nil {
