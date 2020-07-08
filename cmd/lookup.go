@@ -73,7 +73,7 @@ func (cmd *lookUpCmd) lookUpsSpecified() bool {
 
 func hostNamesByIP(addr string) error {
 	addr = trim(addr)
-	flog.Info("Looking up hostnames for %s", addr)
+	flog.Info("looking up hostnames for %s", addr)
 
 	if net.ParseIP(addr) == nil {
 		return fmt.Errorf("%s is not a valid IP address", addr)
@@ -96,7 +96,7 @@ func hostNamesByIP(addr string) error {
 
 func addrsByHostName(hostName string) error {
 	hostName = trim(hostName)
-	flog.Info("Looking up addresses for %s", hostName)
+	flog.Info("looking up addresses for %s", hostName)
 
 	addrs, err := net.LookupHost(hostName)
 	if err != nil {
@@ -115,7 +115,7 @@ func addrsByHostName(hostName string) error {
 
 func nameServersByHostName(hostName string) error {
 	hostName = trim(hostName)
-	flog.Info("Looking up nameservers for %s", hostName)
+	flog.Info("looking up nameservers for %s", hostName)
 
 	nameservers, err := net.LookupNS(hostName)
 	if err != nil {
@@ -145,7 +145,7 @@ func networkByHostName(hostName string) error {
 
 	mask := addr.DefaultMask()
 	network := addr.Mask(mask)
-	flog.Info("Network : %s", network)
+	flog.Info("network : %s", network)
 	return nil
 }
 

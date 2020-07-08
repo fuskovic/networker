@@ -35,13 +35,13 @@ func (cmd *proxyCmd) RegisterFlags(fl *pflag.FlagSet) {
 // Run creates a TCP listener and forwards anything received on that connection to the dialed upstream connection.
 func (cmd *proxyCmd) Run(fl *pflag.FlagSet) {
 	if cmd.listenOn < 1 || cmd.listenOn > TotalPorts {
-		flog.Error("%d IS AN INVALID PORT NUMBER", cmd.listenOn)
+		flog.Error("%d is an invalid port number", cmd.listenOn)
 		fl.Usage()
 		return
 	}
 
 	port := fmt.Sprintf(":%d", cmd.listenOn)
-	flog.Info("STARTING LISTENER ON %s", port)
+	flog.Info("starting listener on %s", port)
 
 	lsnr, err := net.Listen(tcp, port)
 	if err != nil {
@@ -51,8 +51,8 @@ func (cmd *proxyCmd) Run(fl *pflag.FlagSet) {
 	}
 	defer lsnr.Close()
 
-	flog.Success("LISTENER STARTED")
-	flog.Info("DIALING %s", cmd.upStream)
+	flog.Success("listener started")
+	flog.Info("dialing %s", cmd.upStream)
 
 	upStr, err := net.Dial(tcp, cmd.upStream)
 	if err != nil {
@@ -62,7 +62,7 @@ func (cmd *proxyCmd) Run(fl *pflag.FlagSet) {
 	}
 	defer upStr.Close()
 
-	flog.Success("CONNECTION ESTABLISHED")
+	flog.Success("connection established")
 
 	c := make(chan os.Signal, 1)
 	signal.Notify(c, signals...)
@@ -70,12 +70,12 @@ func (cmd *proxyCmd) Run(fl *pflag.FlagSet) {
 	go func() {
 		for {
 			sig := <-c
-			flog.Info("RECEIVED %s SIGNAL", sig)
+			flog.Info("received %s signal", sig)
 			lsnr.Close()
 		}
 	}()
 
-	flog.Success("PROXY STARTED")
+	flog.Success("proxy started")
 
 	for {
 		conn, err := lsnr.Accept()

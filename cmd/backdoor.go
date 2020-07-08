@@ -76,15 +76,15 @@ func create(port int) error {
 	signal.Notify(stop, signals...)
 	connChan := make(chan net.Conn, 1)
 
-	flog.Info("STARTING LISTENER ON :%d", port)
+	flog.Info("starting listener on :%d", port)
 
 	lsnr, err := net.Listen(tcp, fmt.Sprintf(":%d", port))
 	if err != nil {
 		return err
 	}
 
-	flog.Success("NOW SERVING SHELL ACCESS ON :%d", port)
-	flog.Info("READY FOR INBOUND CONNECTIONS")
+	flog.Success("now serving shell access on :%d", port)
+	flog.Info("ready for inbound connections")
 
 	go func() {
 		conn, err := lsnr.Accept()
@@ -92,14 +92,14 @@ func create(port int) error {
 			flog.Error("failed to establish connection : %v", err)
 			return
 		}
-		flog.Success("%s HAS CONNECTED", conn.RemoteAddr().String())
+		flog.Success("%s has connected", conn.RemoteAddr().String())
 		connChan <- conn
 	}()
 
 	for {
 		select {
 		case signal := <-stop:
-			flog.Info("RECEIVED %s SIGNAL", signal)
+			flog.Info("received %s signal", signal)
 			close(connChan)
 			for conn := range connChan {
 				conn.Close()
@@ -116,18 +116,18 @@ func create(port int) error {
 
 func connect(address string) error {
 	if address == "" {
-		return fmt.Errorf("Missing address")
+		return fmt.Errorf("missing address")
 	}
 
-	flog.Info("DIALING %s", address)
+	flog.Info("dialing %s", address)
 
 	conn, err := net.Dial(tcp, address)
 	if err != nil {
 		return err
 	}
 
-	flog.Success("CONNECTION ESTABLISHED")
-	flog.Info("STARTING SHELL SESSION")
+	flog.Success("connection established")
+	flog.Info("starting shell session")
 
 	c := make(chan os.Signal, 1)
 	signal.Notify(c, signals...)
@@ -136,7 +136,7 @@ func connect(address string) error {
 		defer conn.Close()
 		for {
 			sig := <-c
-			flog.Info("RECEIVED %v SIGNAL", sig)
+			flog.Info("received %v signal", sig)
 			return
 		}
 	}()

@@ -53,10 +53,10 @@ func (cmd *requestCmd) Run(fl *pflag.FlagSet) {
 	timeOut := time.Duration(seconds * time.Second)
 	client := http.Client{Timeout: timeOut}
 
-	flog.Info("Validating URL")
+	flog.Info("validating URL")
 
 	if cmd.url == "" {
-		flog.Error("No endpoint")
+		flog.Error("no endpoint")
 		fl.Usage()
 		return
 	}
@@ -72,7 +72,7 @@ func (cmd *requestCmd) Run(fl *pflag.FlagSet) {
 		cmd.url = "https://" + cmd.url
 	}
 
-	flog.Info("Validating Method")
+	flog.Info("validating Method")
 
 	if !cmd.validMethod() {
 		flog.Error("%s is an invalid request method", cmd.method)
@@ -80,7 +80,7 @@ func (cmd *requestCmd) Run(fl *pflag.FlagSet) {
 		return
 	}
 
-	flog.Info("Building request")
+	flog.Info("building request")
 
 	req, err := http.NewRequest(cmd.method, cmd.url, &body)
 	if err != nil {
@@ -89,7 +89,7 @@ func (cmd *requestCmd) Run(fl *pflag.FlagSet) {
 		return
 	}
 
-	flog.Info("Adding headers")
+	flog.Info("adding headers")
 
 	for _, h := range cmd.headers {
 		flog.Info("%s", h)
@@ -97,7 +97,7 @@ func (cmd *requestCmd) Run(fl *pflag.FlagSet) {
 		req.Header.Set(kvPair[0], kvPair[1])
 	}
 
-	flog.Info("Sending request")
+	flog.Info("sending request")
 
 	resp, err := client.Do(req)
 	if err != nil {
@@ -107,7 +107,7 @@ func (cmd *requestCmd) Run(fl *pflag.FlagSet) {
 	}
 	defer resp.Body.Close()
 
-	flog.Info("Received response")
+	flog.Info("received response")
 
 	msg := http.StatusText(resp.StatusCode)
 

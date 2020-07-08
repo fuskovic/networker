@@ -71,7 +71,7 @@ func (cmd *scanCmd) Run(fl *pflag.FlagSet) {
 	default:
 		cmd.scanAllPorts()
 	}
-	flog.Success("SCAN COMPLETE")
+	flog.Success("scan complete")
 }
 
 func (cmd *scanCmd) scanPorts(specifiedPorts []int) {

@@ -169,7 +169,7 @@ capture:
 			}
 		}
 	}
-	flog.Success("CAPTURE COMPLETE - CAPTURED %d PACKETS", pktsCaptured)
+	flog.Success("capture complete - captured %d packets", pktsCaptured)
 	return nil
 }
 

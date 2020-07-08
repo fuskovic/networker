@@ -52,7 +52,7 @@ func (cmd *listCmd) Run(fl *pflag.FlagSet) {
 
 	switch {
 	case u.Uid != "0":
-		flog.Error("List command must be run as root")
+		flog.Error("list command must be run as root")
 		fl.Usage()
 		return
 	case cmd.me:
