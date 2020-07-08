@@ -45,7 +45,7 @@ func (cmd *lookUpCmd) Run(fl *pflag.FlagSet) {
 	for value, lookUp := range cmd.supportedLookUps() {
 		if value != "" {
 			if err := lookUp(value); err != nil {
-				flog.Error(err.Error())
+				flog.Error("errors running lookups : %v", err)
 				fl.Usage()
 			}
 		}

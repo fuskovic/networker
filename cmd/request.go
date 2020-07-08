@@ -63,7 +63,7 @@ func (cmd *requestCmd) Run(fl *pflag.FlagSet) {
 
 	body, err := cmd.buildBody()
 	if err != nil {
-		flog.Error(err.Error())
+		flog.Error("failed to build body : %v", err)
 		fl.Usage()
 		return
 	}
@@ -75,7 +75,7 @@ func (cmd *requestCmd) Run(fl *pflag.FlagSet) {
 	flog.Info("Validating Method")
 
 	if !cmd.validMethod() {
-		flog.Error(fmt.Sprintf("%s is an invalid request method", cmd.method))
+		flog.Error("%s is an invalid request method", cmd.method)
 		fl.Usage()
 		return
 	}
@@ -84,7 +84,7 @@ func (cmd *requestCmd) Run(fl *pflag.FlagSet) {
 
 	req, err := http.NewRequest(cmd.method, cmd.url, &body)
 	if err != nil {
-		flog.Error(err.Error())
+		flog.Error("failed to create new HTTP request : %v", err)
 		fl.Usage()
 		return
 	}
@@ -101,7 +101,7 @@ func (cmd *requestCmd) Run(fl *pflag.FlagSet) {
 
 	resp, err := client.Do(req)
 	if err != nil {
-		flog.Error(err.Error())
+		flog.Error("errors sending HTTP request : %v", err)
 		fl.Usage()
 		return
 	}

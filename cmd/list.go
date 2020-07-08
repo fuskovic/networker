@@ -45,7 +45,7 @@ func (cmd *listCmd) RegisterFlags(fl *pflag.FlagSet) {
 func (cmd *listCmd) Run(fl *pflag.FlagSet) {
 	u, err := user.Current()
 	if err != nil {
-		flog.Error(err.Error())
+		flog.Error("failed to get current user : %v", err)
 		fl.Usage()
 		return
 	}
@@ -159,7 +159,7 @@ func process(host string) {
 	p := fp.NewPinger()
 	ip, err := net.ResolveIPAddr("ip4:icmp", host)
 	if err != nil {
-		flog.Error(err.Error())
+		flog.Error("failed to resolve IP address : %v", err)
 		return
 	}
 	p.AddIPAddr(ip)

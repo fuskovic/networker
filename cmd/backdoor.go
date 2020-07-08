@@ -58,7 +58,7 @@ func (cmd *backDoorCmd) Run(fl *pflag.FlagSet) {
 	}
 
 	if err != nil {
-		flog.Error(err.Error())
+		flog.Error("errors running backdoor : %v", err)
 		fl.Usage()
 	}
 }
@@ -89,7 +89,7 @@ func create(port int) error {
 	go func() {
 		conn, err := lsnr.Accept()
 		if err != nil {
-			flog.Error(err.Error())
+			flog.Error("failed to establish connection : %v", err)
 			return
 		}
 		flog.Success("%s HAS CONNECTED", conn.RemoteAddr().String())

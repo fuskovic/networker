@@ -48,7 +48,7 @@ func (cmd *scanCmd) RegisterFlags(fl *pflag.FlagSet) {
 
 func (cmd *scanCmd) Run(fl *pflag.FlagSet) {
 	if net.ParseIP(cmd.addr) == nil {
-		flog.Error(fmt.Sprintf("%s is not a valid IP address", cmd.addr))
+		flog.Error("%s is not a valid IP address", cmd.addr)
 		fl.Usage()
 		return
 	}

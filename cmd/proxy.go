@@ -45,7 +45,7 @@ func (cmd *proxyCmd) Run(fl *pflag.FlagSet) {
 
 	lsnr, err := net.Listen(tcp, port)
 	if err != nil {
-		flog.Error(err.Error())
+		flog.Error("failed to initialize listener : %v", err)
 		fl.Usage()
 		return
 	}
@@ -56,7 +56,7 @@ func (cmd *proxyCmd) Run(fl *pflag.FlagSet) {
 
 	upStr, err := net.Dial(tcp, cmd.upStream)
 	if err != nil {
-		flog.Error(err.Error())
+		flog.Error("failed to dial upstream server : %v", err)
 		fl.Usage()
 		return
 	}
@@ -80,7 +80,7 @@ func (cmd *proxyCmd) Run(fl *pflag.FlagSet) {
 	for {
 		conn, err := lsnr.Accept()
 		if err != nil {
-			flog.Fatal(err.Error())
+			flog.Fatal("failed to establish connection : %v", err)
 		}
 
 		go io.Copy(conn, upStr)

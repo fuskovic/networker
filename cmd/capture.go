@@ -78,7 +78,7 @@ func (cmd *captureCmd) Run(fl *pflag.FlagSet) {
 	}
 
 	if err != nil {
-		flog.Error(err.Error())
+		flog.Error("error running capture : %v", err)
 		fl.Usage()
 	}
 }
