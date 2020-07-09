@@ -43,22 +43,14 @@ func (cmd *listCmd) RegisterFlags(fl *pflag.FlagSet) {
 // Run prints either general network information for this machine or for the entire network
 // depending on how the flag set has been configured.
 func (cmd *listCmd) Run(fl *pflag.FlagSet) {
-	u, err := user.Current()
-	if err != nil {
-		flog.Error("failed to get current user : %v", err)
-		fl.Usage()
-		return
-	}
-
 	switch {
-	case u.Uid != "0":
-		flog.Error("list command must be run as root")
-		fl.Usage()
-		return
 	case cmd.me:
 		me()
 	case cmd.all:
-		all()
+		if err := all(); err != nil {
+			flog.Error("failed to list all network devices : %v", err)
+			fl.Usage()
+		}
 	default:
 		fl.Usage()
 	}
@@ -127,6 +119,15 @@ func router() (string, error) {
 }
 
 func all() error {
+	u, err := user.Current()
+	if err != nil {
+		return err
+	}
+
+	if u.Uid != "0" {
+		return fmt.Errorf("--all flag requires root permissions")
+	}
+
 	cidr, err := getCIDR()
 	if err != nil {
 		return err
