@@ -1,18 +1,21 @@
 package cmd
 
 import (
+	"context"
 	"fmt"
 	"io/ioutil"
 	"net"
 	"net/http"
+	"os"
 	"os/user"
-	"strings"
 	"sync"
 	"time"
 
 	gw "github.com/jackpal/gateway"
 	fp "github.com/tatsushid/go-fastping"
 
+	"cdr.dev/slog"
+	"cdr.dev/slog/sloggers/sloghuman"
 	"github.com/spf13/pflag"
 	"go.coder.com/cli"
 	"go.coder.com/flog"
@@ -43,11 +46,13 @@ func (cmd *listCmd) RegisterFlags(fl *pflag.FlagSet) {
 // Run prints either general network information for this machine or for the entire network
 // depending on how the flag set has been configured.
 func (cmd *listCmd) Run(fl *pflag.FlagSet) {
+	ctx := context.Background()
+
 	switch {
 	case cmd.me:
-		me()
+		me(ctx)
 	case cmd.all:
-		if err := all(); err != nil {
+		if err := all(ctx); err != nil {
 			flog.Error("failed to list all network devices : %v", err)
 			fl.Usage()
 		}
@@ -56,25 +61,29 @@ func (cmd *listCmd) Run(fl *pflag.FlagSet) {
 	}
 }
 
-func me() {
+func me(ctx context.Context) {
+	log := sloghuman.Make(os.Stdout)
+	var fields []slog.Field
+
 	local, err := localIP()
 	if err != nil {
 		local = "unknown"
 	}
+	fields = append(fields, slog.F("local", local))
 
 	remote, err := remoteIP()
 	if err != nil {
 		remote = "unknown"
 	}
+	fields = append(fields, slog.F("remote", remote))
 
 	router, err := router()
 	if err != nil {
 		router = "unknown"
 	}
+	fields = append(fields, slog.F("router", router))
 
-	sep := strings.Repeat(" ", 11)
-	flog.Info("LOCAL%sREMOTE%sROUTER", sep, sep)
-	flog.Info("%s   %s   %s", local, remote, router)
+	log.Info(ctx, "me", fields...)
 }
 
 func localIP() (string, error) {
@@ -118,7 +127,7 @@ func router() (string, error) {
 	return gatewayAddr.String(), nil
 }
 
-func all() error {
+func all(ctx context.Context) error {
 	u, err := user.Current()
 	if err != nil {
 		return err
@@ -141,12 +150,9 @@ func all() error {
 	var wg sync.WaitGroup
 	wg.Add(len(hosts))
 
-	sep := func(n int) string { return strings.Repeat(" ", n) }
-	flog.Info("IP%sHOST%sCONNECTED", sep(12), sep(37))
-
 	for _, h := range hosts {
 		go func(host string) {
-			process(host)
+			process(ctx, host)
 			wg.Done()
 		}(h)
 	}
@@ -154,7 +160,7 @@ func all() error {
 	return nil
 }
 
-func process(host string) {
+func process(ctx context.Context, host string) {
 	var up bool
 
 	p := fp.NewPinger()
@@ -163,22 +169,25 @@ func process(host string) {
 		flog.Error("failed to resolve IP address : %v", err)
 		return
 	}
+	addr := slog.F("addr", ip)
+
 	p.AddIPAddr(ip)
 	p.OnRecv = func(addr *net.IPAddr, rtt time.Duration) {
 		up = true
 	}
 	p.Run()
+	connected := slog.F("connected", up)
 
 	names, err := net.LookupAddr(host)
 	if err != nil {
 		return
 	}
 
+	log := sloghuman.Make(os.Stdout)
+
 	if len(names) > 0 {
-		for len(names[0]) < 40 {
-			names[0] += " "
-		}
-		flog.Info("%s %s %t", host, names[0], up)
+		name := slog.F("name", names[0])
+		log.Info(ctx, "device", name, addr, connected)
 	}
 }
 
