@@ -1,13 +1,15 @@
 package cmd
 
 import (
+	"context"
 	"fmt"
 	"net"
-	"strconv"
-	"strings"
+	"os"
 	"sync"
 	"time"
 
+	"cdr.dev/slog"
+	"cdr.dev/slog/sloggers/sloghuman"
 	"github.com/spf13/pflag"
 	"go.coder.com/cli"
 	"go.coder.com/flog"
@@ -21,12 +23,19 @@ const (
 
 var timeOut = 3 * time.Second
 
-type scanCmd struct {
-	addr                       string
-	ports                      []int
-	upTo                       int
-	tCPonly, uDPonly, openOnly bool
-}
+type (
+	scanCmd struct {
+		addr                       string
+		ports                      []int
+		upTo                       int
+		tCPonly, uDPonly, openOnly bool
+	}
+	result struct {
+		protocol, addr string
+		port           int
+		open           bool
+	}
+)
 
 // Spec returns a command spec containing a description of it's usage.
 func (cmd *scanCmd) Spec() cli.CommandSpec {
@@ -47,6 +56,8 @@ func (cmd *scanCmd) RegisterFlags(fl *pflag.FlagSet) {
 }
 
 func (cmd *scanCmd) Run(fl *pflag.FlagSet) {
+	ctx := context.Background()
+
 	if net.ParseIP(cmd.addr) == nil {
 		flog.Error("%s is not a valid IP address", cmd.addr)
 		fl.Usage()
@@ -65,42 +76,37 @@ func (cmd *scanCmd) Run(fl *pflag.FlagSet) {
 		fl.Usage()
 		return
 	case len(cmd.ports) > 0:
-		cmd.scanPorts(cmd.ports)
+		cmd.scanPorts(ctx, cmd.ports)
 	case cmd.upTo > 0:
-		cmd.scanUpTo(cmd.upTo)
+		cmd.scanUpTo(ctx, cmd.upTo)
 	default:
-		cmd.scanAllPorts()
+		cmd.scanAllPorts(ctx)
 	}
 	flog.Success("scan complete")
 }
 
-func (cmd *scanCmd) scanPorts(specifiedPorts []int) {
-	cmd.start(specifiedPorts)
+func (cmd *scanCmd) scanPorts(ctx context.Context, specifiedPorts []int) {
+	cmd.start(ctx, specifiedPorts)
 }
 
-func (cmd *scanCmd) scanUpTo(upTo int) {
+func (cmd *scanCmd) scanUpTo(ctx context.Context, upTo int) {
 	portsForScanning := portsToScan(upTo)
-	cmd.start(portsForScanning)
+	cmd.start(ctx, portsForScanning)
 }
 
-func (cmd *scanCmd) scanAllPorts() {
+func (cmd *scanCmd) scanAllPorts(ctx context.Context) {
 	portsForScanning := portsToScan(TotalPorts)
-	cmd.start(portsForScanning)
+	cmd.start(ctx, portsForScanning)
 }
 
-func (cmd *scanCmd) scan(port int, c chan<- string) {
-	pad := func(s string, n int) string {
-		for len(s) < n {
-			s += " "
-		}
-		return s
-	}
-
+func (cmd *scanCmd) scan(port int, c chan<- result) {
 	send := func(protocol string) {
-		open := isOpen(protocol, cmd.addr, port)
-		paddedProtocol := pad(protocol, 16)
-		paddedPortNum := pad(fmt.Sprintf("%d", port), 12)
-		c <- fmt.Sprintf("%s%s%t", paddedProtocol, paddedPortNum, open)
+		c <- result{
+			addr:     cmd.addr,
+			port:     port,
+			protocol: protocol,
+			open:     isOpen(protocol, cmd.addr, port),
+		}
 	}
 
 	if cmd.tCPonly {
@@ -118,6 +124,14 @@ func (cmd *scanCmd) scan(port int, c chan<- string) {
 
 func (cmd *scanCmd) shouldLog(protocol string, port int) bool {
 	return cmd.openOnly && isOpen(protocol, cmd.addr, port) || !cmd.openOnly
+}
+
+func (r *result) fields() []slog.Field {
+	return []slog.Field{
+		slog.F("protocol", r.protocol),
+		slog.F("port", r.port),
+		slog.F("open", r.open),
+	}
 }
 
 func isOpen(protocol, host string, port int) bool {
@@ -141,11 +155,11 @@ func protocolSpecified(tcp, udp bool) bool {
 	return tcp == true || udp == true
 }
 
-func organize(results []string) []string {
-	var organized []string
+func organize(results []result) []result {
+	var organized []result
 	for i := 0; i < len(results); i++ {
 		for _, r := range results {
-			if strings.Contains(r, strconv.Itoa(i)) {
+			if r.port == i {
 				organized = append(organized, r)
 			}
 		}
@@ -153,11 +167,15 @@ func organize(results []string) []string {
 	return organized
 }
 
-func (cmd *scanCmd) start(portsForScanning []int) {
-	var wg sync.WaitGroup
-	var results []string
+func (cmd *scanCmd) start(ctx context.Context, portsForScanning []int) {
+	var (
+		log     = sloghuman.Make(os.Stdout)
+		wg      sync.WaitGroup
+		results []result
+	)
+
 	wg.Add(len(portsForScanning))
-	ch := make(chan string)
+	ch := make(chan result)
 
 	go func() {
 		for {
@@ -180,10 +198,7 @@ func (cmd *scanCmd) start(portsForScanning []int) {
 	wg.Wait()
 	close(ch)
 
-	sep := strings.Repeat(" ", 8)
-	flog.Info("PROTOCOL%sPORT%sOPEN", sep, sep)
-
 	for _, r := range organize(results) {
-		flog.Info(r)
+		log.Info(ctx, r.addr, r.fields()...)
 	}
 }
