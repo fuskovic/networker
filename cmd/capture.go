@@ -97,7 +97,7 @@ func (r *row) fields() []slog.Field {
 		slog.F("src-ip", r.srcIp),
 		slog.F("src-port", r.srcPort),
 		slog.F("dst-mac", r.destMac),
-		slog.F("dsst-aip", r.destIp),
+		slog.F("dst-ip", r.destIp),
 		slog.F("dst-port", r.destPort),
 	}
 }
