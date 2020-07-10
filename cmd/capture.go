@@ -4,9 +4,11 @@ import (
 	"context"
 	"fmt"
 	"os"
-	"strings"
 	"time"
 
+	"cdr.dev/slog/sloggers/sloghuman"
+
+	"cdr.dev/slog"
 	"github.com/google/gopacket"
 	"github.com/google/gopacket/layers"
 	p "github.com/google/gopacket/pcap"
@@ -17,16 +19,8 @@ import (
 )
 
 const (
-	unknown                 = "unknown"
-	snapshotLen       int32 = 65535
-	minSpacesSeq            = 12
-	minSpacesProtocol       = 10
-	minSpacesSrc            = 50
-)
-
-var (
-	sep       = func(n int) string { return strings.Repeat(" ", n) }
-	headerRow = fmt.Sprintf("SEQUENCE%sPROTOCOL%sSRC-MAC:SRC-IP:SRC-PORT%sDEST-MAC:DEST-IP:DEST-PORT", sep(5), sep(3), sep(28))
+	unknown           = "unknown"
+	snapshotLen int32 = 65535
 )
 
 type (
@@ -95,20 +89,17 @@ func newRow() row {
 	}
 }
 
-func (r *row) format() string {
-	pad := func(s string, n int) string {
-		for len(s) < n {
-			s += " "
-		}
-		return s
+func (r *row) fields() []slog.Field {
+	return []slog.Field{
+		slog.F("seq", r.seq),
+		slog.F("proto", r.protocol),
+		slog.F("src-mac", r.srcMac),
+		slog.F("src-ip", r.srcIp),
+		slog.F("src-port", r.srcPort),
+		slog.F("dst-mac", r.destMac),
+		slog.F("dsst-aip", r.destIp),
+		slog.F("dst-port", r.destPort),
 	}
-
-	seq := pad(fmt.Sprintf("%d", r.seq), minSpacesSeq)
-	src := pad(fmt.Sprintf("%s:%s:%s", r.srcMac, r.srcIp, r.srcPort), minSpacesSrc)
-	protocol := pad(r.protocol, minSpacesProtocol)
-	dst := fmt.Sprintf("%s:%s:%s", r.destMac, r.destIp, r.destPort)
-
-	return fmt.Sprintf("%s %s %s %s", seq, protocol, src, dst)
 }
 
 func start(cmd *captureCmd) error {
@@ -119,7 +110,7 @@ func start(cmd *captureCmd) error {
 
 	allDevices, err := p.FindAllDevs()
 	if err != nil {
-		return fmt.Errorf("failed to find devices - err : %v", err)
+		return fmt.Errorf("failed to find devices  : %v", err)
 	}
 
 	packetChan := make(chan gopacket.Packet)
@@ -128,7 +119,7 @@ func start(cmd *captureCmd) error {
 	if cmd.outFile != "" {
 		file, w, err := newWriter(cmd.outFile)
 		if err != nil {
-			return fmt.Errorf("failed to create a new writer - err : %v", err)
+			return fmt.Errorf("failed to create a new writer  : %v", err)
 		}
 		defer file.Close()
 		writer = w
@@ -142,7 +133,7 @@ func start(cmd *captureCmd) error {
 		}
 	}
 
-	flog.Info(headerRow)
+	log := sloghuman.Make(os.Stdout)
 
 capture:
 	for {
@@ -152,7 +143,7 @@ capture:
 		case p := <-packetChan:
 			if writer != nil {
 				if err := writer.WritePacket(p.Metadata().CaptureInfo, p.Data()); err != nil {
-					return fmt.Errorf("failed to write to pcap - err : %v", err)
+					return fmt.Errorf("failed to write to pcap  : %v", err)
 				}
 			}
 
@@ -160,16 +151,16 @@ capture:
 
 			if row.protocol != unknown {
 				pktsCaptured++
-				flog.Info(row.format())
+				log.Info(ctx, "pkt", row.fields()...)
 			}
 
 			if limitReached(cmd.limit, cmd.numToCapture, pktsCaptured) {
-				flog.Info("limit reached")
+				log.Info(ctx, "limit reached")
 				cancel()
 			}
 		}
 	}
-	flog.Success("capture complete - captured %d packets", pktsCaptured)
+	log.Info(ctx, "capture complete", slog.F("pkts-captured", pktsCaptured))
 	return nil
 }
 
@@ -203,7 +194,7 @@ func newWriter(outFile string) (*os.File, *pcapgo.Writer, error) {
 
 	w := pcapgo.NewWriter(f)
 	if err := w.WriteFileHeader(uint32(snapshotLen), layers.LinkTypeEthernet); err != nil {
-		return nil, nil, fmt.Errorf("failed to write pcap header - err : %v", err)
+		return nil, nil, fmt.Errorf("failed to write pcap header  : %v", err)
 	}
 
 	return f, w, nil
