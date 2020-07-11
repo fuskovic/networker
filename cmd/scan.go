@@ -82,7 +82,6 @@ func (cmd *scanCmd) Run(fl *pflag.FlagSet) {
 	default:
 		cmd.scanAllPorts(ctx)
 	}
-	flog.Success("scan complete")
 }
 
 func (cmd *scanCmd) scanPorts(ctx context.Context, specifiedPorts []int) {
@@ -172,6 +171,7 @@ func (cmd *scanCmd) start(ctx context.Context, portsForScanning []int) {
 		log     = sloghuman.Make(os.Stdout)
 		wg      sync.WaitGroup
 		results []result
+		numOpen int
 	)
 
 	wg.Add(len(portsForScanning))
@@ -200,5 +200,9 @@ func (cmd *scanCmd) start(ctx context.Context, portsForScanning []int) {
 
 	for _, r := range organize(results) {
 		log.Info(ctx, r.addr, r.fields()...)
+		if r.open {
+			numOpen++
+		}
 	}
+	log.Info(ctx, "scan complete", slog.F("open-ports", numOpen))
 }
