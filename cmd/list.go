@@ -7,12 +7,9 @@ import (
 	"net"
 	"net/http"
 	"os"
-	"os/user"
-	"sync"
 	"time"
 
 	gw "github.com/jackpal/gateway"
-	fp "github.com/tatsushid/go-fastping"
 
 	"cdr.dev/slog"
 	"cdr.dev/slog/sloggers/sloghuman"
@@ -26,7 +23,13 @@ const (
 	getExtURL = "http://myexternalip.com/raw"
 )
 
-type listCmd struct{ me, all bool }
+type (
+	status struct {
+		addr, name string
+		connected  bool
+	}
+	listCmd struct{ me, all bool }
+)
 
 // Spec returns a command spec containing a description of it's usage.
 func (cmd *listCmd) Spec() cli.CommandSpec {
@@ -40,7 +43,7 @@ func (cmd *listCmd) Spec() cli.CommandSpec {
 // RegisterFlags initializes how a flag set is processed for a particular command.
 func (cmd *listCmd) RegisterFlags(fl *pflag.FlagSet) {
 	fl.BoolVarP(&cmd.me, "me", "m", cmd.me, "Lists the local and remote IP of this machine and the router IP.")
-	fl.BoolVarP(&cmd.all, "all", "a", cmd.all, "List the IP, hostname, and connection status of all devices on this network. (must be run as root)")
+	fl.BoolVarP(&cmd.all, "all", "a", cmd.all, "List the IP, hostname, and connection status of all devices on this network.")
 }
 
 // Run prints either general network information for this machine or for the entire network
@@ -58,6 +61,14 @@ func (cmd *listCmd) Run(fl *pflag.FlagSet) {
 		}
 	default:
 		fl.Usage()
+	}
+}
+
+func (s *status) fields() []slog.Field {
+	return []slog.Field{
+		slog.F("addr", s.addr),
+		slog.F("name", s.name),
+		slog.F("connected", s.connected),
 	}
 }
 
@@ -128,14 +139,8 @@ func router() (string, error) {
 }
 
 func all(ctx context.Context) error {
-	u, err := user.Current()
-	if err != nil {
-		return err
-	}
-
-	if u.Uid != "0" {
-		return fmt.Errorf("--all flag requires root permissions")
-	}
+	ctx, cancel := context.WithTimeout(ctx, 100*time.Millisecond)
+	defer cancel()
 
 	cidr, err := getCIDR()
 	if err != nil {
@@ -147,47 +152,47 @@ func all(ctx context.Context) error {
 		return err
 	}
 
-	var wg sync.WaitGroup
-	wg.Add(len(hosts))
+	log := sloghuman.Make(os.Stdout)
+	statusChan := make(chan status)
 
 	for _, h := range hosts {
 		go func(host string) {
-			process(ctx, host)
-			wg.Done()
+			process(ctx, host, statusChan)
 		}(h)
 	}
-	wg.Wait()
-	return nil
+
+	var numDevices int
+
+	for {
+		select {
+		case <-ctx.Done():
+			log.Info(ctx, "complete", slog.F("devices", numDevices))
+			return nil
+		case s := <-statusChan:
+			numDevices++
+			log.Info(ctx, "device", s.fields()...)
+		}
+	}
 }
 
-func process(ctx context.Context, host string) {
+func process(ctx context.Context, host string, sc chan<- status) {
 	var up bool
 
-	p := fp.NewPinger()
-	ip, err := net.ResolveIPAddr("ip4:icmp", host)
-	if err != nil {
-		flog.Error("failed to resolve IP address : %v", err)
-		return
-	}
-	addr := slog.F("addr", ip)
-
-	p.AddIPAddr(ip)
-	p.OnRecv = func(addr *net.IPAddr, rtt time.Duration) {
+	if _, err := net.DialTimeout("ip", host, 100*time.Millisecond); err == nil {
 		up = true
 	}
-	p.Run()
-	connected := slog.F("connected", up)
 
 	names, err := net.LookupAddr(host)
 	if err != nil {
 		return
 	}
 
-	log := sloghuman.Make(os.Stdout)
-
 	if len(names) > 0 {
-		name := slog.F("name", names[0])
-		log.Info(ctx, "device", name, addr, connected)
+		sc <- status{
+			addr:      host,
+			name:      names[0],
+			connected: up,
+		}
 	}
 }
 

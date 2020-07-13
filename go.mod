@@ -7,7 +7,6 @@ require (
 	github.com/google/gopacket v1.1.17
 	github.com/jackpal/gateway v1.0.6
 	github.com/spf13/pflag v1.0.3
-	github.com/tatsushid/go-fastping v0.0.0-20160109021039-d7bb493dee3e
 	go.coder.com/cli v0.4.0
 	go.coder.com/flog v0.0.0-20190906214207-47dd47ea0512
 )
