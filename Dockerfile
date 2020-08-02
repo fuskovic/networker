@@ -17,4 +17,4 @@ RUN apk update && \
     apk add libpcap-dev && \
     apk add openssl
 
-RUN go build -o networker main.go
+RUN go build -o networker cmd/networker/*.go

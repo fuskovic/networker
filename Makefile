@@ -8,7 +8,7 @@ stop:
 
 binary:
 	@echo "building binary..." && \
-	go build -o nw main.go
+	go build -o nw cmd/networker/*.go
 
 image:
 	@echo "building image..."

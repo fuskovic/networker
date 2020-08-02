@@ -1,9 +1,8 @@
-package cmd
+package main
 
 import (
-	"go.coder.com/cli"
-
 	"github.com/spf13/pflag"
+	"go.coder.com/cli"
 )
 
 // Root is the command that starts the program.
@@ -24,11 +23,9 @@ func (r *Root) Spec() cli.CommandSpec {
 // Subcommands returns a set of any existing child-commands.
 func (r *Root) Subcommands() []cli.Command {
 	return []cli.Command{
-		&backDoorCmd{},
 		&captureCmd{},
 		&listCmd{},
 		&lookUpCmd{},
-		&proxyCmd{},
 		&requestCmd{},
 		&scanCmd{},
 	}
