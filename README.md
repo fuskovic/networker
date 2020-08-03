@@ -51,7 +51,7 @@ Get the addresses of a given hostname.
 
     networker lookup --addresses farishuskovic.dev
 
-## Advanced Commands
+# Advanced Commands
 
 ## Request
 
