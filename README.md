@@ -8,13 +8,33 @@ A practical CLI tool for network administration.
 
     go get -u github.com/fuskovic/networker
 
-# Commands
+# Usage 
+
+    Usage: networker [subcommand] [flags]
+
+    A practical CLI tool for network administration.
+
+    Commands:
+            capture  Capture network packets on a given device.
+            list     List information on connected network devices.
+            lookup   Lookup hostnames, IP addresses, nameservers, and networks.
+            request  Send an HTTP request.
+            scan     Scan the well-known ports of a given host.
+
+# Examples
 
 ## List
 
     networker list
 
 <img src="gifs/list.gif" height="400" width="1300">
+
+## Scan
+
+    networker scan --host farishuskovic.dev -v
+
+<img src="gifs/scan.gif" height="100" width="1000">
+
 
 ## Lookup
 
@@ -26,23 +46,4 @@ A practical CLI tool for network administration.
 
 <img src="gifs/lookup.gif" height="400" width="1300">
 
-## Scan
-
-    networker scan --host farishuskovic.dev -v
-
-<img src="gifs/scan.gif" height="100" width="1000">
-
-
-## Request
-
-    networker request --url https://api.thecatapi.com/v1/breeds
-
-<img src="gifs/request.gif" height="200" widht="1000">
-
-
-## Capture
-
-    networker capture -d en0 -s 10
-
-<img src="gifs/cap.gif" height="400" width="8130">
 
