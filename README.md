@@ -25,17 +25,18 @@ A practical CLI tool for network administration.
 
 ![lookup](gifs/lookup.gif)
 
+## Scan
+
+    networker scan --host farishuskovic.dev
+
+![scan](gifs/scan.gif)
+
 ## Request
 
     networker request --url https://api.thecatapi.com/v1/breeds
 
 ![request](gifs/request.gif)
 
-## Scan
-
-    networker scan --host farishuskovic.dev
-
-![scan](gifs/scan.gif)
 
 ## Capture
 
