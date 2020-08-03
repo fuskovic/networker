@@ -21,29 +21,61 @@ A practical CLI tool for network administration.
             request  Send an HTTP request.
             scan     Scan the well-known ports of a given host.
 
-# Examples
+# Basic Commands
 
 ## List
 
-    networker list
+Useful for getting IP addresses and hostnames of devices on the LAN.
 
-<img src="gifs/list.gif" height="400" width="1300">
+    networker list
 
 ## Scan
 
-    networker scan --host farishuskovic.dev -v
+Scans first 1024 ports of a given host.
 
-<img src="gifs/scan.gif" height="100" width="1000">
+    networker scan --host 104.198.14.52
+
+You can use a url for the host flag too.
+
+    networker scan --host farishuskovic.dev
 
 
 ## Lookup
 
+Get the hostnames of a given address.
+
     networker lookup --hostnames 104.198.14.52
-    networker lookup --network farishuskovic.dev
-    networker lookup --nameservers farishuskovic.dev
+
+
+Get the addresses of a given hostname.
+
     networker lookup --addresses farishuskovic.dev
 
+## Advanced Commands
 
-<img src="gifs/lookup.gif" height="400" width="1300">
+## Request
+
+Send a POST request. Optionally use JSON from a file as the body.
+
+    networker request -u <url> -f <path> -m POST
+
+Content-type headers are set automatically for JSON and XML files.
+
+Add your own custom headers.
+
+    networker request -u <url> -f <path> -m POST --add-headers key:value,key:value
 
 
+All methods are supported but if `--method` is unset, networker defaults to a GET.
+
+## Capture
+
+Monitor network traffic on a device for a number of seconds.
+
+    networker capture --device en0 --seconds 10
+
+Write captured packets to a pcap file.
+
+    networker capture --device en0 --seconds 10 --file capture.pcap
+
+The pcap file specified will be created if it doesn't exist already.
