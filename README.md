@@ -35,10 +35,10 @@ A practical CLI tool for network administration.
 
     networker scan --host farishuskovic.dev
 
+![scan](gifs/scan.gif)
+
 ## Capture
 
     networker capture -d en0 -s 10
 
 ![cap](gifs/cap.gif)
-
-![scan](gifs/scan.gif)
