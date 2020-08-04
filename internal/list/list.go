@@ -49,7 +49,7 @@ func (a *addrType) String() string {
 
 // List lists the network information of all the devices on the current network.
 func List(ctx context.Context) error {
-	t := 500 * time.Millisecond
+	t := time.Duration(3) * time.Second
 	ctx, cancel := context.WithTimeout(ctx, t)
 	defer cancel()
 
