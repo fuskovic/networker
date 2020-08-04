@@ -18,9 +18,10 @@ type lookUpCmd struct {
 // Spec returns a command spec containing a description of it's usage.
 func (c *lookUpCmd) Spec() cli.CommandSpec {
 	return cli.CommandSpec{
-		Name:  "lookup",
-		Usage: "[flags]",
-		Desc:  "Lookup hostnames, IP addresses, nameservers, and networks.",
+		Name:    "lookup",
+		Usage:   "[flags]",
+		Aliases: []string{"lu"},
+		Desc:    "Lookup hostnames, IP addresses, nameservers, and networks.",
 	}
 }
 

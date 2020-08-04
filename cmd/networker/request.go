@@ -25,9 +25,10 @@ type requestCmd struct {
 // Spec returns a command spec containing a description of it's usage.
 func (c *requestCmd) Spec() cli.CommandSpec {
 	return cli.CommandSpec{
-		Name:  "request",
-		Usage: "[flags]",
-		Desc:  "Send an HTTP request.",
+		Name:    "request",
+		Usage:   "[flags]",
+		Aliases: []string{"r", "req"},
+		Desc:    "Send an HTTP request.",
 	}
 }
 
