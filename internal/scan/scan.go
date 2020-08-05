@@ -31,10 +31,8 @@ func (s *Scanner) Scan(ctx context.Context) {
 		log  = sloghuman.Make(os.Stdout)
 	)
 
-	wg.Add(len(s.Ports))
-	ch := make(chan result)
-
 	log.Info(ctx, "target", s.fields()...)
+	ch := make(chan result)
 
 	go func() {
 		for r := range ch {
@@ -42,10 +40,12 @@ func (s *Scanner) Scan(ctx context.Context) {
 				open = append(open, fmt.Sprintf("%d", r.port))
 			}
 			if s.Verbose {
-				log.Info(ctx, "tcp", r.fields()...)
+				log.Info(ctx, u.TCP, r.fields()...)
 			}
 		}
 	}()
+
+	wg.Add(len(s.Ports))
 
 	for _, port := range s.Ports {
 		go func(p int) {
