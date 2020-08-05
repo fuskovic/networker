@@ -12,10 +12,10 @@ import (
 )
 
 type captureCmd struct {
-	device       string
-	seconds      int64
-	out          string
-	wide         bool
+	device  string
+	seconds int64
+	out     string
+	wide    bool
 }
 
 // Spec returns a command spec containing a description of it's usage.
