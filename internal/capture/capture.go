@@ -17,8 +17,6 @@ import (
 	"go.coder.com/flog"
 )
 
-const unknown = "unknown"
-
 // Sniffer contains the fields that describe how to run the capture.
 type Sniffer struct {
 	Device  string
@@ -30,8 +28,6 @@ type Sniffer struct {
 
 // Capture writes packets from the designated device to stdout and/or a pcap.
 func (s *Sniffer) Capture() error {
-	var captured int64
-
 	ctx, cancel := context.WithTimeout(context.Background(), s.Time)
 	defer cancel()
 
@@ -46,15 +42,11 @@ func (s *Sniffer) Capture() error {
 		return fmt.Errorf("failed to initialize new pcap writer : %v", err)
 	}
 
-	log := sloghuman.Make(os.Stdout)
 	s.pktChan = make(chan pkt.Packet)
+	go s.sniff(ctx)
 
-	go func() {
-		flog.Info("starting capture")
-		if err := s.sniff(ctx); err != nil {
-			flog.Error("failed to sniff %s : %v", s.Device, err)
-		}
-	}()
+	var captured int64
+	log := sloghuman.Make(os.Stdout)
 
 capture:
 	for {
@@ -129,13 +121,13 @@ func newWriter(fn string) (*pg.Writer, error) {
 func pktToRow(p pkt.Packet, wide bool) u.Row {
 	var (
 		r       u.Row
-		proto   = unknown
-		srcMac  = unknown
-		dstMac  = unknown
-		srcIP   = unknown
-		dstIP   = unknown
-		srcPort = unknown
-		dstPort = unknown
+		proto   = u.Unknown
+		srcMac  = u.Unknown
+		dstMac  = u.Unknown
+		srcIP   = u.Unknown
+		dstIP   = u.Unknown
+		srcPort = u.Unknown
+		dstPort = u.Unknown
 		seq     = -1
 	)
 

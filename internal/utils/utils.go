@@ -13,6 +13,7 @@ const (
 	TotalPorts = 65536
 	TCP        = "tcp"
 	UDP        = "udp"
+	Unknown    = "unknown"
 )
 
 var (
@@ -27,7 +28,7 @@ type Row []slog.Field
 func (r *Row) Valid() bool {
 	for _, f := range *r {
 		if f.Name == "proto" {
-			if f.Value == "unknown" {
+			if f.Value == Unknown {
 				return false
 			}
 			break
@@ -44,16 +45,16 @@ func (r *Row) Add(name string, val interface{}) {
 // HostnameByIP prints any hostnames found for a given IP.
 func HostNameByIP(a string) string {
 	if net.ParseIP(a) == nil {
-		return "unknown"
+		return Unknown
 	}
 
 	hostnames, err := net.LookupAddr(a)
 	if err != nil {
-		return "unknown"
+		return Unknown
 	}
 
 	if len(hostnames) == 0 {
-		return "unknown"
+		return Unknown
 	}
 	return hostnames[0]
 }
@@ -62,11 +63,11 @@ func HostNameByIP(a string) string {
 func AddrByHostName(hn string) string {
 	addrs, err := net.LookupHost(hn)
 	if err != nil {
-		return ""
+		return Unknown
 	}
 
 	if len(addrs) == 0 {
-		return ""
+		return Unknown
 	}
 	return addrs[0]
 }

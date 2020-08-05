@@ -42,7 +42,7 @@ func (a *addrType) String() string {
 	case router:
 		s = "router"
 	default:
-		s = "unknown"
+		s = u.Unknown
 	}
 	return s
 }
@@ -115,7 +115,7 @@ func current(ctx context.Context) u.Row {
 	for i, f := range funcs {
 		a, err := f()
 		if err != nil {
-			a = "unknown"
+			a = u.Unknown
 		}
 		at := addrType(i)
 		r.Add(at.String(), a)
