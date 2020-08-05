@@ -2,7 +2,6 @@ package main
 
 import (
 	"errors"
-	"fmt"
 	"time"
 
 	"github.com/spf13/pflag"
@@ -16,8 +15,6 @@ type captureCmd struct {
 	device       string
 	seconds      int64
 	out          string
-	limit        bool
-	numToCapture int64
 	wide         bool
 }
 
@@ -43,12 +40,10 @@ func (c *captureCmd) Run(fl *pflag.FlagSet) {
 	var err error
 
 	switch {
-	case len(c.device) == 0:
-		err = errors.New("no designated devices")
+	case c.device == "":
+		err = errors.New("no designated device i.e. -d en7")
 	case c.seconds < 5:
-		err = fmt.Errorf("capture must be at least 5 seconds long - your input : %d", c.seconds)
-	case c.limit && c.numToCapture < 1:
-		err = errors.New("use of --limit flag without use of --num flag\nPlease specify number of packets to limit capture\nminimum is 1")
+		err = errors.New("capture must be at least 5 seconds long i.e. -s 5")
 	default:
 		err = c.capture()
 	}
