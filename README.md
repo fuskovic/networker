@@ -74,6 +74,10 @@ Monitor network traffic on a device for a number of seconds.
 
     networker c -d en0 -s 10
 
+You can also use `-w` to include hostnames, sequence, and mac addresses in the output.
+
+    networker c -d en0 -s 10 -w
+
 Write captured packets to a pcap file.
 
     networker c -d en0 -s 10 -o capture.pcap
