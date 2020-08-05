@@ -10,6 +10,10 @@ binary:
 	@echo "building binary..." && \
 	go build -o nw cmd/networker/*.go
 
+win_bin:
+	@echo "building binary for windows" &&\
+	go build -o networker.exe cmd/networker/*.go
+
 image:
 	@echo "building image..."
 	-@docker build --no-cache -t networker .
