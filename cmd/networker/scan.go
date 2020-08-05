@@ -20,9 +20,10 @@ type scanCmd struct {
 // Spec returns a command spec containing a description of it's usage.
 func (c *scanCmd) Spec() cli.CommandSpec {
 	return cli.CommandSpec{
-		Name:  "scan",
-		Usage: "[flags]",
-		Desc:  "Scan the well-known ports of a given host.",
+		Name:    "scan",
+		Usage:   "[flags]",
+		Aliases: []string{"s"},
+		Desc:    "Scan the well-known ports of a given host.",
 	}
 }
 

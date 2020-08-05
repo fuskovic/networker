@@ -15,9 +15,10 @@ type listCmd struct{}
 // Spec returns a command spec containing a description of it's usage.
 func (c *listCmd) Spec() cli.CommandSpec {
 	return cli.CommandSpec{
-		Name:  "list",
-		Usage: "[flags]",
-		Desc:  "List information on connected network devices.",
+		Name:    "list",
+		Usage:   "[flags]",
+		Aliases: []string{"ls"},
+		Desc:    "List information on connected network devices.",
 	}
 }
 

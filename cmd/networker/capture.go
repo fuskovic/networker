@@ -21,9 +21,10 @@ type captureCmd struct {
 // Spec returns a command spec containing a description of it's usage.
 func (c *captureCmd) Spec() cli.CommandSpec {
 	return cli.CommandSpec{
-		Name:  "capture",
-		Usage: "[flags]",
-		Desc:  "Capture network packets on a given device.",
+		Name:    "capture",
+		Usage:   "[flags]",
+		Aliases: []string{"c", "cap"},
+		Desc:    "Capture network packets on a given device.",
 	}
 }
 
