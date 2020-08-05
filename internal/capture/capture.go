@@ -35,13 +35,10 @@ func (s *Sniffer) Capture() error {
 	ctx, cancel := context.WithTimeout(context.Background(), s.Time)
 	defer cancel()
 
-	s.pktChan = make(chan pkt.Packet)
+	flog.Info("finding device")
 
-	flog.Info("finding devices")
-
-	devices, err := p.FindAllDevs()
-	if err != nil {
-		return fmt.Errorf("failed to find devices  : %v", err)
+	if !found(s.Device) {
+		return fmt.Errorf("device '%s' was not found", s.Device)
 	}
 
 	w, err := newWriter(s.File)
@@ -49,13 +46,15 @@ func (s *Sniffer) Capture() error {
 		return fmt.Errorf("failed to initialize new pcap writer : %v", err)
 	}
 
-	for _, d := range devices {
-		if d.Name == s.Device {
-			go s.sniff(ctx)
-		}
-	}
-
 	log := sloghuman.Make(os.Stdout)
+	s.pktChan = make(chan pkt.Packet)
+
+	go func() {
+		flog.Info("starting capture")
+		if err := s.sniff(ctx); err != nil {
+			flog.Error("failed to sniff %s : %v", s.Device, err)
+		}
+	}()
 
 capture:
 	for {
@@ -64,18 +63,18 @@ capture:
 			break capture
 		case p := <-s.pktChan:
 			row := pktToRow(p, s.Wide)
+
 			if row.Valid() {
-				captured++
-				log.Info(ctx, "pkt", row...)
-			}
+				md := p.Metadata().CaptureInfo
 
-			md := p.Metadata().CaptureInfo
-
-			if w != nil {
-				err := w.WritePacket(md, p.Data())
-				if err != nil {
-					return fmt.Errorf("failed to write to pcap  : %v", err)
+				if w != nil {
+					err := w.WritePacket(md, p.Data())
+					if err != nil {
+						return fmt.Errorf("failed to write to pcap  : %v", err)
+					}
 				}
+				log.Info(ctx, "pkt", row...)
+				captured++
 			}
 		}
 	}
@@ -97,7 +96,6 @@ func (s *Sniffer) sniff(ctx context.Context) error {
 	defer h.Close()
 
 	src := pkt.NewPacketSource(h, h.LinkType())
-	flog.Info("capture started")
 
 	for {
 		select {
@@ -189,4 +187,18 @@ func pktToRow(p pkt.Packet, wide bool) u.Row {
 		r.Add("seq", seq)
 	}
 	return r
+}
+
+func found(s string) bool {
+	devices, err := p.FindAllDevs()
+	if err != nil {
+		return false
+	}
+
+	for _, d := range devices {
+		if d.Name == s {
+			return true
+		}
+	}
+	return false
 }
