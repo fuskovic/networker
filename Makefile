@@ -12,7 +12,7 @@ binary:
 
 win_bin:
 	@echo "building binary for windows" &&\
-	go build -o networker.exe cmd/networker/*.go
+	GOOS=windows GOARCH=386 go build -o networker.exe cmd/networker/*.go
 
 image:
 	@echo "building image..."
