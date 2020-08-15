@@ -33,11 +33,11 @@ Useful for getting IP addresses and hostnames of devices on the LAN.
 
 Scans first 1024 ports of a given host.
 
-    networker s -h 104.198.14.52
+    networker s --host 104.198.14.52
 
 You can use a url for the host flag too.
 
-    networker s -h farishuskovic.dev
+    networker s --host farishuskovic.dev
 
 
 ## Lookup
