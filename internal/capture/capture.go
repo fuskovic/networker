@@ -70,9 +70,7 @@ capture:
 			}
 		}
 	}
-	log.Info(ctx, "capture complete", slog.F(
-		"pkts-captured", captured),
-	)
+	log.Info(ctx, "capture complete", slog.F("pkts-captured", captured))
 	return nil
 }
 

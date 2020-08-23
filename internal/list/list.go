@@ -80,9 +80,7 @@ func List(ctx context.Context) error {
 	for {
 		select {
 		case <-ctx.Done():
-			log.Info(ctx, "found", slog.F(
-				"devices", numDevices),
-			)
+			log.Info(ctx, "found", slog.F("devices", numDevices))
 			return nil
 		case r := <-rc:
 			numDevices++
