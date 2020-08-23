@@ -75,7 +75,13 @@ func List(ctx context.Context) error {
 	}
 
 	var numDevices int
-	log.Info(ctx, "LAN")
+	var router string
+
+	router, err = routerIP()
+	if err != nil {
+		router = u.Unknown
+	}
+	log.Info(ctx, "LAN", slog.F("router", router))
 
 	for {
 		select {
@@ -107,7 +113,6 @@ func current(ctx context.Context) u.Row {
 	funcs := []addrFunc{
 		localIP,
 		remoteIP,
-		routerIP,
 	}
 
 	for i, f := range funcs {
