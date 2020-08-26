@@ -15,7 +15,7 @@ A practical CLI tool for network administration.
     Description: A practical CLI tool for network administration.
 
     Commands:
-            c, cap, capture  - Monitor network traffic on the LAN..
+            c, cap, capture  - Monitor network traffic on the LAN.
             ls, list         - List information on connected network devices.
             lu, lookup       - Lookup hostnames, IP addresses, nameservers, and networks.
             r, req, request  - Send an HTTP request.
