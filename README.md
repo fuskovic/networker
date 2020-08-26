@@ -15,7 +15,7 @@ A practical CLI tool for network administration.
     Description: A practical CLI tool for network administration.
 
     Commands:
-            c, cap, capture  - Capture network packets on a given device.
+            c, cap, capture  - Monitor network traffic on the LAN..
             ls, list         - List information on connected network devices.
             lu, lookup       - Lookup hostnames, IP addresses, nameservers, and networks.
             r, req, request  - Send an HTTP request.
@@ -53,6 +53,23 @@ Get the addresses of a given hostname.
 
 # Advanced Commands
 
+## Capture
+
+Monitor network traffic on the LAN.
+
+    networker capture
+
+You can also use `-w` to include hostnames, sequence, and mac addresses in the output.
+
+    networker capture -w
+
+Write captured packets to a pcap file.
+
+    networker capture -o capture.pcap
+
+The pcap file specified will be created if it doesn't exist already.
+
+
 ## Request
 
 Send a POST request. Optionally use JSON from a file as the body.
@@ -67,19 +84,3 @@ Add your own custom headers.
 
 
 All methods are supported but if `--method` is unset, networker defaults to a GET.
-
-## Capture
-
-Monitor network traffic on a device for a number of seconds.
-
-    networker c -d en0 -s 10
-
-You can also use `-w` to include hostnames, sequence, and mac addresses in the output.
-
-    networker c -d en0 -s 10 -w
-
-Write captured packets to a pcap file.
-
-    networker c -d en0 -s 10 -o capture.pcap
-
-The pcap file specified will be created if it doesn't exist already.

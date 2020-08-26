@@ -12,7 +12,6 @@ import (
 )
 
 type captureCmd struct {
-	device  string
 	seconds int64
 	out     string
 	wide    bool
@@ -24,14 +23,13 @@ func (c *captureCmd) Spec() cli.CommandSpec {
 		Name:    "capture",
 		Usage:   "[flags]",
 		Aliases: []string{"c", "cap"},
-		Desc:    "Capture network packets on a given device.",
+		Desc:    "Monitor network traffic on the LAN.",
 	}
 }
 
 // RegisterFlags initializes how a flag set is processed for a particular command.
 func (c *captureCmd) RegisterFlags(fl *pflag.FlagSet) {
 	fl.Int64VarP(&c.seconds, "seconds", "s", c.seconds, "Amount of seconds to run capture for.")
-	fl.StringVarP(&c.device, "device", "d", c.device, "Device to capture packets on.")
 	fl.StringVarP(&c.out, "out", "o", c.out, "Name of an output file to write the packets to.")
 	fl.BoolVarP(&c.wide, "wide", "w", c.wide, "Include hostnames, sequence, and mac addresses in output.")
 }
@@ -40,12 +38,9 @@ func (c *captureCmd) RegisterFlags(fl *pflag.FlagSet) {
 func (c *captureCmd) Run(fl *pflag.FlagSet) {
 	var err error
 
-	switch {
-	case c.device == "":
-		err = errors.New("no designated device i.e. -d en7")
-	case c.seconds < 5:
+	if c.seconds < 5 {
 		err = errors.New("capture must be at least 5 seconds long i.e. -s 5")
-	default:
+	} else {
 		err = c.capture()
 	}
 
@@ -57,10 +52,9 @@ func (c *captureCmd) Run(fl *pflag.FlagSet) {
 
 func (c *captureCmd) capture() error {
 	s := cap.Sniffer{
-		Device: c.device,
-		Time:   time.Duration(c.seconds) * time.Second,
-		File:   c.out,
-		Wide:   c.wide,
+		Time: time.Duration(c.seconds) * time.Second,
+		File: c.out,
+		Wide: c.wide,
 	}
 	return s.Capture()
 }

@@ -14,12 +14,10 @@ import (
 	l "github.com/google/gopacket/layers"
 	p "github.com/google/gopacket/pcap"
 	pg "github.com/google/gopacket/pcapgo"
-	"go.coder.com/flog"
 )
 
 // Sniffer contains the fields that describe how to run the capture.
 type Sniffer struct {
-	Device  string
 	Time    time.Duration
 	File    string
 	pktChan chan pkt.Packet
@@ -31,19 +29,21 @@ func (s *Sniffer) Capture() error {
 	ctx, cancel := context.WithTimeout(context.Background(), s.Time)
 	defer cancel()
 
-	flog.Info("finding device")
-
-	if !found(s.Device) {
-		return fmt.Errorf("device '%s' was not found", s.Device)
-	}
-
 	w, err := newWriter(s.File)
 	if err != nil {
 		return fmt.Errorf("failed to initialize new pcap writer : %v", err)
 	}
 
 	s.pktChan = make(chan pkt.Packet)
-	go s.sniff(ctx)
+
+	devices, err := p.FindAllDevs()
+	if err != nil {
+		return fmt.Errorf("failed to find network interfaces : %v", err)
+	}
+
+	for _, d := range devices {
+		go s.sniff(ctx, d.Name)
+	}
 
 	var captured int64
 	log := sloghuman.Make(os.Stdout)
@@ -74,8 +74,8 @@ capture:
 	return nil
 }
 
-func (s *Sniffer) sniff(ctx context.Context) error {
-	h, err := p.OpenLive(s.Device,
+func (s *Sniffer) sniff(ctx context.Context, device string) error {
+	h, err := p.OpenLive(device,
 		u.TotalPorts,
 		false,
 		p.BlockForever,
@@ -177,18 +177,4 @@ func pktToRow(p pkt.Packet, wide bool) u.Row {
 		r.Add("seq", seq)
 	}
 	return r
-}
-
-func found(s string) bool {
-	devices, err := p.FindAllDevs()
-	if err != nil {
-		return false
-	}
-
-	for _, d := range devices {
-		if d.Name == s {
-			return true
-		}
-	}
-	return false
 }
