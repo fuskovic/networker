@@ -4,8 +4,8 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"os/signal"
 	"strings"
-	"time"
 
 	"cdr.dev/slog"
 	"cdr.dev/slog/sloggers/sloghuman"
@@ -18,7 +18,6 @@ import (
 
 // Sniffer contains the fields that describe how to run the capture.
 type Sniffer struct {
-	Time    time.Duration
 	File    string
 	pktChan chan pkt.Packet
 	Wide    bool
@@ -26,7 +25,7 @@ type Sniffer struct {
 
 // Capture writes packets from the designated device to stdout and/or a pcap.
 func (s *Sniffer) Capture() error {
-	ctx, cancel := context.WithTimeout(context.Background(), s.Time)
+	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
 	w, err := newWriter(s.File)
@@ -48,10 +47,14 @@ func (s *Sniffer) Capture() error {
 	var captured int64
 	log := sloghuman.Make(os.Stdout)
 
+	stop := make(chan os.Signal, 1)
+	signal.Notify(stop, u.Signals...)
+
 capture:
 	for {
 		select {
-		case <-ctx.Done():
+		case sig := <-stop:
+			log.Info(ctx, "received signal", slog.F("signal", sig))
 			break capture
 		case p := <-s.pktChan:
 			row := pktToRow(p, s.Wide)
