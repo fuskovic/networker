@@ -21,7 +21,7 @@ A practical CLI tool for network administration.
             r, req, request  - Send an HTTP request.
             s, scan          - Scan the well-known ports of a given host.
 
-# Basic Commands
+# Commands
 
 ## List
 
@@ -39,6 +39,8 @@ You can use a url for the host flag too.
 
     networker s --host farishuskovic.dev
 
+If you forget to provide an http or https proto-scheme in your URL networker will append it for you.
+
 
 ## Lookup
 
@@ -49,38 +51,37 @@ Get the hostnames of a given address.
 
 Get the addresses of a given hostname.
 
-    networker lookup -a farishuskovic.dev
+    networker lu --addresses farishuskovic.dev
 
-# Advanced Commands
 
 ## Capture
 
 Monitor network traffic on the LAN.
 
-    networker capture
+    networker cap
 
-You can also use `-w` to include hostnames, sequence, and mac addresses in the output.
+You can save your capture session to a pcap file.
 
-    networker capture -w
+    networker cap -o capture.pcap
 
-Write captured packets to a pcap file.
+If the file doesn't exist, networker will create it for you.
 
-    networker capture -o capture.pcap
+You can also use `--wide` to include hostnames, sequence-numbers, and mac addresses in the output.
 
-The pcap file specified will be created if it doesn't exist already.
+    networker cap --wide
 
 
 ## Request
 
-Send a POST request. Optionally use JSON from a file as the body.
+Here's an example of how to send a post request using a JSON file as the request body.
 
-    networker r -u <url> -f <path> -m POST
+    networker req -m POST -f /path/to/file.json -u https://url.com
 
-Content-type headers are set automatically for JSON and XML files.
+Content-type headers are automatically set when JSON and XML files are provided.
 
-Add your own custom headers.
+You can add your own custom headers as a comma-separated list of key/value pairs.
 
-    networker r -u <url> -f <path> -m POST -a key:value,key:value
+    networker req --add-headers key:value,key:value -u https://url.com
 
+All methods are supported but if `--method` is unset, networker will default to a GET.
 
-All methods are supported but if `--method` is unset, networker defaults to a GET.
