@@ -16,15 +16,14 @@ import (
 	pg "github.com/google/gopacket/pcapgo"
 )
 
-// Sniffer contains the fields that describe how to run the capture.
 type Sniffer struct {
 	File    string
-	pktChan chan pkt.Packet
 	Wide    bool
+	pktChan chan pkt.Packet
 }
 
-// Capture writes packets from the designated device to stdout and/or a pcap.
-func (s *Sniffer) Capture() error {
+// Run writes packets from the designated device to stdout and/or a pcap.
+func (s *Sniffer) Run() error {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 

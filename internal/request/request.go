@@ -1,19 +1,17 @@
-package internal
+package request
 
 import (
 	"bytes"
-	"errors"
-	"fmt"
 	"io/ioutil"
 	"net/http"
 	"path"
 	"strings"
 
-	u "github.com/fuskovic/networker/internal/utils"
-	"go.coder.com/flog"
+	"golang.org/x/xerrors"
 )
 
 const (
+	// supported file formats for provisioning the request payload from a file.
 	jsonExt = ".json"
 	xmlExt  = ".xml"
 )
@@ -28,46 +26,50 @@ type Cfg struct {
 }
 
 // New validates the config and builds a new HTTP request.
+// This includes provisioning the request with the headers and payload provided from the config.
 func New(cfg *Cfg) (*http.Request, error) {
-	if err := cfg.validate(); err != nil {
-		return nil, fmt.Errorf("failed validation : %v", err)
+	if err := cfg.valid(); err != nil {
+		return nil, xerrors.Errorf("invalid request : %v", err)
 	}
 
-	b, err := cfg.body()
+	var payload *bytes.Buffer
+	if requiresPayload(cfg.Method) {
+		body, err := buildPayload(cfg)
+		if err != nil {
+			return nil, xerrors.Errorf("failed to build request payload : %v", err)
+		}
+		payload = body
+	}
+
+	req, err := http.NewRequest(cfg.Method, cfg.URL, payload)
 	if err != nil {
-		return nil, fmt.Errorf("failed to build body : %v", err)
+		return nil, xerrors.Errorf("failed to craft request : %v", err)
 	}
 
-	req, err := http.NewRequest(cfg.Method, cfg.URL, &b)
-	if err != nil {
-		return nil, fmt.Errorf("failed to create new HTTP request : %v", err)
+	if err := addHeaders(cfg, req); err != nil {
+		return nil, xerrors.Errorf("failed to add headers: %w", err)
 	}
-
-	cfg.addHeaders(req)
 	return req, nil
 }
 
-func (cfg *Cfg) validate() error {
-	if cfg.URL == "" {
-		return errors.New("no endpoint")
-	}
-
-	if !hasProtoScheme(cfg.URL) {
-		cfg.URL = "https://" + cfg.URL
-	}
-
-	if !supported(cfg.Method) {
-		return fmt.Errorf("%s is an invalid request method", cfg.Method)
+func (cfg *Cfg) valid() error {
+	switch {
+	case cfg.URL == "":
+		return xerrors.New("no url endpoint specified")
+	case !isSupported(cfg.Method):
+		return xerrors.Errorf("%s is an invalid request method", cfg.Method)
+	default:
+		if !hasProtoScheme(cfg.URL) {
+			cfg.URL = "https://" + cfg.URL
+		}
 	}
 	return nil
 }
 
-func (cfg *Cfg) body() (bytes.Buffer, error) {
+func buildPayload(cfg *Cfg) (*bytes.Buffer, error) {
 	var contentType string
-	var buf bytes.Buffer
-
 	if cfg.File == "" {
-		return buf, nil
+		return new(bytes.Buffer), nil
 	}
 
 	switch ext := path.Ext(cfg.File); ext {
@@ -76,29 +78,37 @@ func (cfg *Cfg) body() (bytes.Buffer, error) {
 	case xmlExt:
 		contentType = "Content-Type:application/xml"
 	default:
-		return buf, fmt.Errorf("%s is an unsupported format", ext)
+		return new(bytes.Buffer), xerrors.Errorf("%q unsupported file format ", ext)
 	}
 
 	cfg.Headers = append(cfg.Headers, contentType)
 
 	b, err := ioutil.ReadFile(cfg.File)
 	if err != nil {
-		return buf, err
+		return new(bytes.Buffer), xerrors.Errorf("failed to read file %q: %w", cfg.File, err)
 	}
-	return *bytes.NewBuffer(b), nil
+	return bytes.NewBuffer(b), nil
 }
 
-func (cfg *Cfg) addHeaders(r *http.Request) {
+func addHeaders(cfg *Cfg, r *http.Request) error {
 	for _, h := range cfg.Headers {
-		k := strings.Split(h, ":")[0]
-		v := strings.Split(h, ":")[1]
-		r.Header.Set(k, v)
-		flog.Info("set %s", h)
+		args := strings.Split(h, ":")
+		if (len(args) % 2) != 0 {
+			return xerrors.New("uneven number of key/value pairs")
+		}
+		r.Header.Set(args[0], args[1])
 	}
+	return nil
 }
 
-func supported(method string) bool {
-	for _, m := range u.Methods {
+func isSupported(method string) bool {
+	for _, m := range []string{
+		http.MethodGet,
+		http.MethodPost,
+		http.MethodPut,
+		http.MethodPatch,
+		http.MethodDelete,
+	} {
 		if m == method {
 			return true
 		}
@@ -106,9 +116,10 @@ func supported(method string) bool {
 	return false
 }
 
+func requiresPayload(method string) bool {
+	return method == http.MethodPatch || method == http.MethodPut || method == http.MethodPost
+}
+
 func hasProtoScheme(url string) bool {
-	has := func(s string) bool {
-		return strings.Contains(url, s)
-	}
-	return has("http://") || has("https://")
+	return strings.Contains(url, "http://") || strings.Contains(url, "https://")
 }

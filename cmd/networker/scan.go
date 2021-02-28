@@ -2,23 +2,23 @@ package main
 
 import (
 	"context"
-	"fmt"
 	"net"
+	"os"
 
-	"github.com/fuskovic/networker/internal/scan"
-	u "github.com/fuskovic/networker/internal/utils"
+	"cdr.dev/slog"
+	"cdr.dev/slog/sloggers/sloghuman"
+	"github.com/fuskovic/networker/internal/lookup"
+	"github.com/fuskovic/networker/internal/ports"
 	"github.com/spf13/pflag"
 	"go.coder.com/cli"
 	"go.coder.com/flog"
 )
 
 type scanCmd struct {
-	host    string
-	verbose bool
+	host string
 }
 
-// Spec returns a command spec containing a description of it's usage.
-func (c *scanCmd) Spec() cli.CommandSpec {
+func (cmd *scanCmd) Spec() cli.CommandSpec {
 	return cli.CommandSpec{
 		Name:    "scan",
 		Usage:   "[flags]",
@@ -27,39 +27,26 @@ func (c *scanCmd) Spec() cli.CommandSpec {
 	}
 }
 
-// RegisterFlags initializes how a flag set is processed for a particular command.
-func (c *scanCmd) RegisterFlags(fl *pflag.FlagSet) {
-	fl.StringVar(&c.host, "host", "", "Host to scan.")
-	fl.BoolVarP(&c.verbose, "verbose", "v", c.verbose, "Stream live scan results.")
+func (cmd *scanCmd) RegisterFlags(fl *pflag.FlagSet) {
+	fl.StringVar(&cmd.host, "host", "", "Host to scan.")
 }
 
-// Run figures out which ports to scan using the flagset and scans them.
-func (c *scanCmd) Run(fl *pflag.FlagSet) {
-	ctx := context.Background()
-	if err := c.validate(); err != nil {
-		flog.Error("failed validation : %v", err)
-		fl.Usage()
-		return
-	}
-	c.scan(ctx)
-}
-
-func (c *scanCmd) validate() error {
-	if net.ParseIP(c.host) == nil {
-		if u.AddrByHostName(c.host) == "" {
-			return fmt.Errorf("'%s' is not a valid host.", c.host)
+func (cmd *scanCmd) Run(fl *pflag.FlagSet) {
+	ip := net.ParseIP(cmd.host)
+	if ip == nil {
+		if _, err := lookup.AddrByHostName(cmd.host); err != nil {
+			fl.Usage()
+			flog.Error("%q is an invalid host : %v", cmd.host, err)
+			return
 		}
 	}
-	return nil
-}
 
-func (c *scanCmd) scan(ctx context.Context) {
-	s := &scan.Scanner{
-		Host:    c.host,
-		Ports:   portsToScan(1024),
-		Verbose: c.verbose,
-	}
-	s.Scan(ctx)
+	ctx := context.Background()
+	openPorts := ports.NewScanner(cmd.host).Scan(ctx, portsToScan(1024))
+	sloghuman.Make(os.Stdout).Info(ctx, "scan complete",
+		slog.F("host", cmd.host),
+		slog.F("open-ports", openPorts),
+	)
 }
 
 func portsToScan(max int) []int {

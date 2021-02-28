@@ -12,7 +12,6 @@ import (
 
 type listCmd struct{}
 
-// Spec returns a command spec containing a description of it's usage.
 func (c *listCmd) Spec() cli.CommandSpec {
 	return cli.CommandSpec{
 		Name:    "list",
@@ -22,11 +21,9 @@ func (c *listCmd) Spec() cli.CommandSpec {
 	}
 }
 
-// Run lists network devices.
 func (c *listCmd) Run(fl *pflag.FlagSet) {
-	err := list.List(context.Background())
-	if err != nil {
-		flog.Error("failed to list : %v", err)
+	if err := list.Run(context.Background()); err != nil {
 		fl.Usage()
+		flog.Error("failed to list : %v", err)
 	}
 }

@@ -13,8 +13,7 @@ type captureCmd struct {
 	wide bool
 }
 
-// Spec returns a command spec containing a description of it's usage.
-func (c *captureCmd) Spec() cli.CommandSpec {
+func (cmd *captureCmd) Spec() cli.CommandSpec {
 	return cli.CommandSpec{
 		Name:    "capture",
 		Usage:   "[flags]",
@@ -23,24 +22,21 @@ func (c *captureCmd) Spec() cli.CommandSpec {
 	}
 }
 
-// RegisterFlags initializes how a flag set is processed for a particular command.
-func (c *captureCmd) RegisterFlags(fl *pflag.FlagSet) {
-	fl.StringVarP(&c.out, "out", "o", c.out, "Name of an output file to write the packets to.")
-	fl.BoolVarP(&c.wide, "wide", "w", c.wide, "Include hostnames, sequence, and mac addresses in output.")
+func (cmd *captureCmd) RegisterFlags(fl *pflag.FlagSet) {
+	fl.StringVarP(&cmd.out, "out", "o", cmd.out, "Name of an output file to write the packets to.")
+	fl.BoolVarP(&cmd.wide, "wide", "w", cmd.wide, "Include hostnames, sequence number, and mac addresses in output.")
 }
 
-// Run validates the flagset and runs the packet capture session accordingly.
-func (c *captureCmd) Run(fl *pflag.FlagSet) {
-	if err := c.capture(); err != nil {
-		flog.Error("error running capture : %v", err)
+func (cmd *captureCmd) Run(fl *pflag.FlagSet) {
+	if err := cmd.capture(); err != nil {
 		fl.Usage()
+		flog.Error("error running capture : %v", err)
 	}
 }
 
-func (c *captureCmd) capture() error {
-	s := cap.Sniffer{
-		File: c.out,
-		Wide: c.wide,
-	}
-	return s.Capture()
+func (cmd *captureCmd) capture() error {
+	return (&cap.Sniffer{
+		File: cmd.out,
+		Wide: cmd.wide,
+	}).Run()
 }

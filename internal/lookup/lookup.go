@@ -1,97 +1,89 @@
-package internal
+package lookup
 
 import (
-	"fmt"
 	"net"
-	"strings"
 
-	"go.coder.com/flog"
+	"golang.org/x/xerrors"
 )
 
-// LookUpFunc is a type that prints look-up results.
-type LookUpFunc func(string) error
+type Func func(string) error
 
-// HostnamesByIP prints any hostnames found for a given IP.
-func HostNamesByIP(a string) error {
-	a = trim(a)
-	flog.Info("looking up hostnames for %s", a)
-
-	if net.ParseIP(a) == nil {
-		return fmt.Errorf("%s is not a valid IP address", a)
-	}
-
-	hostnames, err := net.LookupAddr(a)
-	if err != nil {
-		return fmt.Errorf("failed to lookup hostnames for %s\nerror : %v", a, err)
-	}
-
-	if len(hostnames) == 0 {
-		return fmt.Errorf("no hostnames found")
-	}
-
-	for _, hn := range hostnames {
-		flog.Info(hn)
-	}
-	return nil
+// HostnameByIP returns the hostname for the provided ip address.
+func HostNameByIP(ip net.IP) (string, error) {
+	hostnames, err := HostNamesByIP(ip)
+	return hostnames[0], err
 }
 
-// AddrsByHostName prints any addrs found for a given hostname.
-func AddrsByHostName(hn string) error {
-	hn = trim(hn)
-	flog.Info("looking up addresses for %s", hn)
-
-	addrs, err := net.LookupHost(hn)
+// HostnamesByIP returns all hostnames found for the provided ip address.
+func HostNamesByIP(ip net.IP) ([]string, error) {
+	hostnames, err := net.LookupAddr(ip.String())
 	if err != nil {
-		return fmt.Errorf("failed to look up IP addresses for %s\nerror : %v", hn, err)
+		return nil, xerrors.Errorf("failed to lookup hostnames for ip address %q : %v", ip, err)
+	}
+	if len(hostnames) == 0 {
+		return nil, xerrors.Errorf("no hostnames found for ip address: %q", ip)
+	}
+	return hostnames, nil
+}
+
+// AddrByHostName resolves the ip address of the provided hostname.
+func AddrByHostName(hostname string) (*net.IP, error) {
+	ipAddrs, err := AddrsByHostName(hostname)
+	if err != nil {
+		return nil, err
+	}
+	return ipAddrs[0], err
+}
+
+// AddrsByHostName returns all ip addresses found for the provided hostname.
+func AddrsByHostName(hostname string) ([]*net.IP, error) {
+	addrs, err := net.LookupHost(hostname)
+	if err != nil {
+		return nil, xerrors.Errorf("failed to look up ip addresses for hostname %q: %v", hostname, err)
 	}
 
 	if len(addrs) == 0 {
-		return fmt.Errorf("no IP addresses found")
+		return nil, xerrors.Errorf("no ip addresses found for hostname %q", hostname)
 	}
+
+	var ipAddrs []*net.IP
 
 	for _, a := range addrs {
-		flog.Info(a)
+		ipAddr := net.ParseIP(a)
+		if ipAddr == nil {
+			continue
+		}
+		ipAddrs = append(ipAddrs, &ipAddr)
 	}
-	return nil
+	return ipAddrs, nil
 }
 
-// NameServersByHostName prints any name servers found for a given hostname.
-func NameServersByHostName(hn string) error {
-	hn = trim(hn)
-	flog.Info("looking up name servers for %s", hn)
-
-	nameServers, err := net.LookupNS(hn)
+// NameServersByHostName looks up all nameservers for the provided hostname.
+func NameServersByHostName(hostname string) ([]*net.NS, error) {
+	nameServers, err := net.LookupNS(hostname)
 	if err != nil {
-		return fmt.Errorf("failed to look up name server for %s\nerror : %v", hn, err)
+		return nil, xerrors.Errorf("failed to look up name server for hostname %q : %v", hostname, err)
 	}
-
 	if len(nameServers) == 0 {
-		return fmt.Errorf("no name servers found")
+		return nil, xerrors.Errorf("no name servers found for hostname %q", hostname)
 	}
-
-	for _, ns := range nameServers {
-		flog.Info(ns.Host)
-	}
-	return nil
+	return nameServers, nil
 }
 
-// NwByHostName prints a network found for a given hostname.
-func NwByHostName(hn string) error {
-	ip, err := net.ResolveIPAddr("ip", hn)
-	if err != nil {
-		return fmt.Errorf("failed to resolve IP address from hostname : %s\nerror : %v", hn, err)
+// NetworkByHost returns the network address for the provided hostname.
+func NetworkByHost(host string) (*net.IPMask, error) {
+	ipAddr := net.ParseIP(host)
+	if ipAddr == nil {
+		addr, err := AddrByHostName(host)
+		if err != nil {
+			return nil, xerrors.Errorf("%q is an invalild host: %v", host, err)
+		}
+		ipAddr = *addr
 	}
 
-	a := net.ParseIP(ip.String())
-	if a == nil {
-		return fmt.Errorf("failed to validate the resolved IP : %s for hostname : %s", a, hn)
+	network := ipAddr.DefaultMask()
+	if network == nil {
+		return nil, xerrors.Errorf("failed to get network address of host %q", ipAddr.String())
 	}
-	m := a.DefaultMask()
-	nw := a.Mask(m)
-	flog.Info("network : %s", nw)
-	return nil
-}
-
-func trim(s string) string {
-	return strings.TrimSpace(s)
+	return &network, nil
 }
