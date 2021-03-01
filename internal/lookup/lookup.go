@@ -8,7 +8,7 @@ import (
 
 type Func func(string) error
 
-// HostnameByIP returns the hostname for the provided ip address.
+// HostNameByIP returns the hostname for the provided ip address.
 func HostNameByIP(ip net.IP) (string, error) {
 	hostnames, err := HostNamesByIP(ip)
 	if err != nil {
@@ -17,7 +17,7 @@ func HostNameByIP(ip net.IP) (string, error) {
 	return hostnames[0], nil
 }
 
-// HostnamesByIP returns all hostnames found for the provided ip address.
+// HostNamesByIP returns all hostnames found for the provided ip address.
 func HostNamesByIP(ip net.IP) ([]string, error) {
 	hostnames, err := net.LookupAddr(ip.String())
 	if err != nil {
