@@ -77,7 +77,7 @@ func NameServersByHostName(hostname string) ([]*net.NS, error) {
 }
 
 // NetworkByHost returns the network address for the provided hostname.
-func NetworkByHost(host string) (*net.IPMask, error) {
+func NetworkByHost(host string) (*net.IP, error) {
 	ipAddr := net.ParseIP(host)
 	if ipAddr == nil {
 		addr, err := AddrByHostName(host)
@@ -87,7 +87,7 @@ func NetworkByHost(host string) (*net.IPMask, error) {
 		ipAddr = *addr
 	}
 
-	network := ipAddr.DefaultMask()
+	network := ipAddr.Mask(ipAddr.DefaultMask())
 	if network == nil {
 		return nil, xerrors.Errorf("failed to get network address of host %q", ipAddr.String())
 	}
