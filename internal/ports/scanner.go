@@ -5,6 +5,7 @@ import (
 	"net"
 	"strconv"
 	"sync"
+	"time"
 )
 
 var (
@@ -20,7 +21,6 @@ type scanner struct {
 	sync.Mutex
 	scans         map[string][]int
 	shouldScanAll bool
-	hosts         []string
 }
 
 // NewScanner initializes a new port-scanner based on whether or not the user wants to scan all ports or just the well-known ports.
@@ -71,7 +71,8 @@ func (s *scanner) add(host string, port int) {
 }
 
 func isOpen(host string, port int) bool {
-	conn, err := net.Dial("tcp", net.JoinHostPort(host, strconv.Itoa(port)))
+	addr := net.JoinHostPort(host, strconv.Itoa(port))
+	conn, err := net.DialTimeout("tcp", addr, 5*time.Second)
 	if err != nil {
 		return false
 	}
