@@ -46,8 +46,6 @@ If you don't use the `--host` flag then the `scan` command will scan all devices
 
     networker scan
 
-If you forget to provide an http or https proto-scheme in your URL networker will append it for you.
-
 
 ## Lookup
 
