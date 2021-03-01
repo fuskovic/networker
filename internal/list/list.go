@@ -6,216 +6,176 @@ import (
 	"io/ioutil"
 	"net"
 	"net/http"
-	"os"
-	"time"
+	"sync"
 
-	"cdr.dev/slog"
-	"cdr.dev/slog/sloggers/sloghuman"
-	u "github.com/fuskovic/networker/internal/utils"
+	"github.com/fuskovic/networker/internal/lookup"
 	gw "github.com/jackpal/gateway"
+	"golang.org/x/xerrors"
 )
 
-const (
-	local addrType = iota
-	remote
-	router
-)
-
-type (
-	addrFunc func() (string, error)
-	addrType int
-)
-
-// String returns the string description of the addrType.
-//
-// 0 - local
-// 1 - remote
-// 2 - router
-// default : unknown
-func (a *addrType) String() string {
-	var s string
-	switch *a {
-	case local:
-		s = "local"
-	case remote:
-		s = "remote"
-	case router:
-		s = "router"
-	default:
-		s = u.Unknown
+// Devices lists all of the devices on the local network.
+func Devices(ctx context.Context) ([]*Device, error) {
+	cidr, err := getCIDR(ctx)
+	if err != nil {
+		return nil, xerrors.Errorf("failed to get cidr: %w", err)
 	}
-	return s
+
+	router, err := getRouter(ctx)
+	if err != nil {
+		return nil, xerrors.Errorf("failed to get router ip: %w", err)
+	}
+
+	hostIPs, err := getHosts(ctx, cidr, router)
+	if err != nil {
+		return nil, xerrors.Errorf("failed to get hosts: %w", err)
+	}
+
+	currentDevice, err := getCurrentDevice(ctx)
+	if err != nil {
+		return nil, xerrors.Errorf("failed to get current device: %w", err)
+	}
+
+	var (
+		devices = []*Device{currentDevice, router}
+		wg      = sync.WaitGroup{}
+		mutex   = sync.Mutex{}
+	)
+
+	for _, hostIP := range hostIPs {
+		wg.Add(1)
+		go func(ip string) {
+			defer wg.Done()
+			device, err := getDevice(ctx, ip)
+			if err != nil || device == nil {
+				return
+			}
+			mutex.Lock()
+			devices = append(devices, device)
+			mutex.Unlock()
+		}(hostIP)
+	}
+	wg.Wait()
+	return devices, nil
 }
 
-// Run lists the network information of all the devices on the current network.
-func Run(ctx context.Context) error {
-	t := time.Duration(3) * time.Second
-	ctx, cancel := context.WithTimeout(ctx, t)
-	defer cancel()
+func getDevice(_ context.Context, ip string) (*Device, error) {
+	ipAddr := net.ParseIP(ip)
+	if ipAddr == nil {
+		return nil, xerrors.Errorf("failed to parse ip %q", ip)
+	}
 
-	log := sloghuman.Make(os.Stdout)
-	log.Info(ctx, "current device", current(ctx)...)
-
-	cidr, err := getCIDR()
+	hostname, err := lookup.HostNameByIP(ipAddr)
 	if err != nil {
-		return err
+		return nil, xerrors.Errorf("failed to lookup hostname by ip address %q: %w", ip, err)
 	}
+	return &Device{
+		localIP:  ipAddr,
+		hostname: hostname,
+		kind:     DeviceKindPeer,
+	}, nil
+}
 
-	hosts, err := hosts(cidr)
+func getCurrentDevice(_ context.Context) (*Device, error) {
+	localIP, err := getLocalIP()
 	if err != nil {
-		return err
+		return nil, xerrors.Errorf("failed to get local ip of current device: %w", err)
 	}
 
-	rc := make(chan u.Row)
-
-	for _, h := range hosts {
-		go func(h string) {
-			process(ctx, h, rc)
-		}(h)
-	}
-
-	var numDevices int
-	var router string
-
-	router, err = routerIP()
+	remoteIP, err := getRemoteIP()
 	if err != nil {
-		router = u.Unknown
+		return nil, xerrors.Errorf("failed to get remote ip of current device: %w", err)
 	}
-	log.Info(ctx, "LAN", slog.F("router", router))
 
-	for {
-		select {
-		case <-ctx.Done():
-			log.Info(ctx, "found", slog.F("devices", numDevices))
-			return nil
-		case r := <-rc:
-			numDevices++
-			log.Info(ctx, "device", r...)
+	hostname, err := lookup.HostNameByIP(localIP)
+	if err != nil {
+		return nil, xerrors.Errorf("failed to get host: %w", err)
+	}
+	return &Device{
+		localIP:  localIP,
+		remoteIP: remoteIP,
+		hostname: hostname,
+		kind:     DeviceKindCurrent,
+	}, nil
+}
+
+func getRouter(_ context.Context) (*Device, error) {
+	ipAddr, err := gw.DiscoverGateway()
+	if err != nil {
+		return nil, xerrors.Errorf("failed to discover gateway: %w", err)
+	}
+	hostname, err := lookup.HostNameByIP(ipAddr)
+	if err != nil {
+		return nil, xerrors.Errorf("failed to get router name: %w", err)
+	}
+	return &Device{
+		hostname: hostname,
+		localIP:  ipAddr,
+		kind:     DeviceKindRouter,
+	}, nil
+}
+
+func getCIDR(_ context.Context) (string, error) {
+	localIP, err := getLocalIP()
+	if err != nil {
+		return "", xerrors.Errorf("failed to get local ip: %w", err)
+	}
+	return fmt.Sprintf("%s/24", localIP.Mask(localIP.DefaultMask())), nil
+}
+
+func getHosts(_ context.Context, cidr string, router *Device) ([]string, error) {
+	ip, network, err := net.ParseCIDR(cidr)
+	if err != nil {
+		return nil, xerrors.Errorf("failed to parse cidr %s: %w", cidr, err)
+	}
+
+	inc := func(ip net.IP) {
+		for j := len(ip) - 1; j >= 0; j-- {
+			ip[j]++
+			if ip[j] > 0 {
+				break
+			}
 		}
-	}
-}
-
-func current(ctx context.Context) u.Row {
-	var r u.Row
-
-	host := func(addr string) string {
-		hostnames, err := net.LookupAddr(addr)
-		if err != nil {
-			return ""
-		}
-
-		if len(hostnames) < 1 {
-			return ""
-		}
-		return hostnames[0]
-	}
-
-	funcs := []addrFunc{
-		localIP,
-		remoteIP,
-	}
-
-	for i, f := range funcs {
-		a, err := f()
-		if err != nil {
-			a = u.Unknown
-		}
-		at := addrType(i)
-		r.Add(at.String(), a)
-		if at == local {
-			r.Add("hostname", host(a))
-		}
-	}
-	return r
-}
-
-func localIP() (string, error) {
-	c, err := net.Dial("udp", "8.8.8.8:80")
-	if err != nil {
-		return "", fmt.Errorf("failed to dial google dns : %s", err)
-	}
-	defer c.Close()
-
-	a, ok := c.LocalAddr().(*net.UDPAddr)
-	if !ok {
-		return "", fmt.Errorf("failed to resolve local IP")
-	}
-
-	h, _, err := net.SplitHostPort(a.String())
-	if err != nil {
-		return "", err
-	}
-	return h, nil
-}
-
-func remoteIP() (string, error) {
-	r, err := http.Get("http://myexternalip.com/raw")
-	if err != nil {
-		return "", err
-	}
-	defer r.Body.Close()
-
-	b, err := ioutil.ReadAll(r.Body)
-	if err != nil {
-		return "", err
-	}
-	return string(b), nil
-}
-
-func routerIP() (string, error) {
-	a, err := gw.DiscoverGateway()
-	if err != nil {
-		return "", err
-	}
-	return a.String(), nil
-}
-
-func process(ctx context.Context, h string, rc chan<- u.Row) {
-	names, err := net.LookupAddr(h)
-	if err != nil {
-		return
-	}
-
-	if len(names) > 0 {
-		var r u.Row
-		r.Add("addr", h)
-		r.Add("hostname", names[0])
-		rc <- r
-	}
-}
-
-func hosts(cidr string) ([]string, error) {
-	ip, n, err := net.ParseCIDR(cidr)
-	if err != nil {
-		return nil, err
 	}
 
 	var ips []string
-	for ip := ip.Mask(n.Mask); n.Contains(ip); inc(ip) {
+	for ip := ip.Mask(network.Mask); network.Contains(ip); inc(ip) {
+		if ip.String() == router.localIP.String() {
+			continue
+		}
 		ips = append(ips, ip.String())
 	}
 	return ips[1 : len(ips)-1], nil
 }
 
-func inc(ip net.IP) {
-	for j := len(ip) - 1; j >= 0; j-- {
-		ip[j]++
-		if ip[j] > 0 {
-			break
-		}
+func getLocalIP() (net.IP, error) {
+	c, err := net.Dial("udp", "8.8.8.8:80")
+	if err != nil {
+		return nil, xerrors.Errorf("failed to dial google dns : %w", err)
 	}
+	defer c.Close()
+
+	localAddr, ok := c.LocalAddr().(*net.UDPAddr)
+	if !ok {
+		return nil, xerrors.New("failed to resolve local IP")
+	}
+	return localAddr.IP, nil
 }
 
-func getCIDR() (string, error) {
-	host, err := localIP()
+func getRemoteIP() (net.IP, error) {
+	r, err := http.Get("http://myexternalip.com/raw")
 	if err != nil {
-		return "", err
+		return nil, err
+	}
+	defer r.Body.Close()
+
+	b, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		return nil, err
 	}
 
-	a := net.ParseIP(host)
-	if a == nil {
-		return "", err
+	remoteIP := net.ParseIP(string(b)).To4()
+	if remoteIP == nil {
+		return nil, xerrors.Errorf("failed to get resolve ip %q as ipv4", b)
 	}
-	m := a.DefaultMask()
-	return fmt.Sprintf("%s/24", a.Mask(m)), nil
+	return remoteIP, nil
 }

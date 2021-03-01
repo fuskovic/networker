@@ -19,7 +19,6 @@ func (r *root) Spec() cli.CommandSpec {
 
 func (r *root) Subcommands() []cli.Command {
 	return []cli.Command{
-		new(captureCmd),
 		new(listCmd),
 		new(lookupCmd),
 		new(requestCmd),

@@ -15,7 +15,6 @@ A practical CLI tool for network administration.
     Description: A practical CLI tool for network administration.
 
     Commands:
-            c, cap, capture  - Monitor network traffic on the LAN.
             ls, list         - List information on connected network devices.
             lu, lookup       - Lookup hostnames, IP addresses, nameservers, and networks.
             r, req, request  - Send an HTTP request.
@@ -31,57 +30,53 @@ Useful for getting IP addresses and hostnames of devices on the LAN.
 
 ## Scan
 
-Scans first 1024 ports of a given host.
+Scans the well-known ports of a given host:
 
-    networker s --host 104.198.14.52
+    networker scan --host <ip-address>
 
-You can use a url for the host flag too.
+Scan all ports of a given host:
 
-    networker s --host farishuskovic.dev
+    networker scan --host <ip-address> --all
+
+Hostnames are also supported if you don't wan't to use an ip address:
+
+    networker s --host <hostname>
+
+If you don't use the `--host` flag then the `scan` command will scan all devices on your local network:
+
+    networker scan
 
 If you forget to provide an http or https proto-scheme in your URL networker will append it for you.
 
 
 ## Lookup
 
-Get the hostnames of a given address.
+Get the hostname of an IP address:
 
-    networker lu --hostnames 104.198.14.52
-
-
-Get the addresses of a given hostname.
-
-    networker lu --addresses farishuskovic.dev
+    networker lookup hostname --ip <ip-address>
 
 
-## Capture
+Get the ip address of a hostname:
 
-Monitor network traffic on the LAN.
+    networker lookup ip --hostname <hostname>
 
-    networker cap
-
-You can save your capture session to a pcap file.
-
-    networker cap -o capture.pcap
-
-If the file doesn't exist, networker will create it for you.
-
-You can also use `--wide` to include hostnames, sequence-numbers, and mac addresses in the output.
-
-    networker cap --wide
 
 
 ## Request
 
-Here's an example of how to send a post request using a JSON file as the request body.
+The `request` command defaults to a `GET` if the `--method` flag isn't passed:
 
-    networker req -m POST -f /path/to/file.json -u https://url.com
+    networker request --url <url-endpoint>
 
-Content-type headers are automatically set when JSON and XML files are provided.
+You can provision the request body from a `json` or `xml` file when sending `POST` requests:
 
-You can add your own custom headers as a comma-separated list of key/value pairs.
+    networker request --method POST --file <file-path> --url <url-endpoint>
 
-    networker req --add-headers key:value,key:value -u https://url.com
+If you pass a `json` or `xml` file the `Content-Type` header is automatically set for you.
 
-All methods are supported but if `--method` is unset, networker will default to a GET.
+If you wan't to add your own custom headers as a comma-separated list of key/value pairs.
+
+    networker request --add-headers key:value,key:value --url <url-endpoint>
+
+You don't need to use quotes when adding custom headers.
 

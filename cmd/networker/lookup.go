@@ -21,13 +21,6 @@ func (cmd *lookupCmd) Spec() cli.CommandSpec {
 	}
 }
 
-func (cmd *lookupCmd) RegisterFlags(fl *pflag.FlagSet) {
-	fl.StringVarP(&cmd.network, "network", "n", "", "Look up the network address of the provided host.")
-	fl.StringVar(&cmd.hostname, "ip", "", "Look up the IP address of the provided hostname.")
-	fl.StringVarP(&cmd.nameserver, "nameservers", "s", "", "Look up nameservers of the provided hostname.")
-	fl.StringVar(&cmd.ipAddress, "hostnames", "", "Look up the hostname for a provided ip address.")
-}
-
 func (cmd *lookupCmd) Subcommands() []cli.Command {
 	return []cli.Command{
 		new(hostnameCmd),

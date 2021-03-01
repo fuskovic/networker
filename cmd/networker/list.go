@@ -2,7 +2,9 @@ package main
 
 import (
 	"context"
+	"os"
 
+	"cdr.dev/slog/sloggers/sloghuman"
 	"github.com/spf13/pflag"
 	"go.coder.com/cli"
 	"go.coder.com/flog"
@@ -22,8 +24,18 @@ func (c *listCmd) Spec() cli.CommandSpec {
 }
 
 func (c *listCmd) Run(fl *pflag.FlagSet) {
-	if err := list.Run(context.Background()); err != nil {
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	devices, err := list.Devices(ctx)
+	if err != nil {
 		fl.Usage()
-		flog.Error("failed to list : %v", err)
+		flog.Error("failed to list devices: %v", err)
+		return
+	}
+
+	log := sloghuman.Make(os.Stdout)
+	for i := range devices {
+		log.Info(ctx, string(devices[i].Kind()), devices[i].Fields()...)
 	}
 }

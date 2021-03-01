@@ -11,7 +11,10 @@ type Func func(string) error
 // HostnameByIP returns the hostname for the provided ip address.
 func HostNameByIP(ip net.IP) (string, error) {
 	hostnames, err := HostNamesByIP(ip)
-	return hostnames[0], err
+	if err != nil {
+		return "", err
+	}
+	return hostnames[0], nil
 }
 
 // HostnamesByIP returns all hostnames found for the provided ip address.
@@ -31,6 +34,9 @@ func AddrByHostName(hostname string) (*net.IP, error) {
 	ipAddrs, err := AddrsByHostName(hostname)
 	if err != nil {
 		return nil, err
+	}
+	if len(ipAddrs) == 0 {
+		return nil, xerrors.Errorf("no addresses found for hostname %q", hostname)
 	}
 	return ipAddrs[0], err
 }
