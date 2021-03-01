@@ -32,7 +32,7 @@ func New(cfg *Cfg) (*http.Request, error) {
 		return nil, xerrors.Errorf("invalid request : %v", err)
 	}
 
-	var payload *bytes.Buffer
+	payload := new(bytes.Buffer)
 	if requiresPayload(cfg.Method) {
 		body, err := buildPayload(cfg)
 		if err != nil {
