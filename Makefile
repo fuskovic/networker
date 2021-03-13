@@ -8,11 +8,14 @@ stop:
 
 binary:
 	@echo "building binary..." && \
-	go build -o nw cmd/networker/*.go
+	go build -o networker cmd/networker/*.go
 
-win_bin:
+windows_binary:
 	@echo "building binary for windows" &&\
 	GOOS=windows GOARCH=386 go build -o networker.exe cmd/networker/*.go
+
+release: binary windows_binary
+	@echo "release binaries ready"
 
 image:
 	@echo "building image..."
@@ -31,9 +34,9 @@ append_commit: lint
 	@git commit --amend --no-edit
 	@echo "appended commit"
 
-remove_binary:
-	@echo "removing old binary..."
-	-@rm nw
+remove_binaries:
+	@echo "removing any old binaries if they exist..."
+	-@rm networker networker.exe
 
 reset: remove_binary binary
 	clear
