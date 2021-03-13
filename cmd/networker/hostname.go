@@ -50,5 +50,5 @@ func (cmd *hostnameCmd) Run(fl *pflag.FlagSet) {
 		flog.Error("lookup failed: %v", err)
 		return
 	}
-	sloghuman.Make(os.Stdout).Info(context.Background(), "lookup successful", slog.F("hostname", hostname))
+	slog.Make(sloghuman.Sink(os.Stdout)).Info(context.Background(), "lookup successful", slog.F("hostname", hostname))
 }

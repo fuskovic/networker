@@ -48,5 +48,5 @@ func (cmd *nameserversCmd) Run(fl *pflag.FlagSet) {
 	for i := range nameservers {
 		nsFields = append(nsFields, slog.F(fmt.Sprintf("nameserver %d", i+1), nameservers[i].Host))
 	}
-	sloghuman.Make(os.Stdout).Info(context.Background(), "lookup successful", nsFields...)
+	slog.Make(sloghuman.Sink(os.Stdout)).Info(context.Background(), "lookup successful", nsFields...)
 }

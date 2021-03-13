@@ -4,6 +4,7 @@ import (
 	"context"
 	"os"
 
+	"cdr.dev/slog"
 	"cdr.dev/slog/sloggers/sloghuman"
 	"github.com/spf13/pflag"
 	"go.coder.com/cli"
@@ -34,7 +35,7 @@ func (c *listCmd) Run(fl *pflag.FlagSet) {
 		return
 	}
 
-	log := sloghuman.Make(os.Stdout)
+	log := slog.Make(sloghuman.Sink(os.Stdout))
 	for i := range devices {
 		log.Info(ctx, string(devices[i].Kind()), devices[i].Fields()...)
 	}

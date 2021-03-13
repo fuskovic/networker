@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"fmt"
 	"io/ioutil"
 	"net/http"
 	"os"
@@ -43,6 +42,8 @@ func (cmd *requestCmd) RegisterFlags(fl *pflag.FlagSet) {
 }
 
 func (cmd *requestCmd) Run(fl *pflag.FlagSet) {
+	started := time.Now()
+
 	req, err := request.New(cmd.cfg())
 	if err != nil {
 		fl.Usage()
@@ -67,10 +68,20 @@ func (cmd *requestCmd) Run(fl *pflag.FlagSet) {
 		return
 	}
 
-	sloghuman.Make(os.Stdout).Info(context.Background(), "received server response",
+	var successful bool
+	if resp.StatusCode < 400 {
+		successful = true
+	}
+
+	ctx := context.Background()
+	log := slog.Make(sloghuman.Sink(os.Stdout))
+
+	log.Info(ctx, "response",
+		slog.F("successful", successful),
 		slog.F("method", req.Method),
-		slog.F("status", fmt.Sprintf("%d - %s", resp.StatusCode, http.StatusText(resp.StatusCode))),
-		slog.F("response", string(data)),
+		slog.F("status", resp.Status),
+		slog.F("elapsed-time", time.Since(started)),
+		slog.F("body", string(data)),
 	)
 }
 
