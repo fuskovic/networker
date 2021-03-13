@@ -38,5 +38,5 @@ remove_binaries:
 	@echo "removing any old binaries if they exist..."
 	-@rm networker networker.exe
 
-reset: remove_binary binary
+reset: remove_binaries binary
 	clear
