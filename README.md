@@ -4,15 +4,20 @@
 
 A practical CLI tool for network administration.
 
-# Installation
+
+# Install Using Go
 
     go get -u github.com/fuskovic/networker/cmd/networker
+
+# Download Pre-compiled binaries
+
+Checkout the [releases](https://github.com/fuskovic/networker/releases) page to download the latest executables for Linux, Mac, and Windows.
 
 # Usage 
 
     Usage: networker [subcommand] [flags]
 
-    Description: A practical CLI tool for network administration.
+    Description: A simple networking tool.
 
     Commands:
             ls, list         - List information on connected network devices.
@@ -24,7 +29,7 @@ A practical CLI tool for network administration.
 
 ## List
 
-Useful for getting IP addresses and hostnames of devices on the LAN.
+Get IP addresses and hostnames of all devices on the LAN.
 
     networker ls
 
@@ -72,7 +77,7 @@ You can provision the request body from a `json` or `xml` file when sending `POS
 
 If you pass a `json` or `xml` file the `Content-Type` header is automatically set for you.
 
-If you wan't to add your own custom headers as a comma-separated list of key/value pairs.
+If you wan't to add your own custom headers, use a comma-separated list of key/value pairs.
 
     networker request --add-headers key:value,key:value --url <url-endpoint>
 
