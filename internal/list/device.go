@@ -12,8 +12,8 @@ const (
 type Kind string
 
 type Device struct {
-	Kind     Kind   `table:"Kind"`
-	Hostname string `table:"Hostname"`
-	LocalIP  net.IP `table:"PrivateIP"`
-	RemoteIP net.IP `table:"PublicIP"`
+	Kind     Kind   `json:"kind" table:"Kind"`
+	Hostname string `json:"hostname" table:"Hostname"`
+	LocalIP  net.IP `json:"local-ip" table:"LocalIP"`
+	RemoteIP net.IP `json:"remote-ip,omitempty" table:"RemoteIP"`
 }
