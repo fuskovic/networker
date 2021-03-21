@@ -25,7 +25,7 @@ func (cmd *nameserversCmd) Spec() cli.CommandSpec {
 }
 
 func (cmd *nameserversCmd) RegisterFlags(fl *pflag.FlagSet) {
-	fl.StringVar(&cmd.hostname, "hostname", "", "Hostname to lookup nameservers for.")
+	fl.StringVar(&cmd.hostname, "host", "", "Hostname to lookup nameservers for.")
 }
 
 func (cmd *nameserversCmd) Run(fl *pflag.FlagSet) {
@@ -53,6 +53,6 @@ func (cmd *nameserversCmd) Run(fl *pflag.FlagSet) {
 
 	if err := tablewriter.WriteTable(os.Stdout, len(nameservers), func(i int) interface{} { return nameservers[i] }); err != nil {
 		fl.Usage()
-		log.Fatalf("lookup successful - failed to write nameservers table: %s", err)
+		log.Fatalf("failed to write nameservers table: %s", err)
 	}
 }

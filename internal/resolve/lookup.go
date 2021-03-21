@@ -2,6 +2,7 @@ package resolve
 
 import (
 	"net"
+	"strings"
 	"time"
 
 	"github.com/ammario/ipisp"
@@ -23,7 +24,8 @@ type InternetServiceProvider struct {
 
 // NameServer is used in place of the standard library object to support table writes.
 type NameServer struct {
-	Host string `json:"host" table:"Host"`
+	IP   *net.IP `json:"ip" table:"IP"`
+	Host string  `json:"nameserver" table:"Nameserver"`
 }
 
 // HostNameByIP returns the hostname for the provided ip address.
@@ -58,7 +60,7 @@ func AddrByHostName(hostname string) (*net.IP, error) {
 	}
 	ipv4 := ipAddrs[0].To4()
 	if ipv4 == nil {
-		return nil, xerrors.Errorf("failed to cast %q to ipv4", ipAddrs[0])
+		return ipAddrs[0], nil
 	}
 	return &ipv4, err
 }
@@ -88,7 +90,7 @@ func AddrsByHostName(hostname string) ([]*net.IP, error) {
 
 // NameServersByHostName looks up all nameservers for the provided hostname.
 func NameServersByHostName(hostname string) ([]NameServer, error) {
-	internalNameServers, err := net.LookupNS(hostname)
+	internalNameServers, err := net.LookupNS(stripHostname(hostname))
 	if err != nil {
 		return nil, xerrors.Errorf("failed to look up name server for hostname %q : %v", hostname, err)
 	}
@@ -97,7 +99,16 @@ func NameServersByHostName(hostname string) ([]NameServer, error) {
 	}
 	var nameServers []NameServer
 	for _, ns := range internalNameServers {
-		nameServers = append(nameServers, NameServer{Host: ns.Host})
+		ip, err := AddrByHostName(ns.Host)
+		if err != nil {
+			return nil, xerrors.Errorf("failed to get ip by hostname %q: %w", ns.Host, err)
+		}
+		nameServers = append(nameServers,
+			NameServer{
+				IP:   ip,
+				Host: ns.Host,
+			},
+		)
 	}
 	return nameServers, nil
 }
@@ -165,4 +176,11 @@ func ServiceProvider(ip *net.IP) (*InternetServiceProvider, error) {
 		AutonomousServiceNumber: resp.ASN.String(),
 		AllocatedAt:             &resp.AllocatedAt,
 	}, nil
+}
+
+func stripHostname(hostname string) string {
+	hostname = strings.ReplaceAll(hostname, "https://", "")
+	hostname = strings.ReplaceAll(hostname, "http://", "")
+	hostname = strings.ReplaceAll(hostname, "www.", "")
+	return hostname
 }

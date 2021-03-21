@@ -28,12 +28,12 @@ func (cmd *scanCmd) Spec() cli.CommandSpec {
 		Name:    "scan",
 		Usage:   "[flags]",
 		Aliases: []string{"s"},
-		Desc:    "Scan the well-known ports of a given host or network.",
+		Desc:    "Scan hosts for open ports.",
 	}
 }
 
 func (cmd *scanCmd) RegisterFlags(fl *pflag.FlagSet) {
-	fl.StringVar(&cmd.host, "host", "", "Host to scan.")
+	fl.StringVar(&cmd.host, "host", "", "Host to scan(scans all hosts on LAN if not provided).")
 	fl.BoolVarP(&cmd.all, "all", "a", false, "Scan all ports(scans first 1024 if not enabled).")
 	fl.BoolVar(&cmd.json, "json", false, "Output as json.")
 }
@@ -49,8 +49,14 @@ func (cmd *scanCmd) Run(fl *pflag.FlagSet) {
 	}
 
 	start := time.Now()
-	log.Printf("scanning %v", hosts)
-	scans := ports.NewScanner(hosts, cmd.all).Scan(ctx)
+	log.Println("scanning...")
+
+	scans, err := ports.NewScanner(hosts, cmd.all).Scan(ctx)
+	if err != nil {
+		fl.Usage()
+		log.Fatalf("failed scan hosts: %s", err)
+	}
+
 	log.Printf("scan completed in %s", time.Since(start))
 
 	if cmd.json {

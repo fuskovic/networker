@@ -6,6 +6,9 @@ import (
 	"strconv"
 	"sync"
 	"time"
+
+	"github.com/fuskovic/networker/internal/resolve"
+	"golang.org/x/xerrors"
 )
 
 var (
@@ -14,12 +17,13 @@ var (
 )
 
 type Scan struct {
-	Host  string `json:"host" table:"Host"`
+	IP    string `json:"ip" table:"IP"`
+	Host  string `json:"hostname" table:"Hostname"`
 	Ports []int  `json:"open_ports" table:"OpenPorts"`
 }
 
 type Scanner interface {
-	Scan(context.Context) []Scan
+	Scan(context.Context) ([]Scan, error)
 }
 
 type scanner struct {
@@ -42,25 +46,30 @@ func NewScanner(hosts []string, shouldScanAll bool) Scanner {
 	}
 }
 
-func (s *scanner) Scan(ctx context.Context) []Scan {
+func (s *scanner) Scan(ctx context.Context) ([]Scan, error) {
 	var wg sync.WaitGroup
 	for host := range s.scans {
 		wg.Add(1)
-		go func(h string) {
-			s.scanHost(h)
+		go func(ip string) {
+			s.scanHost(ip)
 			wg.Done()
 		}(host)
 	}
 	wg.Wait()
 
 	var scans []Scan
-	for host, ports := range s.scans {
+	for ip, ports := range s.scans {
+		hostname, _, err := resolve.HostAndAddr(ip)
+		if err != nil {
+			return nil, xerrors.Errorf("failed to lookup hostname by ip for %s: %w", ip, err)
+		}
 		scans = append(scans, Scan{
-			Host:  host,
+			IP:    ip,
+			Host:  hostname,
 			Ports: ports,
 		})
 	}
-	return scans
+	return scans, nil
 }
 
 func (s *scanner) scanHost(host string) {
@@ -77,14 +86,14 @@ func (s *scanner) scanHost(host string) {
 	wg.Wait()
 }
 
-func (s *scanner) add(host string, port int) {
+func (s *scanner) add(ip string, port int) {
 	s.Lock()
-	s.scans[host] = append(s.scans[host], port)
+	s.scans[ip] = append(s.scans[ip], port)
 	s.Unlock()
 }
 
-func isOpen(host string, port int) bool {
-	addr := net.JoinHostPort(host, strconv.Itoa(port))
+func isOpen(ip string, port int) bool {
+	addr := net.JoinHostPort(ip, strconv.Itoa(port))
 	conn, err := net.DialTimeout("tcp", addr, 5*time.Second)
 	if err != nil {
 		return false
