@@ -1,15 +1,11 @@
 package lookup
 
 import (
-	"context"
-	"os"
+	"log"
 
-	"cdr.dev/slog"
-	"cdr.dev/slog/sloggers/sloghuman"
 	"github.com/fuskovic/networker/internal/resolve"
 	"github.com/spf13/pflag"
 	"go.coder.com/cli"
-	"go.coder.com/flog"
 )
 
 type ipaddressCmd struct {
@@ -31,14 +27,13 @@ func (cmd *ipaddressCmd) RegisterFlags(fl *pflag.FlagSet) {
 func (cmd *ipaddressCmd) Run(fl *pflag.FlagSet) {
 	if cmd.hostname == "" {
 		fl.Usage()
-		flog.Error("hostname not provided")
-		return
+		log.Fatal("hostname not provided")
 	}
+
 	ipAddr, err := resolve.AddrByHostName(cmd.hostname)
 	if err != nil {
 		fl.Usage()
-		flog.Error("lookup failed: %v", err)
-		return
+		log.Fatalf("lookup failed: %s", err)
 	}
-	slog.Make(sloghuman.Sink(os.Stdout)).Info(context.Background(), "lookup successful", slog.F("ip-address", ipAddr.String()))
+	log.Printf("lookup successful - ip-address: %s", ipAddr)
 }

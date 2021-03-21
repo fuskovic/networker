@@ -1,14 +1,10 @@
 package lookup
 
 import (
-	"context"
-	"os"
+	"log"
 
-	"cdr.dev/slog"
-	"cdr.dev/slog/sloggers/sloghuman"
 	"github.com/spf13/pflag"
 	"go.coder.com/cli"
-	"go.coder.com/flog"
 
 	"github.com/fuskovic/networker/internal/resolve"
 )
@@ -32,15 +28,13 @@ func (cmd *networkCmd) RegisterFlags(fl *pflag.FlagSet) {
 func (cmd *networkCmd) Run(fl *pflag.FlagSet) {
 	if cmd.host == "" {
 		fl.Usage()
-		flog.Error("no host provided")
-		return
+		log.Fatal("no host provided")
 	}
 
 	network, err := resolve.NetworkByHost(cmd.host)
 	if err != nil {
 		fl.Usage()
-		flog.Error("lookup failed: %v", err)
-		return
+		log.Fatalf("lookup failed: %s", err)
 	}
-	slog.Make(sloghuman.Sink(os.Stdout)).Info(context.Background(), "lookup successful", slog.F("network-address", network.String()))
+	log.Printf("lookup successful - network address: %s", network)
 }

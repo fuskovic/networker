@@ -1,20 +1,19 @@
 package lookup
 
 import (
-	"context"
-	"fmt"
+	"encoding/json"
+	"log"
 	"os"
 
-	"cdr.dev/slog"
-	"cdr.dev/slog/sloggers/sloghuman"
+	"cdr.dev/coder-cli/pkg/tablewriter"
 	"github.com/fuskovic/networker/internal/resolve"
 	"github.com/spf13/pflag"
 	"go.coder.com/cli"
-	"go.coder.com/flog"
 )
 
 type nameserversCmd struct {
 	hostname string
+	json     bool
 }
 
 func (cmd *nameserversCmd) Spec() cli.CommandSpec {
@@ -32,20 +31,28 @@ func (cmd *nameserversCmd) RegisterFlags(fl *pflag.FlagSet) {
 func (cmd *nameserversCmd) Run(fl *pflag.FlagSet) {
 	if cmd.hostname == "" {
 		fl.Usage()
-		flog.Error("hostname not provided")
-		return
+		log.Fatal("hostname not provided")
 	}
 
 	nameservers, err := resolve.NameServersByHostName(cmd.hostname)
 	if err != nil {
 		fl.Usage()
-		flog.Error("lookup failed: %v", err)
+		log.Fatalf("lookup failed: %s", err)
+	}
+
+	if cmd.json {
+		enc := json.NewEncoder(os.Stdout)
+		enc.SetIndent("", "\t")
+		enc.SetEscapeHTML(false)
+		if err := enc.Encode(nameservers); err != nil {
+			fl.Usage()
+			log.Fatalf("failed to encode nameservers as json: %s", err)
+		}
 		return
 	}
 
-	var nsFields []slog.Field
-	for i := range nameservers {
-		nsFields = append(nsFields, slog.F(fmt.Sprintf("nameserver %d", i+1), nameservers[i].Host))
+	if err := tablewriter.WriteTable(os.Stdout, len(nameservers), func(i int) interface{} { return nameservers[i] }); err != nil {
+		fl.Usage()
+		log.Fatalf("lookup successful - failed to write nameservers table: %s", err)
 	}
-	slog.Make(sloghuman.Sink(os.Stdout)).Info(context.Background(), "lookup successful", nsFields...)
 }

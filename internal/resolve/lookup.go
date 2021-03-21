@@ -2,12 +2,29 @@ package resolve
 
 import (
 	"net"
+	"time"
 
 	"github.com/ammario/ipisp"
 	"golang.org/x/xerrors"
 )
 
 type Func func(string) error
+
+// InternetServiceProvider describes an internet service provider.
+type InternetServiceProvider struct {
+	Name                    string     `json:"name" table:"Name"`
+	IP                      *net.IP    `json:"ip_address" table:"IP"`
+	Country                 string     `json:"country" table:"Country"`
+	Registry                string     `json:"registry" table:"Registry"`
+	IpRange                 *net.IPNet `json:"ip_range" table:"IP-Range"`
+	AutonomousServiceNumber string     `json:"autonomous_service_number" table:"ASN"`
+	AllocatedAt             *time.Time `json:"allocated_at" table:"AllocatedAt"`
+}
+
+// NameServer is used in place of the standard library object to support table writes.
+type NameServer struct {
+	Host string `json:"host" table:"Host"`
+}
 
 // HostNameByIP returns the hostname for the provided ip address.
 func HostNameByIP(ip net.IP) (string, error) {
@@ -39,7 +56,11 @@ func AddrByHostName(hostname string) (*net.IP, error) {
 	if len(ipAddrs) == 0 {
 		return nil, xerrors.Errorf("no addresses found for hostname %q", hostname)
 	}
-	return ipAddrs[0], err
+	ipv4 := ipAddrs[0].To4()
+	if ipv4 == nil {
+		return nil, xerrors.Errorf("failed to cast %q to ipv4", ipAddrs[0])
+	}
+	return &ipv4, err
 }
 
 // AddrsByHostName returns all ip addresses found for the provided hostname.
@@ -66,13 +87,17 @@ func AddrsByHostName(hostname string) ([]*net.IP, error) {
 }
 
 // NameServersByHostName looks up all nameservers for the provided hostname.
-func NameServersByHostName(hostname string) ([]*net.NS, error) {
-	nameServers, err := net.LookupNS(hostname)
+func NameServersByHostName(hostname string) ([]NameServer, error) {
+	internalNameServers, err := net.LookupNS(hostname)
 	if err != nil {
 		return nil, xerrors.Errorf("failed to look up name server for hostname %q : %v", hostname, err)
 	}
-	if len(nameServers) == 0 {
+	if len(internalNameServers) == 0 {
 		return nil, xerrors.Errorf("no name servers found for hostname %q", hostname)
+	}
+	var nameServers []NameServer
+	for _, ns := range internalNameServers {
+		nameServers = append(nameServers, NameServer{Host: ns.Host})
 	}
 	return nameServers, nil
 }
