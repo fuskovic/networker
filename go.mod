@@ -3,6 +3,7 @@ module github.com/fuskovic/networker
 go 1.16
 
 require (
+	cdr.dev/coder-cli v1.17.0
 	cdr.dev/slog v1.4.0
 	github.com/ammario/ipisp v1.0.0
 	github.com/jackpal/gateway v1.0.7

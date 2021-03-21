@@ -4,8 +4,7 @@ import (
 	"context"
 	"os"
 
-	"cdr.dev/slog"
-	"cdr.dev/slog/sloggers/sloghuman"
+	"cdr.dev/coder-cli/pkg/tablewriter"
 	"github.com/spf13/pflag"
 	"go.coder.com/cli"
 	"go.coder.com/flog"
@@ -35,8 +34,7 @@ func (c *listCmd) Run(fl *pflag.FlagSet) {
 		return
 	}
 
-	log := slog.Make(sloghuman.Sink(os.Stdout))
-	for i := range devices {
-		log.Info(ctx, string(devices[i].Kind()), devices[i].Fields()...)
-	}
+	tablewriter.WriteTable(os.Stdout, len(devices), func(i int) interface{} {
+		return devices[i]
+	})
 }

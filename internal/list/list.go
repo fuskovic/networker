@@ -14,7 +14,7 @@ import (
 )
 
 // Devices lists all of the devices on the local network.
-func Devices(ctx context.Context) ([]*Device, error) {
+func Devices(ctx context.Context) ([]Device, error) {
 	cidr, err := getCIDR(ctx)
 	if err != nil {
 		return nil, xerrors.Errorf("failed to get cidr: %w", err)
@@ -35,10 +35,10 @@ func Devices(ctx context.Context) ([]*Device, error) {
 		return nil, xerrors.Errorf("failed to get current device: %w", err)
 	}
 
-	hostIPs = removeIP(currentDevice.localIP.String(), hostIPs)
+	hostIPs = removeIP(currentDevice.LocalIP.String(), hostIPs)
 
 	var (
-		devices = []*Device{currentDevice, router}
+		devices = []Device{*currentDevice, *router}
 		wg      = sync.WaitGroup{}
 		mutex   = sync.Mutex{}
 	)
@@ -52,7 +52,7 @@ func Devices(ctx context.Context) ([]*Device, error) {
 				return
 			}
 			mutex.Lock()
-			devices = append(devices, device)
+			devices = append(devices, *device)
 			mutex.Unlock()
 		}(hostIP)
 	}
@@ -71,9 +71,9 @@ func getDevice(_ context.Context, ip string) (*Device, error) {
 		return nil, xerrors.Errorf("failed to lookup hostname by ip address %q: %w", ip, err)
 	}
 	return &Device{
-		localIP:  ipAddr,
-		hostname: hostname,
-		kind:     DeviceKindPeer,
+		LocalIP:  ipAddr,
+		Hostname: hostname,
+		Kind:     DeviceKindPeer,
 	}, nil
 }
 
@@ -93,10 +93,10 @@ func getCurrentDevice(_ context.Context) (*Device, error) {
 		return nil, xerrors.Errorf("failed to get host: %w", err)
 	}
 	return &Device{
-		localIP:  localIP,
-		remoteIP: remoteIP,
-		hostname: hostname,
-		kind:     DeviceKindCurrent,
+		LocalIP:  localIP,
+		RemoteIP: remoteIP,
+		Hostname: hostname,
+		Kind:     DeviceKindCurrent,
 	}, nil
 }
 
@@ -110,9 +110,9 @@ func getRouter(_ context.Context) (*Device, error) {
 		return nil, xerrors.Errorf("failed to get router name: %w", err)
 	}
 	return &Device{
-		hostname: hostname,
-		localIP:  ipAddr,
-		kind:     DeviceKindRouter,
+		Hostname: hostname,
+		LocalIP:  ipAddr,
+		Kind:     DeviceKindRouter,
 	}, nil
 }
 
@@ -141,7 +141,7 @@ func getHosts(_ context.Context, cidr string, router *Device) ([]string, error) 
 
 	var ips []string
 	for ip := ip.Mask(network.Mask); network.Contains(ip); inc(ip) {
-		if ip.String() == router.localIP.String() {
+		if ip.String() == router.LocalIP.String() {
 			continue
 		}
 		ips = append(ips, ip.String())

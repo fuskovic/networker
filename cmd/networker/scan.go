@@ -80,7 +80,7 @@ func (cmd *scanCmd) getHostsToScan(ctx context.Context) ([]string, error) {
 			return nil, xerrors.Errorf("failed to list devices: %w", err)
 		}
 		for i := range devices {
-			hosts = append(hosts, devices[i].Addr())
+			hosts = append(hosts, devices[i].LocalIP.String())
 		}
 		return hosts, nil
 	}
