@@ -132,12 +132,12 @@ func ServiceProvider(ip *net.IP) (*InternetServiceProvider, error) {
 	}
 
 	return &InternetServiceProvider{
-		name:                    resp.Name.Raw,
-		ip:                      &resp.IP,
-		country:                 resp.Country,
-		registry:                resp.Registry,
-		ipRange:                 resp.Range,
-		autonomousServiceNumber: resp.ASN.String(),
-		allocatedAt:             &resp.AllocatedAt,
+		Name:                    resp.Name.Raw,
+		IP:                      &resp.IP,
+		Country:                 resp.Country,
+		Registry:                resp.Registry,
+		IpRange:                 resp.Range,
+		AutonomousServiceNumber: resp.ASN.String(),
+		AllocatedAt:             &resp.AllocatedAt,
 	}, nil
 }

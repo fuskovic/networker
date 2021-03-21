@@ -1,20 +1,20 @@
 package lookup
 
 import (
-	"context"
+	"encoding/json"
+	"log"
 	"os"
 
-	"cdr.dev/slog"
-	"cdr.dev/slog/sloggers/sloghuman"
+	"cdr.dev/coder-cli/pkg/tablewriter"
 	"github.com/spf13/pflag"
 	"go.coder.com/cli"
-	"go.coder.com/flog"
 
 	"github.com/fuskovic/networker/internal/resolve"
 )
 
 type ispCmd struct {
 	host string
+	json bool
 }
 
 func (cmd *ispCmd) Spec() cli.CommandSpec {
@@ -27,41 +27,45 @@ func (cmd *ispCmd) Spec() cli.CommandSpec {
 
 func (cmd *ispCmd) RegisterFlags(fl *pflag.FlagSet) {
 	fl.StringVar(&cmd.host, "host", "", "IP address or hostname to get the network address for.")
+	fl.BoolVar(&cmd.json, "json", false, "Output as json.")
 }
 
 func (cmd *ispCmd) Run(fl *pflag.FlagSet) {
 	if cmd.host == "" {
 		fl.Usage()
-		flog.Error("no host provided")
-		return
+		log.Fatal("no host provided")
 	}
 
 	_, ip, err := resolve.HostAndAddr(cmd.host)
 	if err != nil {
 		fl.Usage()
-		flog.Error("%q is an invalid host: %w", cmd.host, err)
-		return
+		log.Fatalf("%q is an invalid host: %s", cmd.host, err)
 	}
 
 	if resolve.IsPrivate(ip) {
 		fl.Usage()
-		flog.Error("%q is not a remote ip", ip)
-		return
+		log.Fatalf("%q is not a remote ip", ip)
 	}
 
 	isp, err := resolve.ServiceProvider(ip)
 	if err != nil {
 		fl.Usage()
-		flog.Error("failed to resolve internet service provider for %q: %w", cmd.host, err)
+		log.Fatalf("failed to resolve internet service provider for %q: %s", cmd.host, err)
+	}
+
+	if cmd.json {
+		enc := json.NewEncoder(os.Stdout)
+		enc.SetIndent("", "\t")
+		enc.SetEscapeHTML(false)
+		if err := enc.Encode(isp); err != nil {
+			fl.Usage()
+			log.Fatalf("failed to encode internet service provider as json: %s", err)
+		}
 		return
 	}
 
-	var (
-		ctx = context.Background()
-		log = slog.Make(sloghuman.Sink(os.Stdout))
-	)
-
-	for _, field := range isp.Fields() {
-		log.Info(ctx, "isp-lookup", field)
+	if err := tablewriter.WriteTable(os.Stdout, 1, func(_ int) interface{} { return *isp }); err != nil {
+		fl.Usage()
+		log.Fatalf("failed to write service provider table for %q: %s", cmd.host, err)
 	}
 }
