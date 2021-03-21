@@ -13,8 +13,13 @@ var (
 	allPorts       = 65535
 )
 
+type Scan struct {
+	Host  string `json:"host" table:"Host"`
+	Ports []int  `json:"open_ports" table:"OpenPorts"`
+}
+
 type Scanner interface {
-	Scan(context.Context) map[string][]int
+	Scan(context.Context) []Scan
 }
 
 type scanner struct {
@@ -37,7 +42,7 @@ func NewScanner(hosts []string, shouldScanAll bool) Scanner {
 	}
 }
 
-func (s *scanner) Scan(ctx context.Context) map[string][]int {
+func (s *scanner) Scan(ctx context.Context) []Scan {
 	var wg sync.WaitGroup
 	for host := range s.scans {
 		wg.Add(1)
@@ -47,7 +52,15 @@ func (s *scanner) Scan(ctx context.Context) map[string][]int {
 		}(host)
 	}
 	wg.Wait()
-	return s.scans
+
+	var scans []Scan
+	for host, ports := range s.scans {
+		scans = append(scans, Scan{
+			Host:  host,
+			Ports: ports,
+		})
+	}
+	return scans
 }
 
 func (s *scanner) scanHost(host string) {

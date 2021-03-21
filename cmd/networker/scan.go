@@ -2,23 +2,25 @@ package main
 
 import (
 	"context"
+	"encoding/json"
+	"log"
 	"net"
 	"os"
+	"time"
 
-	"cdr.dev/slog"
-	"cdr.dev/slog/sloggers/sloghuman"
+	"cdr.dev/coder-cli/pkg/tablewriter"
 	"github.com/fuskovic/networker/internal/list"
 	"github.com/fuskovic/networker/internal/ports"
 	"github.com/fuskovic/networker/internal/resolve"
 	"github.com/spf13/pflag"
 	"go.coder.com/cli"
-	"go.coder.com/flog"
 	"golang.org/x/xerrors"
 )
 
 type scanCmd struct {
 	host string
 	all  bool
+	json bool
 }
 
 func (cmd *scanCmd) Spec() cli.CommandSpec {
@@ -33,6 +35,7 @@ func (cmd *scanCmd) Spec() cli.CommandSpec {
 func (cmd *scanCmd) RegisterFlags(fl *pflag.FlagSet) {
 	fl.StringVar(&cmd.host, "host", "", "Host to scan.")
 	fl.BoolVarP(&cmd.all, "all", "a", false, "Scan all ports(scans first 1024 if not enabled).")
+	fl.BoolVar(&cmd.json, "json", false, "Output as json.")
 }
 
 func (cmd *scanCmd) Run(fl *pflag.FlagSet) {
@@ -42,32 +45,28 @@ func (cmd *scanCmd) Run(fl *pflag.FlagSet) {
 	hosts, err := cmd.getHostsToScan(ctx)
 	if err != nil {
 		fl.Usage()
-		flog.Error("failed to get hosts to scan: %w", err)
+		log.Fatalf("failed to get hosts to scan: %s", err)
+	}
+
+	start := time.Now()
+	log.Printf("scanning %v", hosts)
+	scans := ports.NewScanner(hosts, cmd.all).Scan(ctx)
+	log.Printf("scan completed in %s", time.Since(start))
+
+	if cmd.json {
+		enc := json.NewEncoder(os.Stdout)
+		enc.SetIndent("", "\t")
+		enc.SetEscapeHTML(false)
+		if err := enc.Encode(scans); err != nil {
+			fl.Usage()
+			log.Fatalf("failed to encode scan as json: %s", err)
+		}
 		return
 	}
 
-	log := slog.Make(sloghuman.Sink(os.Stdout))
-	log.Info(ctx, "scanning", slog.F("hosts", hosts))
-
-	for host, openPorts := range ports.NewScanner(hosts, cmd.all).Scan(ctx) {
-		hostname, ip, err := resolve.HostAndAddr(host)
-		if err != nil {
-			fl.Usage()
-			flog.Error("failed to resolve host and ip address for %q: %w", host, err)
-			return
-		}
-
-		var foundOpenPorts bool
-		if len(openPorts) > 0 {
-			foundOpenPorts = true
-		}
-
-		log.Info(ctx, "scan complete",
-			slog.F("ip-address", ip.String()),
-			slog.F("found-open-ports", foundOpenPorts),
-			slog.F("hostname", hostname),
-			slog.F("open-ports", openPorts),
-		)
+	if err := tablewriter.WriteTable(os.Stdout, len(scans), func(i int) interface{} { return scans[i] }); err != nil {
+		fl.Usage()
+		log.Fatalf("failed to write scans table: %s", err)
 	}
 }
 
