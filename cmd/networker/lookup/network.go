@@ -1,4 +1,4 @@
-package main
+package lookup
 
 import (
 	"context"
@@ -10,7 +10,7 @@ import (
 	"go.coder.com/cli"
 	"go.coder.com/flog"
 
-	"github.com/fuskovic/networker/internal/lookup"
+	"github.com/fuskovic/networker/internal/resolve"
 )
 
 type networkCmd struct {
@@ -36,7 +36,7 @@ func (cmd *networkCmd) Run(fl *pflag.FlagSet) {
 		return
 	}
 
-	network, err := lookup.NetworkByHost(cmd.host)
+	network, err := resolve.NetworkByHost(cmd.host)
 	if err != nil {
 		fl.Usage()
 		flog.Error("lookup failed: %v", err)

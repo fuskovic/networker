@@ -1,18 +1,13 @@
-package main
+package lookup
 
 import (
 	"github.com/spf13/pflag"
 	"go.coder.com/cli"
 )
 
-type lookupCmd struct {
-	hostname   string
-	ipAddress  string
-	nameserver string
-	network    string
-}
+type Cmd struct{}
 
-func (cmd *lookupCmd) Spec() cli.CommandSpec {
+func (cmd *Cmd) Spec() cli.CommandSpec {
 	return cli.CommandSpec{
 		Name:    "lookup",
 		Usage:   "[flags]",
@@ -21,13 +16,14 @@ func (cmd *lookupCmd) Spec() cli.CommandSpec {
 	}
 }
 
-func (cmd *lookupCmd) Subcommands() []cli.Command {
+func (cmd *Cmd) Subcommands() []cli.Command {
 	return []cli.Command{
 		new(hostnameCmd),
 		new(ipaddressCmd),
 		new(networkCmd),
 		new(nameserversCmd),
+		new(ispCmd),
 	}
 }
 
-func (cmd *lookupCmd) Run(fl *pflag.FlagSet) { fl.Usage() }
+func (cmd *Cmd) Run(fl *pflag.FlagSet) { fl.Usage() }

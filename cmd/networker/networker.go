@@ -1,6 +1,7 @@
 package main
 
 import (
+	"github.com/fuskovic/networker/cmd/networker/lookup"
 	"github.com/spf13/pflag"
 	"go.coder.com/cli"
 )
@@ -20,7 +21,7 @@ func (r *root) Spec() cli.CommandSpec {
 func (r *root) Subcommands() []cli.Command {
 	return []cli.Command{
 		new(listCmd),
-		new(lookupCmd),
+		new(lookup.Cmd),
 		new(requestCmd),
 		new(scanCmd),
 	}

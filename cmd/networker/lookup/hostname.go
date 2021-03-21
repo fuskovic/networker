@@ -1,4 +1,4 @@
-package main
+package lookup
 
 import (
 	"context"
@@ -7,11 +7,10 @@ import (
 
 	"cdr.dev/slog"
 	"cdr.dev/slog/sloggers/sloghuman"
+	"github.com/fuskovic/networker/internal/resolve"
 	"github.com/spf13/pflag"
 	"go.coder.com/cli"
 	"go.coder.com/flog"
-
-	"github.com/fuskovic/networker/internal/lookup"
 )
 
 type hostnameCmd struct {
@@ -44,7 +43,7 @@ func (cmd *hostnameCmd) Run(fl *pflag.FlagSet) {
 		return
 	}
 
-	hostname, err := lookup.HostNameByIP(ipAddr)
+	hostname, err := resolve.HostNameByIP(ipAddr)
 	if err != nil {
 		fl.Usage()
 		flog.Error("lookup failed: %v", err)

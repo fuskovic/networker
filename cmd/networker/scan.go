@@ -8,8 +8,8 @@ import (
 	"cdr.dev/slog"
 	"cdr.dev/slog/sloggers/sloghuman"
 	"github.com/fuskovic/networker/internal/list"
-	"github.com/fuskovic/networker/internal/lookup"
 	"github.com/fuskovic/networker/internal/ports"
+	"github.com/fuskovic/networker/internal/resolve"
 	"github.com/spf13/pflag"
 	"go.coder.com/cli"
 	"go.coder.com/flog"
@@ -50,7 +50,7 @@ func (cmd *scanCmd) Run(fl *pflag.FlagSet) {
 	log.Info(ctx, "scanning", slog.F("hosts", hosts))
 
 	for host, openPorts := range ports.NewScanner(hosts, cmd.all).Scan(ctx) {
-		hostname, ip, err := resolveHostAndAddr(host)
+		hostname, ip, err := resolve.HostAndAddr(host)
 		if err != nil {
 			fl.Usage()
 			flog.Error("failed to resolve host and ip address for %q: %w", host, err)
@@ -91,34 +91,13 @@ func (cmd *scanCmd) getHostsToScan(ctx context.Context) ([]string, error) {
 	return []string{cmd.host}, nil
 }
 
-func resolveHostAndAddr(host string) (string, *net.IP, error) {
-	var hostname string
-
-	ip := net.ParseIP(host)
-	if ip == nil {
-		hostname = host
-		addr, err := lookup.AddrByHostName(hostname)
-		if err != nil {
-			return "", nil, xerrors.Errorf("failed to get ip address by hostname %q: %w", hostname, err)
-		}
-		ip = *addr
-	} else {
-		host, err := lookup.HostNameByIP(ip)
-		if err != nil {
-			return "", nil, xerrors.Errorf("failed to get hostname by ip address %q: %w", ip, err)
-		}
-		hostname = host
-	}
-	return hostname, &ip, nil
-}
-
 func isValidHost(host string) bool {
 	// otherwise, the user may have either provided a hostname or an ip address.
 	ip := net.ParseIP(host)
 	//if the ip address parse failed, we can assume the user provided a hostname.
 	if ip == nil {
 		// if we can't look up an ip address by the provided hostname, we can assume the hostname provided was invalid.
-		if _, err := lookup.AddrByHostName(host); err != nil {
+		if _, err := resolve.AddrByHostName(host); err != nil {
 			return false
 		}
 	}

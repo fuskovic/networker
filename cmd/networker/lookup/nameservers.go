@@ -1,4 +1,4 @@
-package main
+package lookup
 
 import (
 	"context"
@@ -7,11 +7,10 @@ import (
 
 	"cdr.dev/slog"
 	"cdr.dev/slog/sloggers/sloghuman"
+	"github.com/fuskovic/networker/internal/resolve"
 	"github.com/spf13/pflag"
 	"go.coder.com/cli"
 	"go.coder.com/flog"
-
-	"github.com/fuskovic/networker/internal/lookup"
 )
 
 type nameserversCmd struct {
@@ -37,7 +36,7 @@ func (cmd *nameserversCmd) Run(fl *pflag.FlagSet) {
 		return
 	}
 
-	nameservers, err := lookup.NameServersByHostName(cmd.hostname)
+	nameservers, err := resolve.NameServersByHostName(cmd.hostname)
 	if err != nil {
 		fl.Usage()
 		flog.Error("lookup failed: %v", err)

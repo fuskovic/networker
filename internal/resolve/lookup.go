@@ -1,8 +1,9 @@
-package lookup
+package resolve
 
 import (
 	"net"
 
+	"github.com/ammario/ipisp"
 	"golang.org/x/xerrors"
 )
 
@@ -92,4 +93,51 @@ func NetworkByHost(host string) (*net.IP, error) {
 		return nil, xerrors.Errorf("failed to get network address of host %q", ipAddr.String())
 	}
 	return &network, nil
+}
+
+// HostAndAddr returns the hostname and ip address of host whether host is an IP address or a hostname.
+// HostAndAddr returns a non-nil error if host is an invalid ip address or a hostname that cannot be resolved to an IP address.
+func HostAndAddr(host string) (string, *net.IP, error) {
+	var hostname string
+
+	ip := net.ParseIP(host)
+	if ip == nil {
+		hostname = host
+		addr, err := AddrByHostName(hostname)
+		if err != nil {
+			return "", nil, xerrors.Errorf("failed to get ip address by hostname %q: %w", hostname, err)
+		}
+		ip = *addr
+	} else {
+		host, err := HostNameByIP(ip)
+		if err != nil {
+			return "", nil, xerrors.Errorf("failed to get hostname by ip address %q: %w", ip, err)
+		}
+		hostname = host
+	}
+	return hostname, &ip, nil
+}
+
+// ServiceProvider returns the internet service provider information for ip.
+func ServiceProvider(ip *net.IP) (*InternetServiceProvider, error) {
+	client, err := ipisp.NewDNSClient()
+	if err != nil {
+		return nil, xerrors.Errorf("failed to initialize new dns client: %w", err)
+	}
+	defer client.Close()
+
+	resp, err := client.LookupIP(*ip)
+	if err != nil {
+		return nil, err
+	}
+
+	return &InternetServiceProvider{
+		name:                    resp.Name.Raw,
+		ip:                      &resp.IP,
+		country:                 resp.Country,
+		registry:                resp.Registry,
+		ipRange:                 resp.Range,
+		autonomousServiceNumber: resp.ASN.String(),
+		allocatedAt:             &resp.AllocatedAt,
+	}, nil
 }
