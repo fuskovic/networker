@@ -2,7 +2,6 @@
 
 [![Go Report Card](https://goreportcard.com/badge/github.com/fuskovic/networker)](https://goreportcard.com/report/github.com/fuskovic/networker)
 
-A practical CLI tool for network administration.
 
 
 # Install Using Go
@@ -23,63 +22,69 @@ Checkout the [releases](https://github.com/fuskovic/networker/releases) page to 
             ls, list         - List information on connected network devices.
             lu, lookup       - Lookup hostnames, IP addresses, nameservers, and networks.
             r, req, request  - Send an HTTP request.
-            s, scan          - Scan the well-known ports of a given host.
+            s, scan          - Scan hosts for open ports.
 
 # Commands
 
 ## List
 
-Get IP addresses and hostnames of all devices on the LAN.
+```
+Usage: networker list [flags]
 
-    networker ls
+Aliases: ls
+
+Description: List information on connected network devices.
+
+networker list flags:
+      --json   Output as json.
+```
+
 
 ## Scan
 
-Scans the well-known ports of a given host:
+```
+Usage: networker scan [flags]
 
-    networker scan --host <ip-address>
+Aliases: s
 
-Scan all ports of a given host:
+Description: Scan hosts for open ports.
 
-    networker scan --host <ip-address> --all
-
-Hostnames are also supported if you don't wan't to use an ip address:
-
-    networker s --host <hostname>
-
-If you don't use the `--host` flag then the `scan` command will scan all devices on your local network:
-
-    networker scan
+networker scan flags:
+  -a, --all           Scan all ports(scans first 1024 if not enabled).
+      --host string   Host to scan(scans all hosts on LAN if not provided).
+      --json          Output as json.
+```
 
 
 ## Lookup
 
-Get the hostname of an IP address:
+    Usage: networker lookup [flags]
 
-    networker lookup hostname --ip <ip-address>
+    Aliases: lu
 
+    Description: Lookup hostnames, IP addresses, nameservers, and networks.
 
-Get the ip address of a hostname:
-
-    networker lookup ip --hostname <hostname>
+    Commands:
+            hostname     - Lookup the hostname for a provided ip address.
+            ip           - Lookup the ip address of the provided hostname.
+            network      - Lookup the network address of a provided host.
+            nameservers  - Lookup nameservers for the provided hostname.
+            isp          - Lookup the internet service provider of a remote host.
 
 
 
 ## Request
 
-The `request` command defaults to a `GET` if the `--method` flag isn't passed:
+    Usage: networker request [flags]
 
-    networker request --url <url-endpoint>
+    Aliases: r, req
 
-You can provision the request body from a `json` or `xml` file when sending `POST` requests:
+    Description: Send an HTTP request.
 
-    networker request --method POST --file <file-path> --url <url-endpoint>
-
-If you pass a `json` or `xml` file the `Content-Type` header is automatically set for you.
-
-If you wan't to add your own custom headers, use a comma-separated list of key/value pairs.
-
-    networker request --add-headers key:value,key:value --url <url-endpoint>
-
-You don't need to use quotes when adding custom headers.
+    networker request flags:
+    -a, --add-headers strings   Add a list of comma-separated request headers. (format : key:value,key:value,etc...)
+    -f, --file string           Path to JSON or XML file to use for request body. (content-type headers for each file-type are set automatically)
+    -m, --method string         Specify method. (supported methods include GET, POST, PUT, PATCH, and DELETE) (default "GET")
+    -t, --time-out int          Specify number of seconds for time-out. (default 3)
+    -u, --url string            URL to send request.
 
