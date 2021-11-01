@@ -1,16 +1,15 @@
-package main
+package networker
 
 import (
-	"github.com/fuskovic/networker/cmd/networker/lookup"
 	"github.com/spf13/pflag"
 	"go.coder.com/cli"
 )
 
-type root struct{}
+type rootCmd struct{}
 
-func (r *root) Run(fl *pflag.FlagSet) { fl.Usage() }
+func (r *rootCmd) Run(fl *pflag.FlagSet) { fl.Usage() }
 
-func (r *root) Spec() cli.CommandSpec {
+func (r *rootCmd) Spec() cli.CommandSpec {
 	return cli.CommandSpec{
 		Name:  "networker",
 		Usage: "[subcommand] [flags]",
@@ -18,11 +17,17 @@ func (r *root) Spec() cli.CommandSpec {
 	}
 }
 
-func (r *root) Subcommands() []cli.Command {
+func (r *rootCmd) Subcommands() []cli.Command {
 	return []cli.Command{
 		new(listCmd),
-		new(lookup.Cmd),
+		new(lookupCmd),
 		new(requestCmd),
 		new(scanCmd),
+		new(versionCmd),
 	}
+}
+
+// Execute the root command.
+func Execute() {
+	cli.RunRoot(new(rootCmd))
 }

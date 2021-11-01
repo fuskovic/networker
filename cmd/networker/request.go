@@ -1,4 +1,4 @@
-package main
+package networker
 
 import (
 	"context"
@@ -11,9 +11,9 @@ import (
 	"cdr.dev/slog/sloggers/sloghuman"
 	"github.com/spf13/pflag"
 	"go.coder.com/cli"
-	"go.coder.com/flog"
 
 	"github.com/fuskovic/networker/internal/request"
+	"github.com/fuskovic/networker/internal/usage"
 )
 
 type requestCmd struct {
@@ -46,26 +46,20 @@ func (cmd *requestCmd) Run(fl *pflag.FlagSet) {
 
 	req, err := request.New(cmd.cfg())
 	if err != nil {
-		fl.Usage()
-		flog.Error("failed to build request : %v", err)
-		return
+		usage.Fatalf(fl, "failed to build request : %v", err)
 	}
 
 	client := http.Client{Timeout: time.Duration(cmd.timeOut) * time.Second}
 
 	resp, err := client.Do(req)
 	if err != nil {
-		fl.Usage()
-		flog.Error("failed to send HTTP request : %v", err)
-		return
+		usage.Fatalf(fl, "failed to send HTTP request : %v", err)
 	}
 	defer resp.Body.Close()
 
 	data, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		flog.Error("failed to read response body : %v", err)
-		fl.Usage()
-		return
+		usage.Fatalf(fl, "failed to read response body : %v", err)
 	}
 
 	var successful bool

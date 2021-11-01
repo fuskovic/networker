@@ -1,8 +1,9 @@
-package main
+package networker
 
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"log"
 	"net"
 	"os"
@@ -12,9 +13,9 @@ import (
 	"github.com/fuskovic/networker/internal/list"
 	"github.com/fuskovic/networker/internal/ports"
 	"github.com/fuskovic/networker/internal/resolve"
+	"github.com/fuskovic/networker/internal/usage"
 	"github.com/spf13/pflag"
 	"go.coder.com/cli"
-	"golang.org/x/xerrors"
 )
 
 type scanCmd struct {
@@ -44,8 +45,7 @@ func (cmd *scanCmd) Run(fl *pflag.FlagSet) {
 
 	hosts, err := cmd.getHostsToScan(ctx)
 	if err != nil {
-		fl.Usage()
-		log.Fatalf("failed to get hosts to scan: %s", err)
+		usage.Fatalf(fl, "failed to get hosts to scan: %s", err)
 	}
 
 	start := time.Now()
@@ -53,8 +53,7 @@ func (cmd *scanCmd) Run(fl *pflag.FlagSet) {
 
 	scans, err := ports.NewScanner(hosts, cmd.all).Scan(ctx)
 	if err != nil {
-		fl.Usage()
-		log.Fatalf("failed scan hosts: %s", err)
+		usage.Fatalf(fl, "failed scan hosts: %s", err)
 	}
 
 	log.Printf("scan completed in %s", time.Since(start))
@@ -64,15 +63,13 @@ func (cmd *scanCmd) Run(fl *pflag.FlagSet) {
 		enc.SetIndent("", "\t")
 		enc.SetEscapeHTML(false)
 		if err := enc.Encode(scans); err != nil {
-			fl.Usage()
-			log.Fatalf("failed to encode scan as json: %s", err)
+			usage.Fatalf(fl, "failed to encode scan as json: %s", err)
 		}
 		return
 	}
 
 	if err := tablewriter.WriteTable(os.Stdout, len(scans), func(i int) interface{} { return scans[i] }); err != nil {
-		fl.Usage()
-		log.Fatalf("failed to write scans table: %s", err)
+		usage.Fatalf(fl, "failed to write scans table: %s", err)
 	}
 }
 
@@ -82,7 +79,7 @@ func (cmd *scanCmd) getHostsToScan(ctx context.Context) ([]string, error) {
 		var hosts []string
 		devices, err := list.Devices(ctx)
 		if err != nil {
-			return nil, xerrors.Errorf("failed to list devices: %w", err)
+			return nil, fmt.Errorf("failed to list devices: %w", err)
 		}
 		for i := range devices {
 			hosts = append(hosts, devices[i].LocalIP.String())
@@ -91,7 +88,7 @@ func (cmd *scanCmd) getHostsToScan(ctx context.Context) ([]string, error) {
 	}
 
 	if !isValidHost(cmd.host) {
-		return nil, xerrors.Errorf("%q is not a valid host", cmd.host)
+		return nil, fmt.Errorf("%q is not a valid host", cmd.host)
 	}
 	return []string{cmd.host}, nil
 }

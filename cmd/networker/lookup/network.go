@@ -7,13 +7,14 @@ import (
 	"go.coder.com/cli"
 
 	"github.com/fuskovic/networker/internal/resolve"
+	"github.com/fuskovic/networker/internal/usage"
 )
 
-type networkCmd struct {
+type NetworkCmd struct {
 	host string
 }
 
-func (cmd *networkCmd) Spec() cli.CommandSpec {
+func (cmd *NetworkCmd) Spec() cli.CommandSpec {
 	return cli.CommandSpec{
 		Name:  "network",
 		Usage: "[flags]",
@@ -21,20 +22,18 @@ func (cmd *networkCmd) Spec() cli.CommandSpec {
 	}
 }
 
-func (cmd *networkCmd) RegisterFlags(fl *pflag.FlagSet) {
+func (cmd *NetworkCmd) RegisterFlags(fl *pflag.FlagSet) {
 	fl.StringVar(&cmd.host, "host", "", "IP address or hostname to get the network address for.")
 }
 
-func (cmd *networkCmd) Run(fl *pflag.FlagSet) {
+func (cmd *NetworkCmd) Run(fl *pflag.FlagSet) {
 	if cmd.host == "" {
-		fl.Usage()
-		log.Fatal("no host provided")
+		usage.Fatal(fl, "no host provided")
 	}
 
 	network, err := resolve.NetworkByHost(cmd.host)
 	if err != nil {
-		fl.Usage()
-		log.Fatalf("lookup failed: %s", err)
+		usage.Fatalf(fl, "lookup failed: %s", err)
 	}
 	log.Printf("lookup successful - network address: %s", network)
 }

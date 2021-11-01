@@ -4,15 +4,16 @@ import (
 	"log"
 
 	"github.com/fuskovic/networker/internal/resolve"
+	"github.com/fuskovic/networker/internal/usage"
 	"github.com/spf13/pflag"
 	"go.coder.com/cli"
 )
 
-type ipaddressCmd struct {
+type IpaddressCmd struct {
 	hostname string
 }
 
-func (cmd *ipaddressCmd) Spec() cli.CommandSpec {
+func (cmd *IpaddressCmd) Spec() cli.CommandSpec {
 	return cli.CommandSpec{
 		Name:  "ip",
 		Usage: "[flags]",
@@ -20,20 +21,18 @@ func (cmd *ipaddressCmd) Spec() cli.CommandSpec {
 	}
 }
 
-func (cmd *ipaddressCmd) RegisterFlags(fl *pflag.FlagSet) {
+func (cmd *IpaddressCmd) RegisterFlags(fl *pflag.FlagSet) {
 	fl.StringVar(&cmd.hostname, "host", "", "Hostname to get the ip address of.")
 }
 
-func (cmd *ipaddressCmd) Run(fl *pflag.FlagSet) {
+func (cmd *IpaddressCmd) Run(fl *pflag.FlagSet) {
 	if cmd.hostname == "" {
-		fl.Usage()
-		log.Fatal("hostname not provided")
+		usage.Fatal(fl, "hostname not provided")
 	}
 
 	ipAddr, err := resolve.AddrByHostName(cmd.hostname)
 	if err != nil {
-		fl.Usage()
-		log.Fatalf("lookup failed: %s", err)
+		usage.Fatalf(fl, "lookup failed: %s", err)
 	}
 	log.Printf("lookup successful - ip-address: %s", ipAddr)
 }

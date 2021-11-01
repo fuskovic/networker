@@ -2,46 +2,52 @@ package list
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"io/ioutil"
+	"log"
 	"net"
 	"net/http"
 	"sync"
 
 	"github.com/fuskovic/networker/internal/resolve"
 	gw "github.com/jackpal/gateway"
-	"golang.org/x/xerrors"
 )
 
 // Devices lists all of the devices on the local network.
 func Devices(ctx context.Context) ([]Device, error) {
 	cidr, err := getCIDR(ctx)
 	if err != nil {
-		return nil, xerrors.Errorf("failed to get cidr: %w", err)
+		return nil, fmt.Errorf("failed to get cidr: %w", err)
 	}
 
 	router, err := getRouter(ctx)
 	if err != nil {
-		return nil, xerrors.Errorf("failed to get router ip: %w", err)
+		// The router ip isn't required to resolve the other devices so just continue.
+		log.Printf("failed to get router ip: %s\n", err)
 	}
 
 	hostIPs, err := getHosts(ctx, cidr, router)
 	if err != nil {
-		return nil, xerrors.Errorf("failed to get hosts: %w", err)
+		return nil, fmt.Errorf("failed to get hosts: %w", err)
 	}
 
 	currentDevice, err := getCurrentDevice(ctx)
 	if err != nil {
-		return nil, xerrors.Errorf("failed to get current device: %w", err)
+		return nil, fmt.Errorf("failed to get current device: %w", err)
 	}
 
 	hostIPs = removeIP(currentDevice.LocalIP.String(), hostIPs)
 
 	var (
-		devices = []Device{*currentDevice, *router}
+		devices = []Device{*currentDevice}
 		wg      = sync.WaitGroup{}
 		mutex   = sync.Mutex{}
 	)
+
+	if router != nil {
+		devices = append(devices, *router)
+	}
 
 	for _, hostIP := range dedupe(hostIPs) {
 		wg.Add(1)
@@ -63,12 +69,12 @@ func Devices(ctx context.Context) ([]Device, error) {
 func getDevice(_ context.Context, ip string) (*Device, error) {
 	ipAddr := net.ParseIP(ip)
 	if ipAddr == nil {
-		return nil, xerrors.Errorf("failed to parse ip %q", ip)
+		return nil, fmt.Errorf("failed to parse ip %q", ip)
 	}
 
 	hostname, err := resolve.HostNameByIP(ipAddr)
 	if err != nil {
-		return nil, xerrors.Errorf("failed to lookup hostname by ip address %q: %w", ip, err)
+		return nil, fmt.Errorf("failed to lookup hostname by ip address %q: %w", ip, err)
 	}
 	return &Device{
 		LocalIP:  ipAddr,
@@ -80,17 +86,17 @@ func getDevice(_ context.Context, ip string) (*Device, error) {
 func getCurrentDevice(_ context.Context) (*Device, error) {
 	localIP, err := getCurrentDeviceLocalIP()
 	if err != nil {
-		return nil, xerrors.Errorf("failed to get local ip of current device: %w", err)
+		return nil, fmt.Errorf("failed to get local ip of current device: %w", err)
 	}
 
 	remoteIP, err := getCurrentDeviceRemoteIP(localIP)
 	if err != nil {
-		return nil, xerrors.Errorf("failed to get remote ip of current device: %w", err)
+		return nil, fmt.Errorf("failed to get remote ip of current device: %w", err)
 	}
 
 	hostname, err := resolve.HostNameByIP(localIP)
 	if err != nil {
-		return nil, xerrors.Errorf("failed to get host: %w", err)
+		return nil, fmt.Errorf("failed to get host: %w", err)
 	}
 	return &Device{
 		LocalIP:  localIP,
@@ -103,11 +109,11 @@ func getCurrentDevice(_ context.Context) (*Device, error) {
 func getRouter(_ context.Context) (*Device, error) {
 	ipAddr, err := gw.DiscoverGateway()
 	if err != nil {
-		return nil, xerrors.Errorf("failed to discover gateway: %w", err)
+		return nil, fmt.Errorf("failed to discover gateway: %w", err)
 	}
 	hostname, err := resolve.HostNameByIP(ipAddr)
 	if err != nil {
-		return nil, xerrors.Errorf("failed to get router name: %w", err)
+		hostname = "N/A"
 	}
 	return &Device{
 		Hostname: hostname,
@@ -119,7 +125,7 @@ func getRouter(_ context.Context) (*Device, error) {
 func getCIDR(_ context.Context) (string, error) {
 	localIP, err := getCurrentDeviceLocalIP()
 	if err != nil {
-		return "", xerrors.Errorf("failed to get local ip: %w", err)
+		return "", fmt.Errorf("failed to get local ip: %w", err)
 	}
 	return fmt.Sprintf("%s/24", localIP.Mask(localIP.DefaultMask())), nil
 }
@@ -127,7 +133,7 @@ func getCIDR(_ context.Context) (string, error) {
 func getHosts(_ context.Context, cidr string, router *Device) ([]string, error) {
 	ip, network, err := net.ParseCIDR(cidr)
 	if err != nil {
-		return nil, xerrors.Errorf("failed to parse cidr %s: %w", cidr, err)
+		return nil, fmt.Errorf("failed to parse cidr %s: %w", cidr, err)
 	}
 
 	inc := func(ip net.IP) {
@@ -152,13 +158,13 @@ func getHosts(_ context.Context, cidr string, router *Device) ([]string, error) 
 func getCurrentDeviceLocalIP() (net.IP, error) {
 	c, err := net.Dial("udp", "8.8.8.8:80")
 	if err != nil {
-		return nil, xerrors.Errorf("failed to dial google dns : %w", err)
+		return nil, fmt.Errorf("failed to dial google dns : %w", err)
 	}
 	defer c.Close()
 
 	localAddr, ok := c.LocalAddr().(*net.UDPAddr)
 	if !ok {
-		return nil, xerrors.New("failed to resolve local IP")
+		return nil, errors.New("failed to resolve local IP")
 	}
 	return localAddr.IP, nil
 }
@@ -177,7 +183,7 @@ func getCurrentDeviceRemoteIP(localIP net.IP) (net.IP, error) {
 
 	remoteIP := net.ParseIP(string(b)).To4()
 	if remoteIP == nil {
-		return nil, xerrors.Errorf("failed to get resolve ip %q as ipv4", b)
+		return nil, fmt.Errorf("failed to get resolve ip %q as ipv4", b)
 	}
 	return remoteIP, nil
 }

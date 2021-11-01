@@ -2,13 +2,13 @@ package ports
 
 import (
 	"context"
+	"fmt"
 	"net"
 	"strconv"
 	"sync"
 	"time"
 
 	"github.com/fuskovic/networker/internal/resolve"
-	"golang.org/x/xerrors"
 )
 
 var (
@@ -61,7 +61,7 @@ func (s *scanner) Scan(ctx context.Context) ([]Scan, error) {
 	for ip, ports := range s.scans {
 		hostname, _, err := resolve.HostAndAddr(ip)
 		if err != nil {
-			return nil, xerrors.Errorf("failed to lookup hostname by ip for %s: %w", ip, err)
+			return nil, fmt.Errorf("failed to lookup hostname by ip for %s: %w", ip, err)
 		}
 		scans = append(scans, Scan{
 			IP:    ip,

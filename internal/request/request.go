@@ -2,12 +2,12 @@ package request
 
 import (
 	"bytes"
+	"errors"
+	"fmt"
 	"io/ioutil"
 	"net/http"
 	"path"
 	"strings"
-
-	"golang.org/x/xerrors"
 )
 
 const (
@@ -29,25 +29,25 @@ type Cfg struct {
 // This includes provisioning the request with the headers and payload provided from the config.
 func New(cfg *Cfg) (*http.Request, error) {
 	if err := cfg.valid(); err != nil {
-		return nil, xerrors.Errorf("invalid request : %v", err)
+		return nil, fmt.Errorf("invalid request : %v", err)
 	}
 
 	payload := new(bytes.Buffer)
 	if requiresPayload(cfg.Method) {
 		body, err := buildPayload(cfg)
 		if err != nil {
-			return nil, xerrors.Errorf("failed to build request payload : %v", err)
+			return nil, fmt.Errorf("failed to build request payload : %v", err)
 		}
 		payload = body
 	}
 
 	req, err := http.NewRequest(cfg.Method, cfg.URL, payload)
 	if err != nil {
-		return nil, xerrors.Errorf("failed to craft request : %v", err)
+		return nil, fmt.Errorf("failed to craft request : %v", err)
 	}
 
 	if err := addHeaders(cfg, req); err != nil {
-		return nil, xerrors.Errorf("failed to add headers: %w", err)
+		return nil, fmt.Errorf("failed to add headers: %w", err)
 	}
 	return req, nil
 }
@@ -55,9 +55,9 @@ func New(cfg *Cfg) (*http.Request, error) {
 func (cfg *Cfg) valid() error {
 	switch {
 	case cfg.URL == "":
-		return xerrors.New("no url endpoint specified")
+		return errors.New("no url endpoint specified")
 	case !isSupported(cfg.Method):
-		return xerrors.Errorf("%s is an invalid request method", cfg.Method)
+		return fmt.Errorf("%s is an invalid request method", cfg.Method)
 	default:
 		if !hasProtoScheme(cfg.URL) {
 			cfg.URL = "https://" + cfg.URL
@@ -78,14 +78,14 @@ func buildPayload(cfg *Cfg) (*bytes.Buffer, error) {
 	case xmlExt:
 		contentType = "Content-Type:application/xml"
 	default:
-		return new(bytes.Buffer), xerrors.Errorf("%q unsupported file format ", ext)
+		return new(bytes.Buffer), fmt.Errorf("%q unsupported file format ", ext)
 	}
 
 	cfg.Headers = append(cfg.Headers, contentType)
 
 	b, err := ioutil.ReadFile(cfg.File)
 	if err != nil {
-		return new(bytes.Buffer), xerrors.Errorf("failed to read file %q: %w", cfg.File, err)
+		return new(bytes.Buffer), fmt.Errorf("failed to read file %q: %w", cfg.File, err)
 	}
 	return bytes.NewBuffer(b), nil
 }
@@ -94,7 +94,7 @@ func addHeaders(cfg *Cfg, r *http.Request) error {
 	for _, h := range cfg.Headers {
 		args := strings.Split(h, ":")
 		if (len(args) % 2) != 0 {
-			return xerrors.New("uneven number of key/value pairs")
+			return errors.New("uneven number of key/value pairs")
 		}
 		r.Header.Set(args[0], args[1])
 	}

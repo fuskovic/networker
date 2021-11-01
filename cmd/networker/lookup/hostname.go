@@ -5,15 +5,16 @@ import (
 	"net"
 
 	"github.com/fuskovic/networker/internal/resolve"
+	"github.com/fuskovic/networker/internal/usage"
 	"github.com/spf13/pflag"
 	"go.coder.com/cli"
 )
 
-type hostnameCmd struct {
+type HostnameCmd struct {
 	ipAddress string
 }
 
-func (cmd *hostnameCmd) Spec() cli.CommandSpec {
+func (cmd *HostnameCmd) Spec() cli.CommandSpec {
 	return cli.CommandSpec{
 		Name:  "hostname",
 		Usage: "[flags]",
@@ -21,27 +22,23 @@ func (cmd *hostnameCmd) Spec() cli.CommandSpec {
 	}
 }
 
-func (cmd *hostnameCmd) RegisterFlags(fl *pflag.FlagSet) {
+func (cmd *HostnameCmd) RegisterFlags(fl *pflag.FlagSet) {
 	fl.StringVar(&cmd.ipAddress, "ip", "", "IP address to get the hostname of.")
 }
 
-func (cmd *hostnameCmd) Run(fl *pflag.FlagSet) {
+func (cmd *HostnameCmd) Run(fl *pflag.FlagSet) {
 	if cmd.ipAddress == "" {
-		fl.Usage()
-		log.Fatal("no ip address provided")
+		usage.Fatal(fl, "no ip address provided")
 	}
 
 	ipAddr := net.ParseIP(cmd.ipAddress)
 	if ipAddr == nil {
-		fl.Usage()
-		log.Fatalf("%q is not a valid ip address", cmd.ipAddress)
+		usage.Fatalf(fl, "%q is not a valid ip address", cmd.ipAddress)
 	}
 
 	hostname, err := resolve.HostNameByIP(ipAddr)
 	if err != nil {
-		fl.Usage()
-		log.Fatalf("lookup failed: %s", err)
-		return
+		usage.Fatalf(fl, "lookup failed: %s", err)
 	}
 	log.Printf("lookup successful - hostname: %s", hostname)
 }

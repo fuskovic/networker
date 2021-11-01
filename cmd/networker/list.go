@@ -1,9 +1,8 @@
-package main
+package networker
 
 import (
 	"context"
 	"encoding/json"
-	"log"
 	"os"
 
 	"cdr.dev/coder-cli/pkg/tablewriter"
@@ -11,6 +10,7 @@ import (
 	"go.coder.com/cli"
 
 	"github.com/fuskovic/networker/internal/list"
+	"github.com/fuskovic/networker/internal/usage"
 )
 
 type listCmd struct {
@@ -36,8 +36,7 @@ func (cmd *listCmd) Run(fl *pflag.FlagSet) {
 
 	devices, err := list.Devices(ctx)
 	if err != nil {
-		fl.Usage()
-		log.Fatalf("failed to list devices: %s", err)
+		usage.Fatalf(fl, "failed to list devices: %s", err)
 	}
 
 	if cmd.json {
@@ -45,14 +44,18 @@ func (cmd *listCmd) Run(fl *pflag.FlagSet) {
 		enc.SetIndent("", "\t")
 		enc.SetEscapeHTML(false)
 		if err := enc.Encode(devices); err != nil {
-			fl.Usage()
-			log.Fatalf("failed to encode devices as json: %s", err)
+			usage.Fatalf(fl, "failed to encode devices as json: %s", err)
 		}
 		return
 	}
 
-	if err := tablewriter.WriteTable(os.Stdout, len(devices), func(i int) interface{} { return devices[i] }); err != nil {
-		fl.Usage()
-		log.Fatalf("failed to write devices table: %s", err)
+	err = tablewriter.WriteTable(os.Stdout, len(devices),
+		func(i int) interface{} {
+			return devices[i]
+		},
+	)
+
+	if err != nil {
+		usage.Fatalf(fl, "failed to write devices table: %s", err)
 	}
 }
