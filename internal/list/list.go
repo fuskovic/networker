@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"io/ioutil"
-	"log"
 	"net"
 	"net/http"
 	"sync"
@@ -23,8 +22,7 @@ func Devices(ctx context.Context) ([]Device, error) {
 
 	router, err := getRouter(ctx)
 	if err != nil {
-		// The router ip isn't required to resolve the other devices so just continue.
-		log.Printf("failed to get router ip: %s\n", err)
+		return nil, fmt.Errorf("failed to get router: %w", err)
 	}
 
 	hostIPs, err := getHosts(ctx, cidr, router)
@@ -40,14 +38,10 @@ func Devices(ctx context.Context) ([]Device, error) {
 	hostIPs = removeIP(currentDevice.LocalIP.String(), hostIPs)
 
 	var (
-		devices = []Device{*currentDevice}
+		devices = []Device{*router, *currentDevice}
 		wg      = sync.WaitGroup{}
 		mutex   = sync.Mutex{}
 	)
-
-	if router != nil {
-		devices = append(devices, *router)
-	}
 
 	for _, hostIP := range dedupe(hostIPs) {
 		wg.Add(1)
