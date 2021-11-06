@@ -1,14 +1,14 @@
 package networker
 
 import (
-	"context"
+	"bytes"
+	"encoding/json"
 	"io/ioutil"
+	"log"
 	"net/http"
 	"os"
 	"time"
 
-	"cdr.dev/slog"
-	"cdr.dev/slog/sloggers/sloghuman"
 	"github.com/spf13/pflag"
 	"go.coder.com/cli"
 
@@ -17,11 +17,12 @@ import (
 )
 
 type requestCmd struct {
-	url     string
-	method  string
-	file    string
-	headers []string
-	timeOut int
+	method        string
+	body          string
+	multiPartForm string
+	headers       []string
+	timeout       int
+	jsonOnly      bool
 }
 
 func (cmd *requestCmd) Spec() cli.CommandSpec {
@@ -30,26 +31,36 @@ func (cmd *requestCmd) Spec() cli.CommandSpec {
 		Usage:   "[flags]",
 		Aliases: []string{"r", "req"},
 		Desc:    "Send an HTTP request.",
+		RawArgs: true,
 	}
 }
 
 func (cmd *requestCmd) RegisterFlags(fl *pflag.FlagSet) {
-	fl.StringSliceVarP(&cmd.headers, "add-headers", "a", cmd.headers, "Add a list of comma-separated request headers. (format : key:value,key:value,etc...)")
-	fl.StringVarP(&cmd.url, "url", "u", cmd.url, "URL to send request.")
-	fl.StringVarP(&cmd.method, "method", "m", "GET", "Specify method. (supported methods include GET, POST, PUT, PATCH, and DELETE)")
-	fl.StringVarP(&cmd.file, "file", "f", cmd.file, "Path to JSON or XML file to use for request body. (content-type headers for each file-type are set automatically)")
-	fl.IntVarP(&cmd.timeOut, "time-out", "t", 3, "Specify number of seconds for time-out.")
+	fl.StringSliceVarP(&cmd.headers, "headers", "H", cmd.headers, "Request headers.(format(no quotes): key:value,key:value,key:value)")
+	fl.StringVarP(&cmd.method, "method", "m", "GET", "Request method.")
+	fl.StringVarP(&cmd.body, "body", "b", cmd.body, "Request body. (you can use a JSON string literal or a path to a json file)")
+	fl.StringVarP(&cmd.multiPartForm, "upload", "u", cmd.multiPartForm, "Multi-part form. (format: formname=path/to/file1,path/to/file2,path/to/file3)")
+	fl.IntVarP(&cmd.timeout, "timeout", "t", 3, "Request timeout in seconds.")
+	fl.BoolVarP(&cmd.jsonOnly, "json-only", "j", cmd.jsonOnly, "Only output json.")
 }
 
 func (cmd *requestCmd) Run(fl *pflag.FlagSet) {
-	started := time.Now()
+	req, err := request.NewNetworkerCraftedHTTPRequest(
+		&request.Config{
+			Headers:       cmd.headers,
+			URL:           os.Args[len(os.Args)-1],
+			Method:        cmd.method,
+			Body:          cmd.body,
+			MultiPartForm: cmd.multiPartForm,
+		},
+	)
 
-	req, err := request.New(cmd.cfg())
 	if err != nil {
 		usage.Fatalf(fl, "failed to build request : %v", err)
 	}
 
-	client := http.Client{Timeout: time.Duration(cmd.timeOut) * time.Second}
+	client := http.Client{Timeout: time.Duration(cmd.timeout)}
+	started := time.Now()
 
 	resp, err := client.Do(req)
 	if err != nil {
@@ -57,34 +68,20 @@ func (cmd *requestCmd) Run(fl *pflag.FlagSet) {
 	}
 	defer resp.Body.Close()
 
+	ended := time.Since(started)
+	if !cmd.jsonOnly {
+		log.Printf("received response in: %s\nstatus: %s\n", ended, resp.Status)
+	}
+
 	data, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		usage.Fatalf(fl, "failed to read response body : %v", err)
 	}
 
-	var successful bool
-	if resp.StatusCode < 400 {
-		successful = true
+	var b bytes.Buffer
+	if err := json.Indent(&b, data, "", " "); err != nil {
+		usage.Fatalf(fl, "failed to output body: %s", err)
 	}
 
-	ctx := context.Background()
-	log := slog.Make(sloghuman.Sink(os.Stdout))
-
-	log.Info(ctx, "response",
-		slog.F("successful", successful),
-		slog.F("method", req.Method),
-		slog.F("status", resp.Status),
-		slog.F("elapsed-time", time.Since(started)),
-		slog.F("body", string(data)),
-	)
-}
-
-func (cmd *requestCmd) cfg() *request.Cfg {
-	return &request.Cfg{
-		Headers: cmd.headers,
-		URL:     cmd.url,
-		Method:  cmd.method,
-		File:    cmd.file,
-		Seconds: cmd.timeOut,
-	}
+	log.Printf("body:\n%s\n", b.String())
 }

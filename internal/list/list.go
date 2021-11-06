@@ -107,7 +107,7 @@ func getRouter(_ context.Context) (*Device, error) {
 	}
 	hostname, err := resolve.HostNameByIP(ipAddr)
 	if err != nil {
-		hostname = "N/A"
+		return nil, fmt.Errorf("failed to resolve hostname by ip for gateway: %w", err)
 	}
 	return &Device{
 		Hostname: hostname,
