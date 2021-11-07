@@ -13,6 +13,22 @@ import (
 	gw "github.com/jackpal/gateway"
 )
 
+const (
+	DeviceKindUnknown Kind = "unknown"
+	DeviceKindRouter  Kind = "router"
+	DeviceKindCurrent Kind = "current-device"
+	DeviceKindPeer    Kind = "peer"
+)
+
+type Kind string
+
+type Device struct {
+	Kind     Kind   `json:"kind" table:"Kind"`
+	Hostname string `json:"hostname" table:"Hostname"`
+	LocalIP  net.IP `json:"local_ip" table:"LocalIP"`
+	RemoteIP net.IP `json:"remote_ip,omitempty" table:"RemoteIP"`
+}
+
 // Devices lists all of the devices on the local network.
 func Devices(ctx context.Context) ([]Device, error) {
 	cidr, err := getCIDR(ctx)

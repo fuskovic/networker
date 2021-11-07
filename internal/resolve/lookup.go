@@ -24,8 +24,8 @@ type InternetServiceProvider struct {
 
 // NameServer is used in place of the standard library object to support table writes.
 type NameServer struct {
-	IP   *net.IP `json:"ip" table:"IP"`
-	Host string  `json:"nameserver" table:"Nameserver"`
+	IP   net.IP `json:"ip" table:"IP"`
+	Host string `json:"nameserver" table:"Nameserver"`
 }
 
 // HostNameByIP returns the hostname for the provided ip address.
@@ -79,7 +79,7 @@ func AddrsByHostName(hostname string) ([]*net.IP, error) {
 	var ipAddrs []*net.IP
 
 	for _, a := range addrs {
-		ipAddr := net.ParseIP(a)
+		ipAddr := net.ParseIP(a).To4()
 		if ipAddr == nil {
 			continue
 		}
@@ -105,7 +105,7 @@ func NameServersByHostName(hostname string) ([]NameServer, error) {
 		}
 		nameServers = append(nameServers,
 			NameServer{
-				IP:   ip,
+				IP:   ip.To4(),
 				Host: ns.Host,
 			},
 		)
