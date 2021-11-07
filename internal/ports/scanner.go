@@ -3,6 +3,7 @@ package ports
 import (
 	"context"
 	"fmt"
+	"log"
 	"net"
 	"strconv"
 	"sync"
@@ -93,6 +94,7 @@ func (s *scanner) add(ip string, port int) {
 }
 
 func isOpen(ip string, port int) bool {
+	log.Printf("scanning %s:%d\n", ip, port)
 	addr := net.JoinHostPort(ip, strconv.Itoa(port))
 	conn, err := net.DialTimeout("tcp", addr, 5*time.Second)
 	if err != nil {
