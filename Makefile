@@ -10,6 +10,18 @@ build: clean
 install:
 	@./scripts/install.sh
 
+.PHONY: test
+test:
+	@go clean -testcache && go test -v . 
+
+.PHONY: coverage
+coverage:
+	@./scripts/generate_test_coverage_report.sh $(mode)
+
+.PHONY: update_badge
+update_badge:
+	@gopherbadger -md="README.md" -png=false
+
 .PHONY:image
 image:
 	@echo "building image" && docker build --no-cache -t networker .
