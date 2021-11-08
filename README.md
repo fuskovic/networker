@@ -12,7 +12,7 @@ Checkout the [releases](https://github.com/fuskovic/networker/releases) page to 
 
 ## Global install using Go
 
-    go install github.com/fuskovic/networker/cmd/networker
+    go install github.com/fuskovic/networker@latest
 
 Then verify your installation:
 
