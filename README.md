@@ -1,13 +1,26 @@
 # Networker
 
+[![Go Report Card](https://goreportcard.com/badge/github.com/fuskovic/networker)](https://goreportcard.com/report/github.com/fuskovic/networker)
+<a href='https://github.com/jpoles1/gopherbadger' target='_blank'>![gopherbadger-tag-do-not-edit](https://img.shields.io/badge/Go%20Coverage-56%25-brightgreen.svg?longCache=true&style=flat)</a>
 
-# Install Using Go
 
-    go get -u github.com/fuskovic/networker/cmd/networker
+# Installation
 
-# Download Pre-compiled binaries
+## Download Pre-compiled binaries
 
 Checkout the [releases](https://github.com/fuskovic/networker/releases) page to download the latest executables for Linux, Mac, and Windows.
+
+## Global install using Go
+
+    go install github.com/fuskovic/networker/cmd/networker
+
+Then verify your installation:
+
+    networker -v
+
+## Compile from source
+
+    make install
 
 # Usage 
 
@@ -17,7 +30,7 @@ Checkout the [releases](https://github.com/fuskovic/networker/releases) page to 
 
     Commands:
             ls, list         - List information on connected network devices.
-            lu, lookup       - Lookup hostnames, IP addresses, nameservers, and networks.
+            lu, lookup       - Lookup hostnames, IP addresses, internet service providers, nameservers, and networks.
             r, req, request  - Send an HTTP request.
             s, scan          - Scan hosts for open ports.
 
@@ -79,9 +92,9 @@ networker scan flags:
     Description: Send an HTTP request.
 
     networker request flags:
-    -a, --add-headers strings   Add a list of comma-separated request headers. (format : key:value,key:value,etc...)
-    -f, --file string           Path to JSON or XML file to use for request body. (content-type headers for each file-type are set automatically)
-    -m, --method string         Specify method. (supported methods include GET, POST, PUT, PATCH, and DELETE) (default "GET")
-    -t, --time-out int          Specify number of seconds for time-out. (default 3)
-    -u, --url string            URL to send request.
+    -b, --body string       Request body. (you can use a JSON string literal or a path to a json file)
+    -H, --headers strings   Request headers.(format(no quotes): key:value,key:value,key:value)
+    -j, --json-only         Only output json.
+    -m, --method string     Request method. (default "GET")
+    -u, --upload string     Multi-part form. (format: formname=path/to/file1,path/to/file2,path/to/file3)
 
