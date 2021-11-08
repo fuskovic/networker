@@ -79,7 +79,7 @@ networker scan flags:
             ip           - Lookup the ip address of the provided hostname.
             network      - Lookup the network address of a provided host.
             nameservers  - Lookup nameservers for the provided hostname.
-            isp          - Lookup the internet service provider of a remote host.
+            isp          - Lookup the internet service provider.
 
 
 
