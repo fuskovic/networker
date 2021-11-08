@@ -18,7 +18,7 @@ func (cmd *rootCmd) Run(fl *pflag.FlagSet) {
 }
 
 func (cmd *rootCmd) RegisterFlags(fl *pflag.FlagSet) {
-	fl.BoolVarP(&cmd.version, "versin", "v", cmd.version, "Installed version.")
+	fl.BoolVarP(&cmd.version, "version", "v", cmd.version, "Installed version.")
 }
 
 func (cmd *rootCmd) Spec() cli.CommandSpec {
