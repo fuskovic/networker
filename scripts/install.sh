@@ -34,7 +34,7 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 
-networker version
+networker -v
 if [ $? -ne 0 ]; then
     echo "failed to identify networker version"
     exit 1

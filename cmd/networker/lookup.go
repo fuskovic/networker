@@ -14,7 +14,7 @@ func (cmd *lookupCmd) Spec() cli.CommandSpec {
 		Name:    "lookup",
 		Usage:   "[flags]",
 		Aliases: []string{"lu"},
-		Desc:    "Lookup hostnames, IP addresses, nameservers, and networks.",
+		Desc:    "Lookup hostnames, IP addresses, internet service providers, nameservers, and networks.",
 	}
 }
 
