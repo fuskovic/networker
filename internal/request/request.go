@@ -49,14 +49,20 @@ func NewNetworkerCraftedHTTPRequest(cfg *Config) (*http.Request, error) {
 		}
 	}
 
+	// normalize method in case the user inputs a lowercase method
+	var normalizedMethod string
+	for _, char := range cfg.Method {
+		normalizedMethod += strings.ToUpper(string(char))
+	}
+
 	// initialize request
-	req, err := http.NewRequest(cfg.Method, cfg.URL, nil)
+	req, err := http.NewRequest(normalizedMethod, cfg.URL, nil)
 	if err != nil {
 		return nil, fmt.Errorf("failed to initialize new request : %w", err)
 	}
 
 	// add body if necessary
-	if cfg.Method == http.MethodPatch || cfg.Method == http.MethodPut || cfg.Method == http.MethodPost {
+	if requiresBody(normalizedMethod) {
 		if cfg.MultiPartForm == "" {
 			if err := cfg.addBody(req); err != nil {
 				return nil, fmt.Errorf("failed to add request body: %w", err)
@@ -160,6 +166,10 @@ func (cfg *Config) addHeaders(r *http.Request) error {
 	return nil
 }
 
+func requiresBody(method string) bool {
+	return method == http.MethodPost || method == http.MethodPut || method == http.MethodPatch
+}
+
 func isSupported(method string) bool {
 	for _, m := range []string{
 		http.MethodConnect,
@@ -172,7 +182,7 @@ func isSupported(method string) bool {
 		http.MethodPatch,
 		http.MethodDelete,
 	} {
-		if m == method {
+		if strings.ToLower(m) == strings.ToLower(method) {
 			return true
 		}
 	}

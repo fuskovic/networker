@@ -1,4 +1,4 @@
-package request
+package test
 
 import (
 	"encoding/json"
@@ -8,45 +8,38 @@ import (
 	"net/http/httptest"
 	"strconv"
 	"sync"
-	"testing"
 )
 
-type testFn func(t *testing.T, serverURL string)
-
-func runWithMockServer(t *testing.T, name string, fn testFn) {
-	t.Run(name, func(t *testing.T) {
-		t.Parallel()
-		testServer := newMockServer()
-		defer testServer.Close()
-		fn(t, testServer.URL)
-	})
-}
-
-type thing struct {
+// MockObject is an arbitrary object that can be encoded/decoded
+// and it's primary function is to provide a shape for the mock
+// web server to use for its transport and store layers.
+type MockObject struct {
 	ID    int    `json:"id,omitempty"`
 	Field string `json:"field"`
 }
 
 type mockServer struct {
-	cache map[int]thing
+	cache map[int]MockObject
 }
 
+// newMockServer returns test server with pre-configured endpoints
+// that uses an in-memory cache for its store layer.
 func newMockServer() *httptest.Server {
 	return httptest.NewServer(
-		&mockServer{make(map[int]thing)},
+		&mockServer{make(map[int]MockObject)},
 	)
 }
 
 func (s *mockServer) route(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case http.MethodGet:
-		mockAuthMiddleware(s.getThing)(w, r)
+		mockAuthMiddleware(s.getObject)(w, r)
 	case http.MethodPost:
-		mockAuthMiddleware(s.createThing)(w, r)
+		mockAuthMiddleware(s.createObject)(w, r)
 	case http.MethodPut:
-		mockAuthMiddleware(s.uploadThing)(w, r)
+		mockAuthMiddleware(s.uploadFile)(w, r)
 	case http.MethodDelete:
-		mockAuthMiddleware(s.deleteThing)(w, r)
+		mockAuthMiddleware(s.deleteObject)(w, r)
 	default:
 		func(w http.ResponseWriter, r *http.Request) {
 			w.WriteHeader(http.StatusMethodNotAllowed)
@@ -54,11 +47,12 @@ func (s *mockServer) route(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// ServeHTTP routes handles routing all requests to their respective handlers and implements http.Handler.
 func (s *mockServer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	s.route(w, r)
 }
 
-func (s *mockServer) createThing(w http.ResponseWriter, r *http.Request) {
+func (s *mockServer) createObject(w http.ResponseWriter, r *http.Request) {
 	b, err := io.ReadAll(r.Body)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
@@ -66,14 +60,14 @@ func (s *mockServer) createThing(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var t thing
-	if err := json.Unmarshal(b, &t); err != nil {
+	var o MockObject
+	if err := json.Unmarshal(b, &o); err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		fmt.Fprintf(w, "failed to decode body: %s", err)
 		return
 	}
 
-	if t.Field == "" {
+	if o.Field == "" {
 		w.WriteHeader(http.StatusBadRequest)
 		fmt.Fprint(w, "required field 'field' is unset")
 		return
@@ -81,11 +75,11 @@ func (s *mockServer) createThing(w http.ResponseWriter, r *http.Request) {
 
 	var mutex sync.RWMutex
 	mutex.Lock()
-	t.ID = len(s.cache) + 1
-	s.cache[t.ID] = t
+	o.ID = len(s.cache) + 1
+	s.cache[o.ID] = o
 	mutex.Unlock()
 
-	resp, err := json.Marshal(t)
+	resp, err := json.Marshal(o)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		fmt.Fprintf(w, "failed to serialize response: %s", err)
@@ -95,7 +89,7 @@ func (s *mockServer) createThing(w http.ResponseWriter, r *http.Request) {
 	_, _ = w.Write(resp)
 }
 
-func (s *mockServer) uploadThing(w http.ResponseWriter, r *http.Request) {
+func (s *mockServer) uploadFile(w http.ResponseWriter, r *http.Request) {
 	const maxMultiPartMem = 2 << 20
 
 	if err := r.ParseMultipartForm(maxMultiPartMem); err != nil {
@@ -104,7 +98,7 @@ func (s *mockServer) uploadThing(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	files := r.MultipartForm.File["file"]
+	files := r.MultipartForm.File["files"]
 	if len(files) == 0 {
 		w.WriteHeader(http.StatusBadRequest)
 		fmt.Fprint(w, "failed to retrieve multi-part form files")
@@ -121,11 +115,11 @@ func (s *mockServer) uploadThing(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprint(w, "uploaded files")
 }
 
-func (s *mockServer) getThing(w http.ResponseWriter, r *http.Request) {
+func (s *mockServer) getObject(w http.ResponseWriter, r *http.Request) {
 	ids := r.URL.Query()["id"]
 	if len(ids) == 0 {
 		w.WriteHeader(http.StatusBadRequest)
-		fmt.Fprint(w, "id not provided")
+		fmt.Fprint(w, "id not provided for get")
 		return
 	}
 
@@ -138,15 +132,15 @@ func (s *mockServer) getThing(w http.ResponseWriter, r *http.Request) {
 
 	var mutex sync.RWMutex
 	mutex.Lock()
-	thing, exists := s.cache[id]
+	o, exists := s.cache[id]
 	if !exists {
 		w.WriteHeader(http.StatusNotFound)
-		fmt.Fprintf(w, "thing with id %d not found", id)
+		fmt.Fprintf(w, "object with id %d not found", id)
 		return
 	}
 	mutex.Unlock()
 
-	resp, err := json.Marshal(thing)
+	resp, err := json.Marshal(o)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		fmt.Fprintf(w, "failed to serialize response: %s", err)
@@ -156,11 +150,11 @@ func (s *mockServer) getThing(w http.ResponseWriter, r *http.Request) {
 	_, _ = w.Write(resp)
 }
 
-func (s *mockServer) deleteThing(w http.ResponseWriter, r *http.Request) {
+func (s *mockServer) deleteObject(w http.ResponseWriter, r *http.Request) {
 	ids := r.URL.Query()["id"]
 	if len(ids) == 0 {
 		w.WriteHeader(http.StatusBadRequest)
-		fmt.Fprint(w, "id not provided")
+		fmt.Fprint(w, "id not provided for delete")
 		return
 	}
 
@@ -173,13 +167,13 @@ func (s *mockServer) deleteThing(w http.ResponseWriter, r *http.Request) {
 
 	var mutex sync.RWMutex
 	mutex.Lock()
-	thing, exists := s.cache[id]
+	o, exists := s.cache[id]
 	if !exists {
 		w.WriteHeader(http.StatusNotFound)
-		fmt.Fprintf(w, "thing with id %d not found", id)
+		fmt.Fprintf(w, "object with id %d not found", id)
 		return
 	}
-	delete(s.cache, thing.ID)
+	delete(s.cache, o.ID)
 	mutex.Unlock()
 
 	w.WriteHeader(http.StatusOK)
