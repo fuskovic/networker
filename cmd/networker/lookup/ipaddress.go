@@ -22,7 +22,7 @@ func (cmd *IpaddressCmd) Spec() cli.CommandSpec {
 }
 
 func (cmd *IpaddressCmd) RegisterFlags(fl *pflag.FlagSet) {
-	fl.StringVar(&cmd.hostname, "host", "", "Hostname to get the ip address of.")
+	fl.StringVar(&cmd.hostname, "hostname", "", "Hostname to get the ip address of.")
 }
 
 func (cmd *IpaddressCmd) Run(fl *pflag.FlagSet) {

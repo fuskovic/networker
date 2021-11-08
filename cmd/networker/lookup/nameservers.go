@@ -25,7 +25,7 @@ func (cmd *NameserversCmd) Spec() cli.CommandSpec {
 }
 
 func (cmd *NameserversCmd) RegisterFlags(fl *pflag.FlagSet) {
-	fl.StringVar(&cmd.hostname, "host", "", "Hostname to lookup nameservers for.")
+	fl.StringVar(&cmd.hostname, "hostname", "", "Hostname to lookup nameservers for.")
 }
 
 func (cmd *NameserversCmd) Run(fl *pflag.FlagSet) {

@@ -41,12 +41,11 @@ func (cmd *IspCmd) Run(fl *pflag.FlagSet) {
 	}
 
 	if resolve.IsPrivate(ip) {
-		usage.Fatalf(fl, "%q is not a remote ip", ip)
+		usage.Fatal(fl, "cannot retrieve internet service provider for private ip")
 	}
 
 	isp, err := resolve.ServiceProvider(ip)
 	if err != nil {
-
 		usage.Fatalf(fl, "failed to resolve internet service provider for %q: %s", cmd.host, err)
 	}
 
