@@ -21,7 +21,6 @@ type requestCmd struct {
 	body          string
 	multiPartForm string
 	headers       []string
-	timeout       int
 	jsonOnly      bool
 }
 
@@ -31,7 +30,6 @@ func (cmd *requestCmd) Spec() cli.CommandSpec {
 		Usage:   "[flags]",
 		Aliases: []string{"r", "req"},
 		Desc:    "Send an HTTP request.",
-		RawArgs: true,
 	}
 }
 
@@ -40,11 +38,14 @@ func (cmd *requestCmd) RegisterFlags(fl *pflag.FlagSet) {
 	fl.StringVarP(&cmd.method, "method", "m", "GET", "Request method.")
 	fl.StringVarP(&cmd.body, "body", "b", cmd.body, "Request body. (you can use a JSON string literal or a path to a json file)")
 	fl.StringVarP(&cmd.multiPartForm, "upload", "u", cmd.multiPartForm, "Multi-part form. (format: formname=path/to/file1,path/to/file2,path/to/file3)")
-	fl.IntVarP(&cmd.timeout, "timeout", "t", 3, "Request timeout in seconds.")
 	fl.BoolVarP(&cmd.jsonOnly, "json-only", "j", cmd.jsonOnly, "Only output json.")
 }
 
 func (cmd *requestCmd) Run(fl *pflag.FlagSet) {
+	if len(os.Args) < 3 {
+		usage.Fatal(fl, "url not provided")
+	}
+
 	req, err := request.NewNetworkerCraftedHTTPRequest(
 		&request.Config{
 			Headers:       cmd.headers,
@@ -59,7 +60,7 @@ func (cmd *requestCmd) Run(fl *pflag.FlagSet) {
 		usage.Fatalf(fl, "failed to build request : %v", err)
 	}
 
-	client := http.Client{Timeout: time.Duration(cmd.timeout)}
+	client := http.DefaultClient
 	started := time.Now()
 
 	resp, err := client.Do(req)
@@ -78,10 +79,15 @@ func (cmd *requestCmd) Run(fl *pflag.FlagSet) {
 		usage.Fatalf(fl, "failed to read response body : %v", err)
 	}
 
-	var b bytes.Buffer
-	if err := json.Indent(&b, data, "", " "); err != nil {
-		usage.Fatalf(fl, "failed to output body: %s", err)
+	b := bytes.NewBuffer(nil)
+	if err := json.Indent(b, data, "", " "); err != nil {
+		// it's possible that a non-json response is received so if we fail to encode here just output whatever came back
+		b = bytes.NewBuffer(data)
 	}
 
-	log.Printf("body:\n%s\n", b.String())
+	if cmd.jsonOnly {
+		println(b.String())
+	} else {
+		log.Printf("response:\n%s\n", b.String())
+	}
 }
