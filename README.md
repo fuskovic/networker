@@ -53,7 +53,7 @@ networker list flags:
 ## Scan
 
 ```
-Usage: networker scan [flags]
+Usage: networker scan [flags] [host]
 
 Aliases: s
 
@@ -61,14 +61,13 @@ Description: Scan hosts for open ports.
 
 networker scan flags:
   -a, --all           Scan all ports(scans first 1024 if not enabled).
-      --host string   Host to scan(scans all hosts on LAN if not provided).
       --json          Output as json.
 ```
 
 
 ## Lookup
 
-    Usage: networker lookup [flags]
+    Usage: networker lookup [subcommand]
 
     Aliases: lu
 
@@ -85,7 +84,7 @@ networker scan flags:
 
 ## Request
 
-    Usage: networker request [flags]
+    Usage: networker request [flags] [url]
 
     Aliases: r, req
 
