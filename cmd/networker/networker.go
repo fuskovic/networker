@@ -5,13 +5,13 @@ import (
 	"go.coder.com/cli"
 )
 
-type rootCmd struct{
+type rootCmd struct {
 	version bool
 }
 
 func (cmd *rootCmd) Run(fl *pflag.FlagSet) {
 	if cmd.version {
-		println("v1.2.6") 
+		println("v1.2.6")
 		return
 	}
 	fl.Usage()
