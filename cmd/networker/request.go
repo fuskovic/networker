@@ -27,7 +27,7 @@ type requestCmd struct {
 func (cmd *requestCmd) Spec() cli.CommandSpec {
 	return cli.CommandSpec{
 		Name:    "request",
-		Usage:   "[flags]",
+		Usage:   "[flags] [url]",
 		Aliases: []string{"r", "req"},
 		Desc:    "Send an HTTP request.",
 	}
@@ -60,10 +60,9 @@ func (cmd *requestCmd) Run(fl *pflag.FlagSet) {
 		usage.Fatalf(fl, "failed to build request : %v", err)
 	}
 
-	client := http.DefaultClient
 	started := time.Now()
 
-	resp, err := client.Do(req)
+	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
 		usage.Fatalf(fl, "failed to send HTTP request : %v", err)
 	}
