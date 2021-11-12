@@ -12,7 +12,7 @@ type lookupCmd struct{}
 func (cmd *lookupCmd) Spec() cli.CommandSpec {
 	return cli.CommandSpec{
 		Name:    "lookup",
-		Usage:   "[flags]",
+		Usage:   "[subcommand]",
 		Aliases: []string{"lu"},
 		Desc:    "Lookup hostnames, IP addresses, internet service providers, nameservers, and networks.",
 	}
