@@ -28,4 +28,4 @@ func (cmd *lookupCmd) Subcommands() []cli.Command {
 	}
 }
 
-func (cmd *lookupCmd) Run(fl *pflag.FlagSet) {}
+func (cmd *lookupCmd) Run(fl *pflag.FlagSet) { fl.Usage() }
