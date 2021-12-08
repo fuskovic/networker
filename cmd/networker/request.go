@@ -17,11 +17,11 @@ import (
 )
 
 type requestCmd struct {
-	method        string
-	body          string
-	multiPartForm string
-	headers       []string
-	jsonOnly      bool
+	method    string
+	body      string
+	filePaths string
+	headers   []string
+	jsonOnly  bool
 }
 
 func (cmd *requestCmd) Spec() cli.CommandSpec {
@@ -34,10 +34,10 @@ func (cmd *requestCmd) Spec() cli.CommandSpec {
 }
 
 func (cmd *requestCmd) RegisterFlags(fl *pflag.FlagSet) {
-	fl.StringSliceVarP(&cmd.headers, "headers", "H", cmd.headers, "Request headers.(format(no quotes): key:value,key:value,key:value)")
+	fl.StringSliceVarP(&cmd.headers, "headers", "H", cmd.headers, "Request headers.(format: key:value,key:value,key:value)")
 	fl.StringVarP(&cmd.method, "method", "m", "GET", "Request method.")
 	fl.StringVarP(&cmd.body, "body", "b", cmd.body, "Request body. (you can use a JSON string literal or a path to a json file)")
-	fl.StringVarP(&cmd.multiPartForm, "upload", "u", cmd.multiPartForm, "Multi-part form. (format: formname=path/to/file1,path/to/file2,path/to/file3)")
+	fl.StringVarP(&cmd.filePaths, "files", "f", cmd.filePaths, "Files to upload. (format: formname=path/to/file1,path/to/file2,path/to/file3)")
 	fl.BoolVarP(&cmd.jsonOnly, "json-only", "j", cmd.jsonOnly, "Only output json.")
 }
 
@@ -48,11 +48,11 @@ func (cmd *requestCmd) Run(fl *pflag.FlagSet) {
 
 	req, err := request.NewNetworkerCraftedHTTPRequest(
 		&request.Config{
-			Headers:       cmd.headers,
-			URL:           os.Args[len(os.Args)-1],
-			Method:        cmd.method,
-			Body:          cmd.body,
-			MultiPartForm: cmd.multiPartForm,
+			Headers:   cmd.headers,
+			URL:       os.Args[len(os.Args)-1],
+			Method:    cmd.method,
+			Body:      cmd.body,
+			FilePaths: cmd.filePaths,
 		},
 	)
 

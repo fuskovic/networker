@@ -183,10 +183,15 @@ func (s *mockServer) deleteObject(w http.ResponseWriter, r *http.Request) {
 // for testing setting of headers
 func mockAuthMiddleware(next http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		auth := r.Header.Get("auth")
+		auth := r.Header.Get("Authorization")
 		if auth == "" {
 			w.WriteHeader(http.StatusUnauthorized)
 			fmt.Fprint(w, "must be logged in to perform this")
+			return
+		}
+		if auth != "Bearer doesntmatter" {
+			w.WriteHeader(http.StatusUnauthorized)
+			fmt.Fprint(w, "Unauthorized")
 			return
 		}
 		next(w, r)

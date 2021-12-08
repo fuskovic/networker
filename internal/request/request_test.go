@@ -61,9 +61,9 @@ func TestRequestCrafting(t *testing.T) {
 			t.Parallel()
 			_, err := NewNetworkerCraftedHTTPRequest(
 				&Config{
-					URL:           "http://validurl.com",
-					Method:        http.MethodPost,
-					MultiPartForm: `"missingequalssign"`,
+					URL:       "http://validurl.com",
+					Method:    http.MethodPost,
+					FilePaths: `"missingequalssign"`,
 				},
 			)
 			require.Error(t, err)
@@ -78,9 +78,9 @@ func TestRequestCrafting(t *testing.T) {
 			t.Parallel()
 			_, err := NewNetworkerCraftedHTTPRequest(
 				&Config{
-					URL:           "http://validurl.com",
-					Method:        http.MethodPost,
-					MultiPartForm: "formname=",
+					URL:       "http://validurl.com",
+					Method:    http.MethodPost,
+					FilePaths: "formname=",
 				},
 			)
 			require.Error(t, err)
@@ -95,9 +95,9 @@ func TestRequestCrafting(t *testing.T) {
 			t.Parallel()
 			_, err := NewNetworkerCraftedHTTPRequest(
 				&Config{
-					URL:           "http://validurl.com",
-					Method:        http.MethodPost,
-					MultiPartForm: "=file.png",
+					URL:       "http://validurl.com",
+					Method:    http.MethodPost,
+					FilePaths: "=file.png",
 				},
 			)
 			require.Error(t, err)
@@ -112,9 +112,9 @@ func TestRequestCrafting(t *testing.T) {
 			t.Parallel()
 			_, err := NewNetworkerCraftedHTTPRequest(
 				&Config{
-					URL:           "http://validurl.com",
-					Method:        http.MethodPost,
-					MultiPartForm: `"formname=doesntexist.png"`,
+					URL:       "http://validurl.com",
+					Method:    http.MethodPost,
+					FilePaths: `"formname=doesntexist.png"`,
 				},
 			)
 			require.Error(t, err)
@@ -140,7 +140,7 @@ func TestRequestCrafting(t *testing.T) {
 		test.WithMockServer(t, func(t *testing.T, testserverURL string) {
 			// create a new object using a JSON string literal
 			cfg := &Config{
-				Headers: []string{"auth:doesntmatter"},
+				Headers: []string{"Authorization: Bearer doesntmatter"},
 				URL:     testserverURL,
 				Method:  http.MethodPost,
 				Body:    `{"field": "doesntmatter"}`,
@@ -193,7 +193,7 @@ func TestRequestCrafting(t *testing.T) {
 			// create a new object with a json file to use for the request body
 			cfg = &Config{
 				URL:     testserverURL,
-				Headers: []string{"auth:doesntmatter"},
+				Headers: []string{"Authorization: Bearer doesntmatter"},
 				Method:  http.MethodPost,
 				Body:    path.Join(root, "internal/test/body.json"),
 			}
@@ -216,10 +216,10 @@ func TestRequestCrafting(t *testing.T) {
 
 			// upload
 			cfg = &Config{
-				URL:           testserverURL,
-				Headers:       []string{"auth:doesntmatter"},
-				Method:        http.MethodPut,
-				MultiPartForm: multiPartFormUploadArg,
+				URL:       testserverURL,
+				Headers:   []string{"Authorization: Bearer doesntmatter"},
+				Method:    http.MethodPut,
+				FilePaths: multiPartFormUploadArg,
 			}
 			req, err = NewNetworkerCraftedHTTPRequest(cfg)
 			require.NoError(t, err)

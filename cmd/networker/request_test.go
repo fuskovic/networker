@@ -79,7 +79,7 @@ func TestRequestCommand(t *testing.T) {
 			test.WithMockServer(t, func(t *testing.T, testserverURL string) {
 				// create a new object with a json string literal
 				cmd := exec.Command("networker", "request",
-					"-H", "auth:doesntmatter",
+					"-H", "Authorization: Bearer doesntmatter",
 					"-m", "post",
 					"-b", `{"field": "doesntmatter"}`,
 					"--json-only",
@@ -94,7 +94,7 @@ func TestRequestCommand(t *testing.T) {
 
 				// delete the object
 				cmd = exec.Command("networker", "request",
-					"-H", "auth:doesntmatter",
+					"-H", "Authorization: Bearer doesntmatter",
 					"-m", "delete",
 					fmt.Sprintf("%s?id=%d", testserverURL, object.ID),
 				)
@@ -104,7 +104,7 @@ func TestRequestCommand(t *testing.T) {
 
 				// create another but this time using a json file
 				cmd = exec.Command("networker", "request",
-					"-H", "auth:doesntmatter",
+					"-H", "Authorization: Bearer doesntmatter",
 					"-m", "post",
 					"-b", "../../internal/test/body.json",
 					"--json-only",
@@ -119,7 +119,7 @@ func TestRequestCommand(t *testing.T) {
 
 				// get the object
 				cmd = exec.Command("networker", "request",
-					"-H", "auth:doesntmatter",
+					"-H", "Authorization: Bearer doesntmatter",
 					"--json-only",
 					fmt.Sprintf("%s?id=%d", testserverURL, object.ID),
 				)
@@ -131,7 +131,7 @@ func TestRequestCommand(t *testing.T) {
 
 				// delete the object
 				cmd = exec.Command("networker", "request",
-					"-H", "auth:doesntmatter",
+					"-H", "Authorization: Bearer doesntmatter",
 					"-m", "delete",
 					fmt.Sprintf("%s?id=%d", testserverURL, retrievedObject.ID),
 				)
@@ -146,7 +146,7 @@ func TestRequestCommand(t *testing.T) {
 
 				// upload a file
 				cmd = exec.Command("networker", "request",
-					"-H", "auth:doesntmatter",
+					"-H", "Authorization: Bearer doesntmatter",
 					"-m", "put",
 					"--upload", multiPartFormUploadArg,
 					testserverURL,

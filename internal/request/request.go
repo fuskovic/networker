@@ -28,11 +28,11 @@ var (
 
 // Config is used to determine how we build an HTTP request.
 type Config struct {
-	Headers       []string
-	URL           string
-	Method        string
-	Body          string
-	MultiPartForm string
+	Headers   []string
+	URL       string
+	Method    string
+	Body      string
+	FilePaths string
 }
 
 // NewNetworkerCraftedHTTPRequest builds a new HTTP request.
@@ -63,7 +63,7 @@ func NewNetworkerCraftedHTTPRequest(cfg *Config) (*http.Request, error) {
 
 	// add body if necessary
 	if requiresBody(normalizedMethod) {
-		if cfg.MultiPartForm == "" {
+		if cfg.FilePaths == "" {
 			if err := cfg.addBody(req); err != nil {
 				return nil, fmt.Errorf("failed to add request body: %w", err)
 			}
@@ -71,7 +71,7 @@ func NewNetworkerCraftedHTTPRequest(cfg *Config) (*http.Request, error) {
 	}
 
 	// provision multi-part form data upload if necessary
-	if cfg.MultiPartForm != "" {
+	if cfg.FilePaths != "" {
 		if err := cfg.addForm(req); err != nil {
 			return nil, fmt.Errorf("failed to add multi-part form data to request: %w", err)
 		}
@@ -111,7 +111,7 @@ func (cfg *Config) addBody(r *http.Request) error {
 }
 
 func (cfg *Config) addForm(r *http.Request) error {
-	if !strings.Contains(cfg.MultiPartForm, "=") {
+	if !strings.Contains(cfg.FilePaths, "=") {
 		return errInvalidMultiPartFormDataFormat
 	}
 
@@ -119,7 +119,7 @@ func (cfg *Config) addForm(r *http.Request) error {
 	mw := multipart.NewWriter(&b)
 	defer mw.Close()
 
-	args := strings.Split(cfg.MultiPartForm, "=")
+	args := strings.Split(cfg.FilePaths, "=")
 	files := strings.Split(args[1], ",")
 	for i, f := range files {
 		files[i] = strings.TrimSpace(f)
