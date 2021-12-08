@@ -6,11 +6,11 @@
 
 # Installation
 
-## Download Pre-compiled binaries
+## Install by downloading pre-compiled binaries
 
 Checkout the [releases](https://github.com/fuskovic/networker/releases) page to download the latest executables for Linux, Mac, and Windows.
 
-## Global install using Go
+## Install globally using Go
 
     go install github.com/fuskovic/networker@latest
 
@@ -18,7 +18,9 @@ Then verify your installation:
 
     networker -v
 
-## Compile from source
+## Install by compiling from source
+
+Clone the repo, `cd` into it and run:
 
     make install
 
@@ -78,7 +80,7 @@ networker scan flags:
             ip           - Lookup the ip address of the provided hostname.
             network      - Lookup the network address of a provided host.
             nameservers  - Lookup nameservers for the provided hostname.
-            isp          - Lookup the internet service provider.
+            isp          - Lookup the internet service provider of a remote host.
 
 
 
