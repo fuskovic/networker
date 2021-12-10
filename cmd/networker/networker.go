@@ -11,7 +11,7 @@ type rootCmd struct {
 
 func (cmd *rootCmd) Run(fl *pflag.FlagSet) {
 	if cmd.version {
-		println("v1.2.6")
+		println("v1.2.7")
 		return
 	}
 	fl.Usage()
