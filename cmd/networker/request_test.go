@@ -44,25 +44,25 @@ func TestRequestCommand(t *testing.T) {
 			require.Contains(t, string(output), "no such file or directory")
 		})
 		test.WithNetworker(t, "multi-part form arg missing equals sign", func(t *testing.T) {
-			cmd := exec.Command("networker", "request", "-m", "post", "--upload", "formname", "https://google.com")
+			cmd := exec.Command("networker", "request", "-m", "post", "--files", "formname", "https://google.com")
 			output, err := cmd.CombinedOutput()
 			require.Error(t, err)
 			require.Contains(t, string(output), "invalid multipart form upload format")
 		})
 		test.WithNetworker(t, "multi-part form arg doesnt designate any files", func(t *testing.T) {
-			cmd := exec.Command("networker", "request", "-m", "post", "--upload", "formname=", "https://google.com")
+			cmd := exec.Command("networker", "request", "-m", "post", "--files", "formname=", "https://google.com")
 			output, err := cmd.CombinedOutput()
 			require.Error(t, err)
 			require.Contains(t, string(output), "no upload files designated")
 		})
 		test.WithNetworker(t, "multi-part form arg doesnt designate a formname", func(t *testing.T) {
-			cmd := exec.Command("networker", "request", "-m", "post", "--upload", "=file.png", "https://google.com")
+			cmd := exec.Command("networker", "request", "-m", "post", "--files", "=file.png", "https://google.com")
 			output, err := cmd.CombinedOutput()
 			require.Error(t, err)
 			require.Contains(t, string(output), "no multipart form name specified")
 		})
 		test.WithNetworker(t, "multi-part form arg designates a file that does not exist", func(t *testing.T) {
-			cmd := exec.Command("networker", "request", "-m", "post", "--upload", "formname=doesntexist.png", "https://google.com")
+			cmd := exec.Command("networker", "request", "-m", "post", "--files", "formname=doesntexist.png", "https://google.com")
 			output, err := cmd.CombinedOutput()
 			require.Error(t, err)
 			require.Contains(t, string(output), "no such file or directory")
@@ -148,7 +148,7 @@ func TestRequestCommand(t *testing.T) {
 				cmd = exec.Command("networker", "request",
 					"-H", "Authorization: Bearer doesntmatter",
 					"-m", "put",
-					"--upload", multiPartFormUploadArg,
+					"--files", multiPartFormUploadArg,
 					testserverURL,
 				)
 				output, err = cmd.CombinedOutput()
