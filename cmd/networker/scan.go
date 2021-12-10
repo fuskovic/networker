@@ -3,7 +3,7 @@ package networker
 import (
 	"context"
 	"encoding/json"
-	"log"
+	"fmt"
 	"net"
 	"os"
 	"time"
@@ -61,14 +61,38 @@ func (cmd *scanCmd) Run(fl *pflag.FlagSet) {
 	}
 
 	start := time.Now()
-	log.Println("scanning...")
+	ticker := time.NewTicker(500 * time.Millisecond)
+	done := make(chan bool)
+
+	if !cmd.json {
+		go func() {
+			var dots string
+			for {
+				select {
+				case <-done:
+					fmt.Print("\r\n")
+				case <-ticker.C:
+					dots += "."
+					fmt.Printf("\r")
+					fmt.Printf("scanning%s", dots)
+				}
+			}
+		}()
+	}
 
 	scans, err := ports.NewScanner(hosts, cmd.shouldScanAllPorts).Scan(ctx)
 	if err != nil {
 		usage.Fatalf(fl, "failed scan hosts: %s", err)
 	}
 
-	log.Printf("scan completed in %s", time.Since(start))
+	if !cmd.json {
+		ticker.Stop()
+		done <- true
+	}
+
+	if !cmd.json {
+		fmt.Printf("\nscan completed in %s\n", time.Since(start).Round(time.Second))
+	}
 
 	if cmd.json {
 		enc := json.NewEncoder(os.Stdout)
