@@ -88,13 +88,8 @@ func (cmd *scanCmd) Run(fl *pflag.FlagSet) {
 	if !cmd.json {
 		ticker.Stop()
 		done <- true
-	}
-
-	if !cmd.json {
 		fmt.Printf("\nscan completed in %s\n", time.Since(start).Round(time.Second))
-	}
-
-	if cmd.json {
+	} else {
 		enc := json.NewEncoder(os.Stdout)
 		enc.SetIndent("", "\t")
 		enc.SetEscapeHTML(false)
