@@ -37,3 +37,7 @@ fmt:
 .PHONY:commit
 commit: fmt
 	@git add . && git commit --amend --no-edit
+
+.PHONY: readme
+readme:
+	@./scripts/update_readme.sh

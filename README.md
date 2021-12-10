@@ -26,19 +26,24 @@ Clone the repo, `cd` into it and run:
 
 # Usage 
 
-    Usage: networker [subcommand] [flags]
+```
+Usage: networker [subcommand] [flags]
 
-    Description: A simple networking tool.
+Description: A simple networking tool.
 
-    Commands:
-            ls, list         - List information on connected network devices.
-            lu, lookup       - Lookup hostnames, IP addresses, internet service providers, nameservers, and networks.
-            r, req, request  - Send an HTTP request.
-            s, scan          - Scan hosts for open ports.
+networker flags:
+  -v, --version   Installed version.
 
-# Commands
+Commands:
+	ls, list         - List information on connected network devices.
+	lu, lookup       - Lookup hostnames, IP addresses, internet service providers, nameservers, and networks.
+	r, req, request  - Send an HTTP request.
+	s, scan          - Scan hosts for open ports.
+```
 
-## List
+# Commands 
+
+## List 
 
 ```
 Usage: networker list [flags]
@@ -51,8 +56,24 @@ networker list flags:
       --json   Output as json.
 ```
 
+## Lookup 
 
-## Scan
+```
+Usage: networker lookup [subcommand]
+
+Aliases: lu
+
+Description: Lookup hostnames, IP addresses, internet service providers, nameservers, and networks.
+
+Commands:
+	hostname     - Lookup the hostname for a provided ip address.
+	ip           - Lookup the ip address of the provided hostname.
+	network      - Lookup the network address of a provided host.
+	nameservers  - Lookup nameservers for the provided hostname.
+	isp          - Lookup the internet service provider of a remote host.
+```
+
+## Scan 
 
 ```
 Usage: networker scan [flags] [host]
@@ -62,40 +83,23 @@ Aliases: s
 Description: Scan hosts for open ports.
 
 networker scan flags:
-  -a, --all           Scan all ports(scans first 1024 if not enabled).
-      --json          Output as json.
+  -a, --all    Scan all ports(scans first 1024 if not enabled).
+      --json   Output as json.
 ```
 
+## Request 
 
-## Lookup
+```
+Usage: networker request [flags] [url]
 
-    Usage: networker lookup [subcommand]
+Aliases: r, req
 
-    Aliases: lu
+Description: Send an HTTP request.
 
-    Description: Lookup hostnames, IP addresses, nameservers, and networks.
-
-    Commands:
-            hostname     - Lookup the hostname for a provided ip address.
-            ip           - Lookup the ip address of the provided hostname.
-            network      - Lookup the network address of a provided host.
-            nameservers  - Lookup nameservers for the provided hostname.
-            isp          - Lookup the internet service provider of a remote host.
-
-
-
-## Request
-
-    Usage: networker request [flags] [url]
-
-    Aliases: r, req
-
-    Description: Send an HTTP request.
-
-    networker request flags:
-    -b, --body string       Request body. (you can use a JSON string literal or a path to a json file)
-    -H, --headers strings   Request headers.(format(no quotes): key:value,key:value,key:value)
-    -j, --json-only         Only output json.
-    -m, --method string     Request method. (default "GET")
-    -u, --upload string     Multi-part form. (format: formname=path/to/file1,path/to/file2,path/to/file3)
-
+networker request flags:
+  -b, --body string       Request body. (you can use a JSON string literal or a path to a json file)
+  -f, --files string      Files to upload. (format: formname=path/to/file1,path/to/file2,path/to/file3)
+  -H, --headers strings   Request headers.(format: key:value,key:value,key:value)
+  -j, --json-only         Only output json.
+  -m, --method string     Request method. (default "GET")
+```
