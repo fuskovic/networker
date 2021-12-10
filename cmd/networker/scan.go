@@ -41,7 +41,7 @@ func (cmd *scanCmd) Run(fl *pflag.FlagSet) {
 	defer cancel()
 
 	var hosts []string
-	if len(os.Args) < 3 {
+	if len(os.Args) < 3 || os.Args[2] == "--json" {
 		devices, err := list.Devices(ctx)
 		if err != nil {
 			usage.Fatalf(fl, "failed to list network devices: %s", err)
