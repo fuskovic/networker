@@ -35,6 +35,7 @@ func (cmd *rootCmd) Subcommands() []cli.Command {
 		new(lookupCmd),
 		new(requestCmd),
 		new(scanCmd),
+		new(balanceCmd),
 	}
 }
 
