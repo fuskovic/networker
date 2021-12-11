@@ -1,96 +1,39 @@
 package loadbalancer
 
 import (
-	"errors"
 	"fmt"
 	"log"
-	"net"
 	"net/http"
-	"net/http/httputil"
-	"net/url"
 )
 
-var (
-	ErrNoPublicKey         = errors.New("no TLS public key provided")
-	ErrMinimumTargetsUnmet = errors.New("targets provided less than minimum of 2")
-)
+type loadBalancer struct {
+	targets []*target
+}
 
-type (
-	Balancer interface {
-		http.Handler
-		Balance() chan error
+// New initializes a new handler that can be used to load balance
+// network traffic across the hosts designated in the config.
+func New(cfg *Config) (http.Handler, error) {
+	if err := cfg.valid(); err != nil {
+		return nil, fmt.Errorf("invalid load balancer configuration: %w", err)
 	}
 
-	Config struct {
-		Targets   []string
-		Strategy  string
-		EnableTLS bool
-		PublicKey string
-		Port      string
+	lb := new(loadBalancer)
+	protocol := "http"
+	if cfg.EnableTLS {
+		protocol = "https"
 	}
 
-	loadBalancer struct {
-		port    string
-		targets []*target
-	}
-
-	target struct {
-		*httputil.ReverseProxy
-		address  string
-		hitCount int64
-	}
-)
-
-func New(cfg *Config) (Balancer, error) {
-	if len(cfg.Targets) < 2 {
-		return nil, ErrMinimumTargetsUnmet
-	}
-
-	if cfg.EnableTLS && cfg.PublicKey == "" {
-		return nil, ErrNoPublicKey
-	}
-
-	lb := &loadBalancer{port: cfg.Port}
-
-	for i := range cfg.Targets {
-		host, port, err := net.SplitHostPort(cfg.Targets[i])
+	for _, host := range cfg.Hosts {
+		target, err := newTarget(protocol, host)
 		if err != nil {
-			return nil, fmt.Errorf("%q is an invalid target address: %w", cfg.Targets[i], err)
+			return nil, fmt.Errorf("failed to mount target host %q to load balancer: %w", host, err)
 		}
-
-		protocol := "http"
-		if cfg.EnableTLS {
-			protocol = "https"
-		}
-
-		addr := net.JoinHostPort(host, port)
-		lb.targets = append(lb.targets,
-			&target{
-				ReverseProxy: httputil.NewSingleHostReverseProxy(
-					&url.URL{
-						Scheme: protocol,
-						Host:   addr,
-					},
-				),
-				address: addr,
-			},
-		)
-
-		// if cfg.EnableTLS {
-		// 	lb.targets[host].Transport = &httlb.Transport{DialTLS: tlsDialer}
-		// }
+		lb.targets = append(lb.targets, target)
 	}
 	return lb, nil
 }
 
-func (lb *loadBalancer) Balance() chan error {
-	c := make(chan error, 1)
-	go func() {
-		c <- http.ListenAndServe(lb.port, lb)
-	}()
-	return c
-}
-
+// ServeHTTP routes requests to the target host with the lowest hit-count.
 func (lb *loadBalancer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	newTarget := lb.targets[0]
 	for _, target := range lb.targets {
