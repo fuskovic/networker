@@ -30,6 +30,7 @@ func New(cfg *Config) (http.Handler, error) {
 				host:     host,
 				cert:     cfg.Cert,
 				isCA:     cfg.IsTest,
+				tlsCert:  cfg.TlsCert,
 			},
 		)
 		if err != nil {

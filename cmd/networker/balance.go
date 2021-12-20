@@ -1,6 +1,7 @@
 package networker
 
 import (
+	"crypto/tls"
 	"log"
 	"net/http"
 
@@ -39,12 +40,22 @@ func (cmd *balanceCmd) RegisterFlags(fl *pflag.FlagSet) {
 }
 
 func (cmd *balanceCmd) Run(fl *pflag.FlagSet) {
+	if cmd.port == "" {
+		usage.Fatal(fl, "port is unset")
+	}
+
+	cert, err := tls.LoadX509KeyPair(cmd.cert, cmd.key)
+	if err != nil {
+		usage.Fatalf(fl, "failed to load cert: %s", err)
+	}
+
 	port := ":" + cmd.port
 	lb, err := loadbalancer.New(
 		&loadbalancer.Config{
 			Hosts:     cmd.targets,
 			Strategy:  cmd.strategy,
 			EnableTLS: cmd.tls,
+			TlsCert:   cert,
 		},
 	)
 

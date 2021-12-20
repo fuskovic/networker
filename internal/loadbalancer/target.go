@@ -24,6 +24,7 @@ type targetConfig struct {
 	protocol string
 	host     string
 	cert     []byte
+	tlsCert  tls.Certificate
 	isCA     bool
 }
 
@@ -50,6 +51,8 @@ func newTarget(cfg *targetConfig) (*target, error) {
 			return nil, errors.New("failed to append cert to cert pool")
 		}
 		tlsClientCfg.RootCAs = certPool
+	} else {
+		tlsClientCfg.Certificates = append(tlsClientCfg.Certificates, cfg.tlsCert)
 	}
 
 	reverseProxy := httputil.NewSingleHostReverseProxy(url)

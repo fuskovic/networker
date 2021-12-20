@@ -1,6 +1,7 @@
 package loadbalancer
 
 import (
+	"crypto/tls"
 	"errors"
 	"strings"
 )
@@ -15,6 +16,7 @@ type Config struct {
 	EnableTLS bool
 	IsTest    bool
 	Cert      []byte
+	TlsCert   tls.Certificate
 }
 
 func (cfg *Config) valid() error {
