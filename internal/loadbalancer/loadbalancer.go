@@ -24,7 +24,14 @@ func New(cfg *Config) (http.Handler, error) {
 	}
 
 	for _, host := range cfg.Hosts {
-		target, err := newTarget(protocol, host)
+		target, err := newTarget(
+			&targetConfig{
+				protocol: protocol,
+				host:     host,
+				cert:     cfg.Cert,
+				isCA:     cfg.IsTest,
+			},
+		)
 		if err != nil {
 			return nil, fmt.Errorf("failed to mount target host %q to load balancer: %w", host, err)
 		}

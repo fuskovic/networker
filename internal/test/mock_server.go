@@ -26,7 +26,7 @@ type mockServer struct {
 // that uses an in-memory cache for its store layer.
 func newMockServer() *httptest.Server {
 	return httptest.NewServer(
-		&mockServer{make(map[int]MockObject)},
+		&mockServer{cache: make(map[int]MockObject)},
 	)
 }
 

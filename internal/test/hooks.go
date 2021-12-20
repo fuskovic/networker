@@ -32,3 +32,16 @@ func WithMockServer(t *testing.T, fn RequestFunc) {
 	defer testServer.Close()
 	fn(t, testServer.URL)
 }
+
+type tlsFunc func(t *testing.T, s *TlsSuite)
+
+// WithTlsSuite is pre-test hook for running TLS tests. The hook generates self-signed TLS certs before fn is ran
+// and removes them after fn exists. The suite also provides utilities for initializing and spinning up TLS servers.
+// WithTlsSuite parallelizes fn.
+func WithTlsSuite(t *testing.T, name string, fn tlsFunc) {
+	t.Helper()
+	t.Parallel()
+	t.Run(name, func(t *testing.T) {
+		fn(t, newTlsTestSuite(t))
+	})
+}

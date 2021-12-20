@@ -45,8 +45,6 @@ func (cmd *balanceCmd) Run(fl *pflag.FlagSet) {
 			Hosts:     cmd.targets,
 			Strategy:  cmd.strategy,
 			EnableTLS: cmd.tls,
-			PublicKey: cmd.key,
-			Cert:      cmd.cert,
 		},
 	)
 

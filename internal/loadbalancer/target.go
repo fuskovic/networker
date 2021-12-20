@@ -2,6 +2,7 @@ package loadbalancer
 
 import (
 	"crypto/tls"
+	"crypto/x509"
 	"errors"
 	"fmt"
 	"net"
@@ -19,59 +20,70 @@ type target struct {
 	hitCount int64
 }
 
-func newTarget(protocol, host string) (*target, error) {
+type targetConfig struct {
+	protocol string
+	host     string
+	cert     []byte
+	isCA     bool
+}
+
+func newTarget(cfg *targetConfig) (*target, error) {
 	// validate format
-	if _, _, err := net.SplitHostPort(host); err != nil {
-		return nil, fmt.Errorf("expected %q to be formatted as host:port : %w", host, err)
+	host, _, err := net.SplitHostPort(cfg.host)
+	if err != nil {
+		return nil, fmt.Errorf("expected %q to be formatted as host:port : %w", cfg.host, err)
 	}
 
-	if protocol != "http" && protocol != "https" {
+	if cfg.protocol != "http" && cfg.protocol != "https" {
 		return nil, ErrUnsupportedProtocol
 	}
 
-	url, err := url.Parse(fmt.Sprintf("%s://%s", protocol, host))
+	url, err := url.Parse(fmt.Sprintf("%s://%s", cfg.protocol, cfg.host))
 	if err != nil {
-		return nil, fmt.Errorf("%q is an invalid url: %w", host, err)
+		return nil, fmt.Errorf("%q is an invalid url: %w", cfg.host, err)
+	}
+
+	tlsClientCfg := &tls.Config{ServerName: host}
+	if cfg.isCA {
+		certPool := x509.NewCertPool()
+		if ok := certPool.AppendCertsFromPEM(cfg.cert); !ok {
+			return nil, errors.New("failed to append cert to cert pool")
+		}
+		tlsClientCfg.RootCAs = certPool
 	}
 
 	reverseProxy := httputil.NewSingleHostReverseProxy(url)
-	if protocol == "https" {
+	if cfg.protocol == "https" {
 		reverseProxy.Transport = &http.Transport{
-			DialTLS: tlsDialer,
+			DialTLS: func(network, addr string) (net.Conn, error) {
+				host, _, err := net.SplitHostPort(addr)
+				if err != nil {
+					return nil, err
+				}
+
+				conn, err := net.Dial(network, addr)
+				if err != nil {
+					return nil, err
+				}
+
+				tlsClient := tls.Client(conn, tlsClientCfg)
+				if err := tlsClient.Handshake(); err != nil {
+					conn.Close()
+					return nil, fmt.Errorf("tls handshake failed: %w", err)
+				}
+
+				state := tlsClient.ConnectionState()
+				cert := state.PeerCertificates[0]
+				if err := cert.VerifyHostname(host); err != nil {
+					return nil, err
+				}
+				return tlsClient, nil
+			},
 		}
 	}
 
 	return &target{
 		ReverseProxy: reverseProxy,
-		address:      host,
+		address:      cfg.host,
 	}, nil
-}
-
-func tlsDialer(network, addr string) (net.Conn, error) {
-	host, _, err := net.SplitHostPort(addr)
-	if err != nil {
-		return nil, err
-	}
-
-	conn, err := net.Dial(network, addr)
-	if err != nil {
-		return nil, err
-	}
-
-	tlsClient := tls.Client(conn,
-		&tls.Config{ServerName: host},
-	)
-
-	if err := tlsClient.Handshake(); err != nil {
-		conn.Close()
-		return nil, err
-	}
-
-	state := tlsClient.ConnectionState()
-
-	cert := state.PeerCertificates[0]
-	if err := cert.VerifyHostname(host); err != nil {
-		return nil, err
-	}
-	return tlsClient, nil
 }
