@@ -1,0 +1,66 @@
+version: "3.8"
+
+services:
+  networker_server_1:
+    image: networker_playground_server
+    container_name: nwserver_1
+    ports:
+      - 3001:3001
+    environment:
+      - NETWORKER_PLAYGROUND_PORT=3001
+    volumes:
+      - tls:/app/tls
+    healthcheck:
+      test: > 
+        curl 
+        --cacert /app/tls/cert.pem 
+        --key /app/tls/key.pem 
+        --ciphers DEFAULT@SECLEVEL=1 
+        https://127.0.0.1:3001/healthz
+      interval: 10s
+      start_period: 10s
+
+  networker_server_2:
+    image: networker_playground_server
+    container_name: nwserver_2
+    ports:
+      - 3002:3002
+    environment:
+      - NETWORKER_PLAYGROUND_PORT=3002
+    volumes:
+      - tls:/app/tls
+    healthcheck:
+      test: > 
+        curl
+        --cacert /app/tls/cert.pem 
+        --key /app/tls/key.pem 
+        --ciphers DEFAULT@SECLEVEL=1 
+        https://127.0.0.1:3002/healthz
+      interval: 10s
+      start_period: 10s
+
+  networker_server_3:
+    image: networker_playground_server
+    container_name: nwserver_3
+    ports:
+      - 3003:3003
+    environment:
+      - NETWORKER_PLAYGROUND_PORT=3003
+    volumes:
+      - tls:/app/tls
+    healthcheck:
+      test: >
+        curl \
+        --cacert /app/tls/cert.pem \
+        --key /app/tls/key.pem \
+        --ciphers DEFAULT@SECLEVEL=1 \
+        https://127.0.0.1:3003/healthz
+      interval: 10s
+      start_period: 10s
+
+volumes:
+  tls:
+    driver_opts:
+          type: none
+          device:  ${PWD}/tls
+          o: bind
