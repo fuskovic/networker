@@ -33,7 +33,3 @@ commit: fmt
 .PHONY: readme
 readme:
 	@./scripts/update_readme.sh
-
-PHONY: cert
-cert:
-	@./scripts/generate_self_signed_cert.sh
