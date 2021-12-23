@@ -78,7 +78,7 @@ func newTarget(cfg *targetConfig) (*target, error) {
 				state := tlsClient.ConnectionState()
 				cert := state.PeerCertificates[0]
 				if err := cert.VerifyHostname(host); err != nil {
-					return nil, err
+					return nil, fmt.Errorf("failed to verify hostname: %w", err)
 				}
 				return tlsClient, nil
 			},
