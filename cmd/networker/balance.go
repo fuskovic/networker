@@ -44,9 +44,13 @@ func (cmd *balanceCmd) Run(fl *pflag.FlagSet) {
 		usage.Fatal(fl, "port is unset")
 	}
 
-	cert, err := tls.LoadX509KeyPair(cmd.cert, cmd.key)
-	if err != nil {
-		usage.Fatalf(fl, "failed to load cert: %s", err)
+	var tlsCert tls.Certificate
+	if cmd.tls {
+		cert, err := tls.LoadX509KeyPair(cmd.cert, cmd.key)
+		if err != nil {
+			usage.Fatalf(fl, "failed to load cert: %s", err)
+		}
+		tlsCert = cert
 	}
 
 	port := ":" + cmd.port
@@ -55,7 +59,7 @@ func (cmd *balanceCmd) Run(fl *pflag.FlagSet) {
 			Hosts:     cmd.targets,
 			Strategy:  cmd.strategy,
 			EnableTLS: cmd.tls,
-			TlsCert:   cert,
+			TlsCert:   tlsCert,
 		},
 	)
 
