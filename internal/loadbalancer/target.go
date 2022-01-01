@@ -44,15 +44,14 @@ func newTarget(cfg *targetConfig) (*target, error) {
 		return nil, fmt.Errorf("%q is an invalid url: %w", cfg.host, err)
 	}
 
-	tlsClientCfg := &tls.Config{ServerName: host}
-	if cfg.isCA {
-		certPool := x509.NewCertPool()
-		if ok := certPool.AppendCertsFromPEM(cfg.cert); !ok {
-			return nil, errors.New("failed to append cert to cert pool")
-		}
-		tlsClientCfg.RootCAs = certPool
-	} else {
-		tlsClientCfg.Certificates = append(tlsClientCfg.Certificates, cfg.tlsCert)
+	certPool := x509.NewCertPool()
+	if ok := certPool.AppendCertsFromPEM(cfg.cert); !ok {
+		return nil, errors.New("failed to append cert to cert pool")
+	}
+
+	tlsClientCfg := &tls.Config{
+		ServerName: host,
+		RootCAs:    certPool,
 	}
 
 	reverseProxy := httputil.NewSingleHostReverseProxy(url)
@@ -64,23 +63,21 @@ func newTarget(cfg *targetConfig) (*target, error) {
 					return nil, err
 				}
 
-				conn, err := net.Dial(network, addr)
+				conn, err := tls.Dial(network, addr, tlsClientCfg)
 				if err != nil {
 					return nil, err
 				}
 
-				tlsClient := tls.Client(conn, tlsClientCfg)
-				if err := tlsClient.Handshake(); err != nil {
+				if err := conn.Handshake(); err != nil {
 					conn.Close()
 					return nil, fmt.Errorf("tls handshake failed: %w", err)
 				}
 
-				state := tlsClient.ConnectionState()
-				cert := state.PeerCertificates[0]
+				cert := conn.ConnectionState().PeerCertificates[0]
 				if err := cert.VerifyHostname(host); err != nil {
 					return nil, fmt.Errorf("failed to verify hostname: %w", err)
 				}
-				return tlsClient, nil
+				return conn, nil
 			},
 		}
 	}

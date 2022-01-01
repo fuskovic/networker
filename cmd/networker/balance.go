@@ -2,6 +2,7 @@ package networker
 
 import (
 	"crypto/tls"
+	"io/ioutil"
 	"log"
 	"net/http"
 
@@ -45,12 +46,18 @@ func (cmd *balanceCmd) Run(fl *pflag.FlagSet) {
 	}
 
 	var tlsCert tls.Certificate
+	var rawCertData []byte
 	if cmd.tls {
 		cert, err := tls.LoadX509KeyPair(cmd.cert, cmd.key)
 		if err != nil {
 			usage.Fatalf(fl, "failed to load cert: %s", err)
 		}
 		tlsCert = cert
+		b, err := ioutil.ReadFile(cmd.cert)
+		if err != nil {
+			usage.Fatalf(fl, "failed to read %q: %s", cmd.cert, err)
+		}
+		rawCertData = b
 	}
 
 	port := ":" + cmd.port
@@ -59,6 +66,7 @@ func (cmd *balanceCmd) Run(fl *pflag.FlagSet) {
 			Hosts:     cmd.targets,
 			Strategy:  cmd.strategy,
 			EnableTLS: cmd.tls,
+			Cert:      rawCertData,
 			TlsCert:   tlsCert,
 		},
 	)
