@@ -1,7 +1,7 @@
 package main
 
-import "github.com/fuskovic/networker/cmd/networker"
+import "github.com/fuskovic/networker/cmd"
 
 func main() {
-	networker.Execute()
+	cmd.Execute()
 }

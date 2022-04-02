@@ -22,7 +22,10 @@ fi
 PROJECT_ROOT=$(git rev-parse --show-toplevel)
 echo "installing"
 
-go build -o $TARGET_DIR/networker main.go
+go build \
+    -o $TARGET_DIR/networker \
+    -ldflags "-X github.com/fuskovic/networker/cmd.Version=`git describe --tags`" \
+    main.go
 if [ $? -ne 0 ]; then
     echo "failed to compile networker"
     exit 1
