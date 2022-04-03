@@ -29,17 +29,17 @@ var scanCmd = &cobra.Command{
 	Aliases: []string{"s"},
 	Short:   "Scan hosts for open ports.",
 	Example: `
-Scan well-known ports of single device on network:
-networker scan 127.0.0.1
+	Scan well-known ports of single device on network:
+		networker scan 127.0.0.1
 
-Scan well-known ports of all devices on network:
-networker scan
+	Scan well-known ports of all devices on network:
+		networker scan
 
-Scan all ports of single device on network:
-networker scan 127.0.0.1 --all-ports
+	Scan all ports of single device on network:
+		networker scan 127.0.0.1 --all-ports
 
-Output a scan as json:
-networker scan 127.0.0.1 --json
+	Output a scan as json:
+		networker scan 127.0.0.1 --json
 `,
 	Args: cobra.MaximumNArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {

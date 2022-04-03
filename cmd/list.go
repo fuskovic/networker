@@ -23,11 +23,11 @@ var listCmd = &cobra.Command{
 	Aliases: []string{"ls"},
 	Short:   "List information on connected network devices.",
 	Example: `
-List devices on network:
-	networker ls
+	List devices on network:
+		networker ls
 
-Output as JSON:
-	networker ls --json
+	Output as JSON:
+		networker ls --json
 `,
 	Args: cobra.NoArgs,
 	Run: func(cmd *cobra.Command, args []string) {

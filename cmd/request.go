@@ -37,28 +37,28 @@ var requestCmd = &cobra.Command{
 	Aliases: []string{"r", "req"},
 	Short:   "Send an HTTP request.",
 	Example: `
-POST request using json body sourced from stdin:
-	networker request \
-		-H "Authorization: Bearer doesntmatter" \
-		-m post \
-		-b '{"field": "doesntmatter"}'
+	POST request using json body sourced from stdin:
+		networker request \
+			-H "Authorization: Bearer doesntmatter" \
+			-m post \
+			-b '{"field": "doesntmatter"}'
 
-POST request using json body sourced from file:
-	networker request \
-		-H "Authorization: Bearer doesntmatter" \
-		-m post -b /path/to/file.json
+	POST request using json body sourced from file:
+		networker request \
+			-H "Authorization: Bearer doesntmatter" \
+			-m post -b /path/to/file.json
 
-PUT request for file upload:
-	networker request \
-		-H "Authorization: Bearer doesntmatter" \
-		-m put \
-		-f=/path/to/file1.jpeg
+	PUT request for file upload:
+		networker request \
+			-H "Authorization: Bearer doesntmatter" \
+			-m put \
+			-f=/path/to/file1.jpeg
 
-PUT request for uploading multiple files:
-	networker request \
-		-H "Authorization: Bearer doesntmatter" \
-		-m put \
-		-f=/path/to/file1.jpeg,/path/to/file2.jpeg,/path/to/file3.jpeg
+	PUT request for uploading multiple files:
+		networker request \
+			-H "Authorization: Bearer doesntmatter" \
+			-m put \
+			-f=/path/to/file1.jpeg,/path/to/file2.jpeg,/path/to/file3.jpeg
 `,
 	Args: cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
