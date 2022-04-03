@@ -19,32 +19,32 @@ var (
 )
 
 func init() {
-	lookupHostnameCmd.Flags().StringVar(&ip, "ip", "", "IP address.")
-	_ = lookupHostnameCmd.MarkFlagRequired("ip")
-	lookupCmd.AddCommand(lookupHostnameCmd)
+	LookupHostnameCmd.Flags().StringVar(&ip, "ip", "", "IP address.")
+	_ = LookupHostnameCmd.MarkFlagRequired("ip")
+	LookupCmd.AddCommand(LookupHostnameCmd)
 
-	lookupIpaddressCmd.Flags().StringVar(&hostname, "hostname", "", "Hostname.")
-	_ = lookupIpaddressCmd.MarkFlagRequired("hostname")
-	lookupCmd.AddCommand(lookupIpaddressCmd)
+	LookupIpaddressCmd.Flags().StringVar(&hostname, "hostname", "", "Hostname.")
+	_ = LookupIpaddressCmd.MarkFlagRequired("hostname")
+	LookupCmd.AddCommand(LookupIpaddressCmd)
 
-	lookupIspCmd.Flags().StringVar(&host, "host", "", "IP address or hostname to get the network address for.")
-	lookupIspCmd.Flags().BoolVar(&shouldOutputAsJSON, "json", false, "Output as JSON.")
-	_ = lookupIspCmd.MarkFlagRequired("host")
-	lookupCmd.AddCommand(lookupIspCmd)
+	LookupIspCmd.Flags().StringVar(&host, "host", "", "IP address or hostname to get the network address for.")
+	LookupIspCmd.Flags().BoolVar(&shouldOutputAsJSON, "json", false, "Output as JSON.")
+	_ = LookupIspCmd.MarkFlagRequired("host")
+	LookupCmd.AddCommand(LookupIspCmd)
 
-	lookupNameserversCmd.Flags().StringVar(&hostname, "hostname", "", "Hostname.")
-	lookupNameserversCmd.Flags().BoolVar(&shouldOutputAsJSON, "json", false, "Output as JSON.")
-	_ = lookupNameserversCmd.MarkFlagRequired("hostname")
-	lookupCmd.AddCommand(lookupNameserversCmd)
+	LookupNameserversCmd.Flags().StringVar(&hostname, "hostname", "", "Hostname.")
+	LookupNameserversCmd.Flags().BoolVar(&shouldOutputAsJSON, "json", false, "Output as JSON.")
+	_ = LookupNameserversCmd.MarkFlagRequired("hostname")
+	LookupCmd.AddCommand(LookupNameserversCmd)
 
-	lookupNetworkCmd.Flags().StringVar(&host, "host", "", "IP address or hostname to get the network address for.")
-	_ = lookupNetworkCmd.MarkFlagRequired("host")
-	lookupCmd.AddCommand(lookupNetworkCmd)
+	LookupNetworkCmd.Flags().StringVar(&host, "host", "", "IP address or hostname to get the network address for.")
+	_ = LookupNetworkCmd.MarkFlagRequired("host")
+	LookupCmd.AddCommand(LookupNetworkCmd)
 
-	rootCmd.AddCommand(lookupCmd)
+	Root.AddCommand(LookupCmd)
 }
 
-var lookupCmd = &cobra.Command{
+var LookupCmd = &cobra.Command{
 	Use:        "lookup",
 	Aliases:    []string{"lu"},
 	SuggestFor: []string{},
@@ -66,13 +66,13 @@ Lookup network by ip or hostname:
 	networker lookup network --host 8.8.8.8
 	networker lookup network --host dns.google.
 `,
-	Short: "Lookup hostnames, IP addresses, internet service providers, nameservers, and networks.",
+	Short: "Lookup hostnames, IPs, ISPs, nameservers, and networks.",
 	Run: func(cmd *cobra.Command, args []string) {
 		_ = cmd.Usage()
 	},
 }
 
-var lookupHostnameCmd = &cobra.Command{
+var LookupHostnameCmd = &cobra.Command{
 	Use:   "hostname",
 	Short: "Lookup the hostname for a provided ip address.",
 	Args:  cobra.ExactArgs(1),
@@ -90,7 +90,7 @@ var lookupHostnameCmd = &cobra.Command{
 	},
 }
 
-var lookupIpaddressCmd = &cobra.Command{
+var LookupIpaddressCmd = &cobra.Command{
 	Use:   "ip",
 	Short: "Lookup the ip address of the provided hostname.",
 	Args:  cobra.NoArgs,
@@ -103,7 +103,7 @@ var lookupIpaddressCmd = &cobra.Command{
 	},
 }
 
-var lookupIspCmd = &cobra.Command{
+var LookupIspCmd = &cobra.Command{
 	Use:   "isp",
 	Short: "Lookup the internet service provider of a remote host.",
 	Args:  cobra.NoArgs,
@@ -144,7 +144,7 @@ var lookupIspCmd = &cobra.Command{
 	},
 }
 
-var lookupNameserversCmd = &cobra.Command{
+var LookupNameserversCmd = &cobra.Command{
 	Use:     "nameservers",
 	Aliases: []string{"ns"},
 	Short:   "Lookup nameservers for the provided hostname.",
@@ -181,7 +181,7 @@ var lookupNameserversCmd = &cobra.Command{
 	},
 }
 
-var lookupNetworkCmd = &cobra.Command{
+var LookupNetworkCmd = &cobra.Command{
 	Use:   "network",
 	Short: "Lookup the network address of a provided host.",
 	Args:  cobra.NoArgs,

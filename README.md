@@ -24,82 +24,14 @@ Clone the repo, `cd` into it and run:
 
     make install
 
-# Usage 
+# Docs
 
-```
-Usage: networker [subcommand] [flags]
-
-Description: A simple networking tool.
-
-networker flags:
-  -v, --version   Installed version.
-
-Commands:
-	ls, list         - List information on connected network devices.
-	lu, lookup       - Lookup hostnames, IP addresses, internet service providers, nameservers, and networks.
-	r, req, request  - Send an HTTP request.
-	s, scan          - Scan hosts for open ports.
-```
-
-# Commands 
-
-## List 
-
-```
-Usage: networker list [flags]
-
-Aliases: ls
-
-Description: List information on connected network devices.
-
-networker list flags:
-      --json   Output as json.
-```
-
-## Lookup 
-
-```
-Usage: networker lookup [subcommand]
-
-Aliases: lu
-
-Description: Lookup hostnames, IP addresses, internet service providers, nameservers, and networks.
-
-Commands:
-	hostname     - Lookup the hostname for a provided ip address.
-	ip           - Lookup the ip address of the provided hostname.
-	network      - Lookup the network address of a provided host.
-	nameservers  - Lookup nameservers for the provided hostname.
-	isp          - Lookup the internet service provider of a remote host.
-```
-
-## Scan 
-
-```
-Usage: networker scan [flags] [host]
-
-Aliases: s
-
-Description: Scan hosts for open ports.
-
-networker scan flags:
-  -a, --all    Scan all ports(scans first 1024 if not enabled).
-      --json   Output as json.
-```
-
-## Request 
-
-```
-Usage: networker request [flags] [url]
-
-Aliases: r, req
-
-Description: Send an HTTP request.
-
-networker request flags:
-  -b, --body string       Request body. (you can use a JSON string literal or a path to a json file)
-  -f, --files string      Files to upload. (format: formname=path/to/file1,path/to/file2,path/to/file3)
-  -H, --headers strings   Request headers.(format: key:value,key:value,key:value)
-  -j, --json-only         Only output json.
-  -m, --method string     Request method. (default "GET")
-```
+* [networker list](networker_list.md)	 - List information on connected network devices.
+* [networker request](networker_request.md)	 - Send an HTTP request.
+* [networker scan](networker_scan.md)	 - Scan hosts for open ports.
+* [networker lookup](networker_lookup.md)	 - Lookup hostnames, IPs, ISPs, nameservers, and networks.
+  * [networker lookup hostname](networker_lookup_hostname.md)	 - Lookup the hostname for a provided ip address.
+  * [networker lookup ip](networker_lookup_ip.md)	 - Lookup the ip address of the provided hostname.
+  * [networker lookup isp](networker_lookup_isp.md)	 - Lookup the internet service provider of a remote host.
+  * [networker lookup nameservers](networker_lookup_nameservers.md)	 - Lookup nameservers for the provided hostname.
+  * [networker lookup network](networker_lookup_network.md)	 - Lookup the network address of a provided host.

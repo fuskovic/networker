@@ -30,6 +30,6 @@ fmt:
 commit: fmt
 	@git add . && git commit --amend --no-edit
 
-.PHONY: readme
-readme:
-	@./scripts/update_readme.sh
+.PHONY: docs
+docs:
+	@go run ./scripts/doc_gen.go
