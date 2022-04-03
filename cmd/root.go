@@ -1,15 +1,14 @@
 package cmd
 
 import (
-	"strings"
-
 	"github.com/spf13/cobra"
+	_ "embed"
 )
 
 var shouldOutputVersion bool
 
-// Overwritten using ldflags on build
-var Version = "development"
+//go:embed version.txt
+var version string
 
 func init() {
 	Root.Flags().BoolVarP(&shouldOutputVersion, "version", "v", false, "Print installed version.")
@@ -22,7 +21,7 @@ var Root = &cobra.Command{
 	Args:    cobra.NoArgs,
 	Run: func(cmd *cobra.Command, args []string) {
 		if shouldOutputVersion {
-			println(strings.Split(Version, "-")[0])
+			print(version)
 			return
 		}
 		_ = cmd.Usage()
