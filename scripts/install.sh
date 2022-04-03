@@ -21,10 +21,9 @@ fi
 
 PROJECT_ROOT=$(git rev-parse --show-toplevel)
 echo "installing"
-
+    # -ldflags "-X github.com/fuskovic/networker/cmd.Version=`git describe --tags`" \
 go build \
     -o $TARGET_DIR/networker \
-    -ldflags "-X github.com/fuskovic/networker/cmd.Version=`git describe --tags`" \
     main.go
 if [ $? -ne 0 ]; then
     echo "failed to compile networker"
