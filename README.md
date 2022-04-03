@@ -24,14 +24,4 @@ Clone the repo, `cd` into it and run:
 
     make install
 
-# Docs
-
-* [networker list](docs/networker_list.md)	 - List information on connected network devices.
-* [networker request](docs/networker_request.md)	 - Send an HTTP request.
-* [networker scan](docs/networker_scan.md)	 - Scan hosts for open ports.
-* [networker lookup](docs/networker_lookup.md)	 - Lookup hostnames, IPs, ISPs, nameservers, and networks.
-  * [networker lookup hostname](docs/networker_lookup_hostname.md)	 - Lookup the hostname for a provided ip address.
-  * [networker lookup ip](docs/networker_lookup_ip.md)	 - Lookup the ip address of the provided hostname.
-  * [networker lookup isp](docs/networker_lookup_isp.md)	 - Lookup the internet service provider of a remote host.
-  * [networker lookup nameservers](docs/networker_lookup_nameservers.md)	 - Lookup nameservers for the provided hostname.
-  * [networker lookup network](docs/networker_lookup_network.md)	 - Lookup the network address of a provided host.
+# [Docs](https://github.com/fuskovic/networker/blob/master/docs/networker.md)
