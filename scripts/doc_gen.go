@@ -18,16 +18,7 @@ func init() {
 }
 
 func main() {
-	if err := doc.GenMarkdownTreeCustom(
-		cmd.Root, 
-		path.Join(projectRoot, "docs"),
-		func(p string) string {
-			return p
-		},
-		func(p string) string {
-			return path.Join("docs", p)
-		},
-	); err != nil {
+	if err := doc.GenMarkdownTree(cmd.Root, path.Join(projectRoot, "docs")); err != nil {
 		log.Fatalf("gen markdown tree: %v\n", err)
 	}
 	log.Println("docs successfully updated")
