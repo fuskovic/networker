@@ -24,4 +24,6 @@ Clone the repo, `cd` into it and run:
 
     make install
 
-# [Docs](https://github.com/fuskovic/networker/blob/master/docs/networker.md)
+# Documentation
+
+See [Docs](https://github.com/fuskovic/networker/blob/master/docs/networker.md) for command examples.
