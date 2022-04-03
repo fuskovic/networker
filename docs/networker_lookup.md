@@ -10,22 +10,22 @@ networker lookup [flags]
 
 ```
 
-Lookup IP by hostname:
-	networker lookup ip --hostname dns.google.
+	Lookup IP by hostname:
+		networker lookup ip --hostname dns.google.
 
-Lookup hostname by IP:
-	networker lookup hostname --ip 8.8.8.8
+	Lookup hostname by IP:
+		networker lookup hostname --ip 8.8.8.8
 
-Lookup nameservers by hostname:
-	networker lookup nameservers --hostname dns.google.
+	Lookup nameservers by hostname:
+		networker lookup nameservers --hostname dns.google.
 
-Lookup ISP by ip or hostname:
-	networker lookup isp --host 8.8.8.8
-	networker lookup network --host dns.google.
+	Lookup ISP by ip or hostname:
+		networker lookup isp --host 8.8.8.8
+		networker lookup network --host dns.google.
 
-Lookup network by ip or hostname:
-	networker lookup network --host 8.8.8.8
-	networker lookup network --host dns.google.
+	Lookup network by ip or hostname:
+		networker lookup network --host 8.8.8.8
+		networker lookup network --host dns.google.
 
 ```
 

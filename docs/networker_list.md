@@ -10,11 +10,11 @@ networker list [flags]
 
 ```
 
-List devices on network:
-	networker ls
+	List devices on network:
+		networker ls
 
-Output as JSON:
-	networker ls --json
+	Output as JSON:
+		networker ls --json
 
 ```
 
