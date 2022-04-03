@@ -19,6 +19,7 @@ var shouldScanAll, shouldOutputAsJSON bool
 func init() {
 	scanCmd.Flags().BoolVar(&shouldScanAll, "all-ports", false, "Scan all ports(scans first 1024 if not enabled).")
 	scanCmd.Flags().BoolVar(&shouldOutputAsJSON, "json", false, "Output as json.")
+	scanCmd.Flags().StringVar(&host, "host", "", "Host to scan.")
 	Root.AddCommand(scanCmd)
 }
 
@@ -45,7 +46,7 @@ var scanCmd = &cobra.Command{
 		defer cancel()
 
 		var hosts []string
-		if len(os.Args) < 3 {
+		if host == "" {
 			devices, err := list.Devices(ctx)
 			if err != nil {
 				usage.Fatalf(cmd, "failed to list network devices: %s", err)
@@ -54,14 +55,15 @@ var scanCmd = &cobra.Command{
 				hosts = append(hosts, devices[i].LocalIP.String())
 			}
 		} else {
-			host := os.Args[2]
 			ip := net.ParseIP(host)
 			if ip == nil {
-				if _, err := resolve.AddrByHostName(host); err != nil {
+				addr, err := resolve.AddrByHostName(host)
+				if err != nil {
 					usage.Fatalf(cmd, "failed to resolve ip address from hostname: %s", err)
 				}
+				ip = *addr
 			}
-			hosts = append(hosts, os.Args[2])
+			hosts = append(hosts, ip.String())
 		}
 
 		scans, err := ports.NewScanner(hosts, shouldScanAll).Scan(ctx)
