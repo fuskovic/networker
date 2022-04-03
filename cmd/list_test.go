@@ -1,4 +1,4 @@
-package networker
+package cmd
 
 import (
 	"encoding/json"

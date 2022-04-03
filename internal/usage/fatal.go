@@ -3,17 +3,17 @@ package usage
 import (
 	"log"
 
-	"github.com/spf13/pflag"
+	"github.com/spf13/cobra"
 )
 
 // Fatal prints the usage for the flagset and the args before returning an exit code 1.
-func Fatal(fl *pflag.FlagSet, args ...interface{}) {
-	fl.Usage()
+func Fatal(cmd *cobra.Command, args ...interface{}) {
+	cmd.Usage()
 	log.Fatal(args...)
 }
 
 // Fatalf prints the usage for the flagset and the formatted args before returning an exit code 1.
-func Fatalf(fl *pflag.FlagSet, format string, args ...interface{}) {
-	fl.Usage()
+func Fatalf(cmd *cobra.Command, format string, args ...interface{}) {
+	cmd.Usage()
 	log.Fatalf(format, args...)
 }
