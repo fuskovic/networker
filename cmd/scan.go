@@ -3,10 +3,8 @@ package cmd
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"net"
 	"os"
-	"time"
 
 	"cdr.dev/coder-cli/pkg/tablewriter"
 	"github.com/fuskovic/networker/internal/list"
@@ -47,7 +45,7 @@ var scanCmd = &cobra.Command{
 		defer cancel()
 
 		var hosts []string
-		if len(os.Args[1:]) == 0 {
+		if len(os.Args) < 3 {
 			devices, err := list.Devices(ctx)
 			if err != nil {
 				usage.Fatalf(cmd, "failed to list network devices: %s", err)
@@ -66,36 +64,12 @@ var scanCmd = &cobra.Command{
 			hosts = append(hosts, os.Args[2])
 		}
 
-		start := time.Now()
-		ticker := time.NewTicker(500 * time.Millisecond)
-		done := make(chan bool)
-
-		if shouldOutputAsJSON {
-			go func() {
-				var dots string
-				for {
-					select {
-					case <-done:
-						fmt.Print("\r\n")
-					case <-ticker.C:
-						dots += "."
-						fmt.Printf("\r")
-						fmt.Printf("scanning%s", dots)
-					}
-				}
-			}()
-		}
-
 		scans, err := ports.NewScanner(hosts, shouldScanAll).Scan(ctx)
 		if err != nil {
 			usage.Fatalf(cmd, "failed scan hosts: %s", err)
 		}
 
-		if !shouldOutputAsJSON {
-			ticker.Stop()
-			done <- true
-			fmt.Printf("\nscan completed in %s\n", time.Since(start).Round(time.Second))
-		} else {
+		if shouldOutputAsJSON {
 			enc := json.NewEncoder(os.Stdout)
 			enc.SetIndent("", "\t")
 			enc.SetEscapeHTML(false)
