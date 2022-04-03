@@ -18,7 +18,7 @@ Then verify your installation:
 
     networker -v
 
-## Install by compiling from source
+## Compile from source
 
 Clone the repo, `cd` into it and run:
 
