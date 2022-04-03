@@ -26,12 +26,12 @@ Clone the repo, `cd` into it and run:
 
 # Docs
 
-* [networker list](networker_list.md)	 - List information on connected network devices.
-* [networker request](networker_request.md)	 - Send an HTTP request.
-* [networker scan](networker_scan.md)	 - Scan hosts for open ports.
-* [networker lookup](networker_lookup.md)	 - Lookup hostnames, IPs, ISPs, nameservers, and networks.
-  * [networker lookup hostname](networker_lookup_hostname.md)	 - Lookup the hostname for a provided ip address.
-  * [networker lookup ip](networker_lookup_ip.md)	 - Lookup the ip address of the provided hostname.
-  * [networker lookup isp](networker_lookup_isp.md)	 - Lookup the internet service provider of a remote host.
-  * [networker lookup nameservers](networker_lookup_nameservers.md)	 - Lookup nameservers for the provided hostname.
-  * [networker lookup network](networker_lookup_network.md)	 - Lookup the network address of a provided host.
+* [networker list](docs/networker_list.md)	 - List information on connected network devices.
+* [networker request](docs/networker_request.md)	 - Send an HTTP request.
+* [networker scan](docs/networker_scan.md)	 - Scan hosts for open ports.
+* [networker lookup](docs/networker_lookup.md)	 - Lookup hostnames, IPs, ISPs, nameservers, and networks.
+  * [networker lookup hostname](docs/networker_lookup_hostname.md)	 - Lookup the hostname for a provided ip address.
+  * [networker lookup ip](docs/networker_lookup_ip.md)	 - Lookup the ip address of the provided hostname.
+  * [networker lookup isp](docs/networker_lookup_isp.md)	 - Lookup the internet service provider of a remote host.
+  * [networker lookup nameservers](docs/networker_lookup_nameservers.md)	 - Lookup nameservers for the provided hostname.
+  * [networker lookup network](docs/networker_lookup_network.md)	 - Lookup the network address of a provided host.

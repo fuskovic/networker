@@ -24,15 +24,15 @@ var (
 )
 
 func init() {
-	RequestCmd.Flags().StringSliceVarP(&headers, "headers", "H", headers, "Request headers.(format: key:value,key:value,key:value)")
-	RequestCmd.Flags().StringVarP(&method, "method", "m", "GET", "Request method.")
-	RequestCmd.Flags().StringVarP(&body, "body", "b", body, "Request body. (you can use a JSON string literal or a path to a json file)")
-	RequestCmd.Flags().StringVarP(&filePaths, "files", "f", filePaths, "Files to upload. (format: formname=path/to/file1,path/to/file2,path/to/file3)")
-	RequestCmd.Flags().BoolVarP(&jsonOnly, "json-only", "j", jsonOnly, "Only output json response body.")
-	Root.AddCommand(RequestCmd)
+	requestCmd.Flags().StringSliceVarP(&headers, "headers", "H", headers, "Request headers.(format: key:value,key:value,key:value)")
+	requestCmd.Flags().StringVarP(&method, "method", "m", "GET", "Request method.")
+	requestCmd.Flags().StringVarP(&body, "body", "b", body, "Request body. (you can use a JSON string literal or a path to a json file)")
+	requestCmd.Flags().StringVarP(&filePaths, "files", "f", filePaths, "Files to upload. (format: formname=path/to/file1,path/to/file2,path/to/file3)")
+	requestCmd.Flags().BoolVarP(&jsonOnly, "json-only", "j", jsonOnly, "Only output json response body.")
+	Root.AddCommand(requestCmd)
 }
 
-var RequestCmd = &cobra.Command{
+var requestCmd = &cobra.Command{
 	Use:     "request",
 	Aliases: []string{"r", "req"},
 	Short:   "Send an HTTP request.",

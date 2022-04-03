@@ -19,12 +19,12 @@ import (
 var shouldScanAll, shouldOutputAsJSON bool
 
 func init() {
-	ScanCmd.Flags().BoolVar(&shouldScanAll, "all-ports", false, "Scan all ports(scans first 1024 if not enabled).")
-	ScanCmd.Flags().BoolVar(&shouldOutputAsJSON, "json", false, "Output as json.")
-	Root.AddCommand(ScanCmd)
+	scanCmd.Flags().BoolVar(&shouldScanAll, "all-ports", false, "Scan all ports(scans first 1024 if not enabled).")
+	scanCmd.Flags().BoolVar(&shouldOutputAsJSON, "json", false, "Output as json.")
+	Root.AddCommand(scanCmd)
 }
 
-var ScanCmd = &cobra.Command{
+var scanCmd = &cobra.Command{
 	Use:     "scan",
 	Aliases: []string{"s"},
 	Short:   "Scan hosts for open ports.",

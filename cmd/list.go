@@ -14,11 +14,11 @@ import (
 
 
 func init() {
-	ListCmd.Flags().BoolVar(&shouldOutputAsJSON, "json", false, "Output as JSON.")
-	Root.AddCommand(ListCmd)
+	listCmd.Flags().BoolVar(&shouldOutputAsJSON, "json", false, "Output as JSON.")
+	Root.AddCommand(listCmd)
 }
 
-var ListCmd = &cobra.Command{
+var listCmd = &cobra.Command{
 	Use:     "list",
 	Aliases: []string{"ls"},
 	Short:   "List information on connected network devices.",
