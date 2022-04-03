@@ -23,10 +23,10 @@ const (
 type Kind string
 
 type Device struct {
-	Kind     Kind   `json:"kind" table:"Kind"`
-	Hostname string `json:"hostname" table:"Hostname"`
-	LocalIP  net.IP `json:"local_ip" table:"LocalIP"`
-	RemoteIP net.IP `json:"remote_ip,omitempty" table:"RemoteIP"`
+	Kind     Kind   `json:"kind" table:"KIND"`
+	Hostname string `json:"hostname" table:"HOSTNAME"`
+	LocalIP  net.IP `json:"local_ip" table:"LOCAL_IP"`
+	RemoteIP net.IP `json:"remote_ip,omitempty" table:"REMOTE_IP"`
 }
 
 // Devices lists all of the devices on the local network.

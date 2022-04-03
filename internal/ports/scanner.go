@@ -18,8 +18,8 @@ var (
 
 type Scan struct {
 	IP    string `json:"ip" table:"IP"`
-	Host  string `json:"hostname" table:"Hostname"`
-	Ports []int  `json:"open_ports" table:"OpenPorts"`
+	Host  string `json:"hostname" table:"HOSTNAME"`
+	Ports []int  `json:"open_ports" table:"OPEN_PORTS"`
 }
 
 type Scanner interface {

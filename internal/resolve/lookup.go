@@ -13,13 +13,13 @@ type Func func(string) error
 
 // InternetServiceProvider describes an internet service provider.
 type InternetServiceProvider struct {
-	Name                    string     `json:"name" table:"Name"`
+	Name                    string     `json:"name" table:"NAME"`
 	IP                      *net.IP    `json:"ip_address" table:"IP"`
-	Country                 string     `json:"country" table:"Country"`
-	Registry                string     `json:"registry" table:"Registry"`
-	IpRange                 *net.IPNet `json:"ip_range" table:"IP-Range"`
+	Country                 string     `json:"country" table:"COUNTRY"`
+	Registry                string     `json:"registry" table:"REGISTRY"`
+	IpRange                 *net.IPNet `json:"ip_range" table:"IP_RANGE"`
 	AutonomousServiceNumber string     `json:"autonomous_service_number" table:"ASN"`
-	AllocatedAt             *time.Time `json:"allocated_at" table:"AllocatedAt"`
+	AllocatedAt             *time.Time `json:"allocated_at" table:"ALLOCATED_AT"`
 }
 
 // NameServer is used in place of the standard library object to support table writes.
