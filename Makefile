@@ -3,11 +3,11 @@ clean:
 	@./scripts/clean.sh
 
 .PHONY:build
-build: clean
+build: clean version
 	@./scripts/build.sh
 
 .PHONY:install
-install:
+install: version
 	@./scripts/install.sh
 
 .PHONY: test
@@ -33,3 +33,7 @@ commit: fmt
 .PHONY: docs
 docs:
 	@go run ./scripts/doc_gen.go
+
+.PHONY: version
+version:
+	@./scripts/get_version.sh
