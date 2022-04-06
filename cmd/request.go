@@ -65,10 +65,6 @@ var requestCmd = &cobra.Command{
 `,
 	Args: cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
-		if len(args) == 0 {
-			usage.Fatal(cmd, "url not provided")
-		}
-
 		req, err := request.NewNetworkerCraftedHTTPRequest(
 			&request.Config{
 				Headers:   headers,
