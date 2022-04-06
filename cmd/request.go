@@ -6,7 +6,6 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
-	"os"
 	"time"
 
 	"github.com/spf13/cobra"
@@ -27,7 +26,7 @@ func init() {
 	requestCmd.Flags().StringSliceVarP(&headers, "headers", "H", headers, "Request headers.(format: key:value,key:value,key:value)")
 	requestCmd.Flags().StringVarP(&method, "method", "m", "GET", "Request method.")
 	requestCmd.Flags().StringVarP(&body, "body", "b", body, "Request body. (you can use a JSON string literal or a path to a json file)")
-	requestCmd.Flags().StringVarP(&filePaths, "files", "f", filePaths, "Files to upload. (format: formname=path/to/file1,path/to/file2,path/to/file3)")
+	requestCmd.Flags().StringVarP(&filePaths, "files", "f", filePaths, "Upload form file(s). (format: formname=path/to/file1,path/to/file2,path/to/file3)")
 	requestCmd.Flags().BoolVarP(&jsonOnly, "json-only", "j", jsonOnly, "Only output json response body.")
 	Root.AddCommand(requestCmd)
 }
@@ -41,31 +40,39 @@ var requestCmd = &cobra.Command{
 		networker request \
 			-H "Authorization: Bearer doesntmatter" \
 			-m post \
-			-b '{"field": "doesntmatter"}'
+			-b '{"field": "doesntmatter"}' \
+			https://some-url.com/api/v1/some/endpoint
 
 	POST request using json body sourced from file:
 		networker request \
 			-H "Authorization: Bearer doesntmatter" \
-			-m post -b /path/to/file.json
+			-m post -b /path/to/file.json \
+			https://some-url.com/api/v1/some/endpoint
 
 	PUT request for file upload:
 		networker request \
 			-H "Authorization: Bearer doesntmatter" \
 			-m put \
-			-f=/path/to/file1.jpeg
+			-f formname=/path/to/file1.jpeg \
+			https://some-url.com/api/v1/some/endpoint
 
 	PUT request for uploading multiple files:
 		networker request \
 			-H "Authorization: Bearer doesntmatter" \
 			-m put \
-			-f=/path/to/file1.jpeg,/path/to/file2.jpeg,/path/to/file3.jpeg
+			-f formname=/path/to/file1.jpeg,/path/to/file2.jpeg,/path/to/file3.jpeg \
+			https://some-url.com/api/v1/some/endpoint
 `,
 	Args: cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
+		if len(args) == 0 {
+			usage.Fatal(cmd, "url not provided")
+		}
+
 		req, err := request.NewNetworkerCraftedHTTPRequest(
 			&request.Config{
 				Headers:   headers,
-				URL:       os.Args[len(os.Args)-1],
+				URL:       args[0],
 				Method:    method,
 				Body:      body,
 				FilePaths: filePaths,

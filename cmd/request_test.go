@@ -15,9 +15,8 @@ func TestRequestCommand(t *testing.T) {
 	t.Run("ShouldFail", func(t *testing.T) {
 		test.WithNetworker(t, "url is not provided", func(t *testing.T) {
 			cmd := exec.Command("networker", "request")
-			output, err := cmd.CombinedOutput()
-			require.Error(t, err)
-			require.Contains(t, string(output), "url not provided")
+			output, _ := cmd.CombinedOutput()
+			require.Contains(t, string(output), `accepts 1 arg(s), received 0`)
 		})
 		test.WithNetworker(t, "protocol is not included in url", func(t *testing.T) {
 			cmd := exec.Command("networker", "request", "google.com")
@@ -101,12 +100,13 @@ func TestRequestCommand(t *testing.T) {
 				output, err = cmd.CombinedOutput()
 				require.NoError(t, err)
 				require.Contains(t, string(output), "status: 200")
+				projectRoot := test.ProjectRoot(t)
 
 				// create another but this time using a json file
 				cmd = exec.Command("networker", "request",
 					"-H", "Authorization: Bearer doesntmatter",
 					"-m", "post",
-					"-b", "../../internal/test/body.json",
+					"-b", path.Join(projectRoot ,"internal/test/body.json"),
 					"--json-only",
 					testserverURL,
 				)
