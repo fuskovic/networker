@@ -6,8 +6,8 @@ import (
 	"net"
 	"os"
 
-	"cdr.dev/coder-cli/pkg/tablewriter"
 	"github.com/fuskovic/networker/internal/resolve"
+	"github.com/fuskovic/networker/internal/table"
 	"github.com/fuskovic/networker/internal/usage"
 	"github.com/spf13/cobra"
 )
@@ -67,7 +67,11 @@ var lookupHostnameCmd = &cobra.Command{
 		if err != nil {
 			usage.Fatalf(cmd, "lookup failed: %s", err)
 		}
-		log.Printf("lookup successful - hostname: %s", hostname)
+
+		tw := table.NewWriter(os.Stdout, []resolve.Record{*hostname})
+		if _, err := tw.Write(nil); err != nil {
+			usage.Fatalf(cmd, "failed to write hostname table: %s", err)
+		}
 	},
 }
 
@@ -85,7 +89,11 @@ var lookupIpaddressCmd = &cobra.Command{
 		if err != nil {
 			usage.Fatalf(cmd, "lookup failed: %s", err)
 		}
-		log.Printf("lookup successful - ip-address: %s", ipAddr)
+
+		tw := table.NewWriter(os.Stdout, []resolve.Record{*ipAddr})
+		if _, err := tw.Write(nil); err != nil {
+			usage.Fatalf(cmd, "failed to write hostname table: %s", err)
+		}
 	},
 }
 
@@ -117,14 +125,9 @@ var lookupIspCmd = &cobra.Command{
 			return
 		}
 
-		err = tablewriter.WriteTable(os.Stdout, 1,
-			func(_ int) interface{} {
-				return *isp
-			},
-		)
-
-		if err != nil {
-			usage.Fatalf(cmd, "failed to write service provider table for %q: %s", ip, err)
+		tw := table.NewWriter(os.Stdout, []resolve.InternetServiceProvider{*isp})
+		if _, err := tw.Write(nil); err != nil {
+			usage.Fatalf(cmd, "failed to write service provider table: %s", err)
 		}
 	},
 }
@@ -154,14 +157,9 @@ var lookupNameserversCmd = &cobra.Command{
 			return
 		}
 
-		err = tablewriter.WriteTable(os.Stdout, len(nameservers),
-			func(i int) interface{} {
-				return nameservers[i]
-			},
-		)
-
-		if err != nil {
-			usage.Fatalf(cmd, "failed to write nameservers table: %s", err)
+		tw := table.NewWriter(os.Stdout, nameservers)
+		if _, err := tw.Write(nil); err != nil {
+			usage.Fatalf(cmd, "failed to write service provider table: %s", err)
 		}
 	},
 }

@@ -9,6 +9,13 @@ import (
 	"github.com/ammario/ipisp"
 )
 
+// Record can be used as a common type between lookup commands
+// that supports json and table output.
+type Record struct {
+	Hostname string `json:"hostname" table:"HOSTNAME"`
+	IP       net.IP `json:"ip" table:"IP_ADDRESS"`
+}
+
 type Func func(string) error
 
 // InternetServiceProvider describes an internet service provider.
@@ -29,12 +36,15 @@ type NameServer struct {
 }
 
 // HostNameByIP returns the hostname for the provided ip address.
-func HostNameByIP(ip net.IP) (string, error) {
+func HostNameByIP(ip net.IP) (*Record, error) {
 	hostnames, err := HostNamesByIP(ip)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
-	return hostnames[0], nil
+	return &Record{
+		IP:       ip,
+		Hostname: hostnames[0],
+	}, nil
 }
 
 // HostNamesByIP returns all hostnames found for the provided ip address.
@@ -50,19 +60,28 @@ func HostNamesByIP(ip net.IP) ([]string, error) {
 }
 
 // AddrByHostName resolves the ip address of the provided hostname.
-func AddrByHostName(hostname string) (*net.IP, error) {
+func AddrByHostName(hostname string) (*Record, error) {
 	ipAddrs, err := AddrsByHostName(hostname)
 	if err != nil {
 		return nil, err
 	}
+
 	if len(ipAddrs) == 0 {
 		return nil, fmt.Errorf("no addresses found for hostname %q", hostname)
 	}
+
 	ipv4 := ipAddrs[0].To4()
 	if ipv4 == nil {
-		return ipAddrs[0], nil
+		return &Record{
+			Hostname: hostname,
+			IP:       *ipAddrs[0],
+		}, nil
 	}
-	return &ipv4, err
+
+	return &Record{
+		Hostname: hostname,
+		IP:       ipv4,
+	}, err
 }
 
 // AddrsByHostName returns all ip addresses found for the provided hostname.
@@ -99,13 +118,13 @@ func NameServersByHostName(hostname string) ([]NameServer, error) {
 	}
 	var nameServers []NameServer
 	for _, ns := range internalNameServers {
-		ip, err := AddrByHostName(ns.Host)
+		record, err := AddrByHostName(ns.Host)
 		if err != nil {
 			return nil, fmt.Errorf("failed to get ip by hostname %q: %w", ns.Host, err)
 		}
 		nameServers = append(nameServers,
 			NameServer{
-				IP:   ip.To4(),
+				IP:   record.IP.To4(),
 				Host: ns.Host,
 			},
 		)
@@ -117,11 +136,11 @@ func NameServersByHostName(hostname string) ([]NameServer, error) {
 func NetworkByHost(host string) (*net.IP, error) {
 	ipAddr := net.ParseIP(host)
 	if ipAddr == nil {
-		addr, err := AddrByHostName(host)
+		record, err := AddrByHostName(host)
 		if err != nil {
 			return nil, fmt.Errorf("%q is an invalild host: %v", host, err)
 		}
-		ipAddr = *addr
+		ipAddr = record.IP
 	}
 
 	network := ipAddr.Mask(ipAddr.DefaultMask())
@@ -139,17 +158,17 @@ func HostAndAddr(host string) (string, *net.IP, error) {
 	ip := net.ParseIP(host)
 	if ip == nil {
 		hostname = host
-		addr, err := AddrByHostName(hostname)
+		record, err := AddrByHostName(hostname)
 		if err != nil {
 			return "", nil, fmt.Errorf("failed to get ip address by hostname %q: %w", hostname, err)
 		}
-		ip = *addr
+		ip = record.IP
 	} else {
-		host, err := HostNameByIP(ip)
+		record, err := HostNameByIP(ip)
 		if err != nil {
 			return "", nil, fmt.Errorf("failed to get hostname by ip address %q: %w", ip, err)
 		}
-		hostname = host
+		hostname = record.Hostname
 	}
 	return hostname, &ip, nil
 }

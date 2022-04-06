@@ -82,13 +82,14 @@ func getDevice(_ context.Context, ip string) (*Device, error) {
 		return nil, fmt.Errorf("failed to parse ip %q", ip)
 	}
 
-	hostname, err := resolve.HostNameByIP(ipAddr)
+	record, err := resolve.HostNameByIP(ipAddr)
 	if err != nil {
 		return nil, fmt.Errorf("failed to lookup hostname by ip address %q: %w", ip, err)
 	}
+	
 	return &Device{
 		LocalIP:  ipAddr,
-		Hostname: hostname,
+		Hostname: record.Hostname,
 		Kind:     DeviceKindPeer,
 	}, nil
 }
@@ -104,14 +105,15 @@ func getCurrentDevice(_ context.Context) (*Device, error) {
 		return nil, fmt.Errorf("failed to get remote ip of current device: %w", err)
 	}
 
-	hostname, err := resolve.HostNameByIP(localIP)
+	record, err := resolve.HostNameByIP(localIP)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get host: %w", err)
 	}
+
 	return &Device{
 		LocalIP:  localIP,
 		RemoteIP: remoteIP,
-		Hostname: hostname,
+		Hostname: record.Hostname,
 		Kind:     DeviceKindCurrent,
 	}, nil
 }
@@ -121,12 +123,14 @@ func getRouter(_ context.Context) (*Device, error) {
 	if err != nil {
 		return nil, fmt.Errorf("failed to discover gateway: %w", err)
 	}
-	hostname, err := resolve.HostNameByIP(ipAddr)
+
+	record, err := resolve.HostNameByIP(ipAddr)
 	if err != nil {
 		return nil, fmt.Errorf("failed to resolve hostname by ip for gateway: %w", err)
 	}
+
 	return &Device{
-		Hostname: hostname,
+		Hostname: record.Hostname,
 		LocalIP:  ipAddr,
 		Kind:     DeviceKindRouter,
 	}, nil

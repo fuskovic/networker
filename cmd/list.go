@@ -47,8 +47,8 @@ var listCmd = &cobra.Command{
 			return
 		}
 
-		tableWriter := table.NewWriter(os.Stdout, devices)
-		if _, err := tableWriter.Write(nil); err != nil {
+		tw := table.NewWriter(os.Stdout, devices)
+		if _, err := tw.Write(nil); err != nil {
 			usage.Fatalf(cmd, "failed to write devices table: %s", err)
 		}
 	},

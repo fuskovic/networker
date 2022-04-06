@@ -60,13 +60,13 @@ func TestLookupCommand(t *testing.T) {
 			cmd := exec.Command("networker", "lookup", "hostname", "8.8.8.8")
 			output, err := cmd.CombinedOutput()
 			require.NoError(t, err)
-			require.Contains(t, string(output), "lookup successful")
+			require.Contains(t, string(output), "dns.google.")
 		})
 		test.WithNetworker(t, "lookup ip", func(t *testing.T) {
 			cmd := exec.Command("networker", "lookup", "ip", "dns.google.")
 			output, err := cmd.CombinedOutput()
 			require.NoError(t, err)
-			require.Contains(t, string(output), "lookup successful")
+			require.Contains(t, string(output), "8.8.8.8")
 		})
 		test.WithNetworker(t, "lookup isp with hostname", func(t *testing.T) {
 			cmd := exec.Command("networker", "lookup", "isp", "dns.google.")

@@ -56,11 +56,11 @@ var scanCmd = &cobra.Command{
 		} else {
 			ip := net.ParseIP(args[0])
 			if ip == nil {
-				addr, err := resolve.AddrByHostName(args[0])
+				record, err := resolve.AddrByHostName(args[0])
 				if err != nil {
 					usage.Fatalf(cmd, "failed to resolve ip address from hostname: %s", err)
 				}
-				ip = *addr
+				ip = record.IP
 			}
 			hosts = append(hosts, ip.String())
 		}

@@ -15,9 +15,9 @@ func TestLookup(t *testing.T) {
 		t.Parallel()
 		t.Run("hostname by ip", func(t *testing.T) {
 			t.Parallel()
-			hostname, err := HostNameByIP(googleDNS)
+			record, err := HostNameByIP(googleDNS)
 			require.NoError(t, err)
-			require.Equal(t, "dns.google.", hostname)
+			require.Equal(t, "dns.google.", record.Hostname)
 		})
 		t.Run("hostnames by ip", func(t *testing.T) {
 			t.Parallel()
@@ -45,7 +45,7 @@ func TestLookup(t *testing.T) {
 			host, got, err := HostAndAddr("dns.google.")
 			require.NoError(t, err)
 			require.Equal(t, "dns.google.", host)
-			require.Equal(t, expected.String(), got.String())
+			require.Equal(t, expected.IP.String(), got.String())
 		})
 		t.Run("hostname and ip address using ip", func(t *testing.T) {
 			t.Parallel()
@@ -54,7 +54,7 @@ func TestLookup(t *testing.T) {
 			host, got, err := HostAndAddr(googleDNS.String())
 			require.NoError(t, err)
 			require.Equal(t, host, "dns.google.")
-			require.Equal(t, expected.String(), got.String())
+			require.Equal(t, expected.IP.String(), got.String())
 		})
 		t.Run("internet service provider", func(t *testing.T) {
 			t.Parallel()
