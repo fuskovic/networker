@@ -19,7 +19,6 @@ var shouldScanAll, shouldOutputAsJSON bool
 func init() {
 	scanCmd.Flags().BoolVar(&shouldScanAll, "all-ports", false, "Scan all ports(scans first 1024 if not enabled).")
 	scanCmd.Flags().BoolVar(&shouldOutputAsJSON, "json", false, "Output as json.")
-	scanCmd.Flags().StringVar(&host, "host", "", "Host to scan.")
 	Root.AddCommand(scanCmd)
 }
 
@@ -29,16 +28,16 @@ var scanCmd = &cobra.Command{
 	Short:   "Scan hosts for open ports.",
 	Example: `
 	Scan well-known ports of single device on network:
-		networker scan --host 127.0.0.1
+		networker scan 127.0.0.1
 
 	Scan well-known ports of all devices on network:
 		networker scan
 
 	Scan all ports of single device on network:
-		networker scan --host 127.0.0.1 --all-ports
+		networker scan 127.0.0.1 --all-ports
 
 	Output a scan as json:
-		networker scan --host 127.0.0.1 --json
+		networker scan 127.0.0.1 --json
 `,
 	Args: cobra.MaximumNArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
@@ -46,7 +45,7 @@ var scanCmd = &cobra.Command{
 		defer cancel()
 
 		var hosts []string
-		if host == "" {
+		if len(args) == 0 {
 			devices, err := list.Devices(ctx)
 			if err != nil {
 				usage.Fatalf(cmd, "failed to list network devices: %s", err)
@@ -55,9 +54,9 @@ var scanCmd = &cobra.Command{
 				hosts = append(hosts, devices[i].LocalIP.String())
 			}
 		} else {
-			ip := net.ParseIP(host)
+			ip := net.ParseIP(args[0])
 			if ip == nil {
-				addr, err := resolve.AddrByHostName(host)
+				addr, err := resolve.AddrByHostName(args[0])
 				if err != nil {
 					usage.Fatalf(cmd, "failed to resolve ip address from hostname: %s", err)
 				}
@@ -80,7 +79,13 @@ var scanCmd = &cobra.Command{
 			return
 		}
 
-		if err := tablewriter.WriteTable(os.Stdout, len(scans), func(i int) interface{} { return scans[i] }); err != nil {
+		err = tablewriter.WriteTable(os.Stdout, len(scans),
+			func(i int) interface{} {
+				return scans[i]
+			},
+		)
+
+		if err != nil {
 			usage.Fatalf(cmd, "failed to write scans table: %s", err)
 		}
 	},
