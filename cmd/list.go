@@ -5,10 +5,10 @@ import (
 	"encoding/json"
 	"os"
 
-	"cdr.dev/coder-cli/pkg/tablewriter"
 	"github.com/spf13/cobra"
 
 	"github.com/fuskovic/networker/internal/list"
+	"github.com/fuskovic/networker/internal/table"
 	"github.com/fuskovic/networker/internal/usage"
 )
 
@@ -47,13 +47,8 @@ var listCmd = &cobra.Command{
 			return
 		}
 
-		err = tablewriter.WriteTable(os.Stdout, len(devices),
-			func(i int) interface{} {
-				return devices[i]
-			},
-		)
-
-		if err != nil {
+		tableWriter := table.NewWriter(os.Stdout, devices)
+		if _, err := tableWriter.Write(nil); err != nil {
 			usage.Fatalf(cmd, "failed to write devices table: %s", err)
 		}
 	},

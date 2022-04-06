@@ -6,10 +6,10 @@ import (
 	"net"
 	"os"
 
-	"cdr.dev/coder-cli/pkg/tablewriter"
 	"github.com/fuskovic/networker/internal/list"
 	"github.com/fuskovic/networker/internal/ports"
 	"github.com/fuskovic/networker/internal/resolve"
+	"github.com/fuskovic/networker/internal/table"
 	"github.com/fuskovic/networker/internal/usage"
 	"github.com/spf13/cobra"
 )
@@ -79,13 +79,8 @@ var scanCmd = &cobra.Command{
 			return
 		}
 
-		err = tablewriter.WriteTable(os.Stdout, len(scans),
-			func(i int) interface{} {
-				return scans[i]
-			},
-		)
-
-		if err != nil {
+		tableWriter := table.NewWriter(os.Stdout, scans)
+		if _, err := tableWriter.Write(nil); err != nil {
 			usage.Fatalf(cmd, "failed to write scans table: %s", err)
 		}
 	},
