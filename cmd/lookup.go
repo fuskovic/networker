@@ -37,15 +37,15 @@ var lookupCmd = &cobra.Command{
 		networker lookup hostname 8.8.8.8
 
 	Lookup nameservers by hostname:
-		networker lookup nameservers --hostname dns.google.
+		networker lookup nameservers dns.google.
 
 	Lookup ISP by ip or hostname:
 		networker lookup isp 8.8.8.8
 		networker lookup isp dns.google.
 
 	Lookup network by ip or hostname:
-		networker lookup network --host 8.8.8.8
-		networker lookup network --host dns.google.
+		networker lookup network 8.8.8.8
+		networker lookup network dns.google.
 `,
 	Short: "Lookup hostnames, IPs, ISPs, nameservers, and networks.",
 	Run: func(cmd *cobra.Command, args []string) {
