@@ -42,7 +42,6 @@ var listCmd = &cobra.Command{
 		if shouldOutputAsJSON {
 			enc := json.NewEncoder(os.Stdout)
 			enc.SetIndent("", "\t")
-			enc.SetEscapeHTML(false)
 			if err := enc.Encode(devices); err != nil {
 				usage.Fatalf(cmd, "failed to encode devices as json: %s", err)
 			}

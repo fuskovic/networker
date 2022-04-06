@@ -74,7 +74,6 @@ var scanCmd = &cobra.Command{
 		if shouldOutputAsJSON {
 			enc := json.NewEncoder(os.Stdout)
 			enc.SetIndent("", "\t")
-			enc.SetEscapeHTML(false)
 			if err := enc.Encode(scans); err != nil {
 				usage.Fatalf(cmd, "failed to encode scan as json: %s", err)
 			}

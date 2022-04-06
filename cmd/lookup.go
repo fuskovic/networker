@@ -125,7 +125,6 @@ var lookupIspCmd = &cobra.Command{
 		if shouldOutputAsJSON {
 			enc := json.NewEncoder(os.Stdout)
 			enc.SetIndent("", "\t")
-			enc.SetEscapeHTML(false)
 			if err := enc.Encode(isp); err != nil {
 				usage.Fatalf(cmd, "failed to encode internet service provider as json: %s", err)
 			}
@@ -162,7 +161,6 @@ var lookupNameserversCmd = &cobra.Command{
 		if shouldOutputAsJSON {
 			enc := json.NewEncoder(os.Stdout)
 			enc.SetIndent("", "\t")
-			enc.SetEscapeHTML(false)
 			if err := enc.Encode(nameservers); err != nil {
 				usage.Fatalf(cmd, "failed to encode nameservers as json: %s", err)
 			}
