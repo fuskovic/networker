@@ -106,7 +106,7 @@ func TestRequestCommand(t *testing.T) {
 				cmd = exec.Command("networker", "request",
 					"-H", "Authorization: Bearer doesntmatter",
 					"-m", "post",
-					"-b", path.Join(projectRoot ,"internal/test/body.json"),
+					"-b", path.Join(projectRoot, "internal/test/body.json"),
 					"--json-only",
 					testserverURL,
 				)

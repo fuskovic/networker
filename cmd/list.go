@@ -12,7 +12,6 @@ import (
 	"github.com/fuskovic/networker/internal/usage"
 )
 
-
 func init() {
 	listCmd.Flags().BoolVar(&shouldOutputAsJSON, "json", false, "Output as JSON.")
 	Root.AddCommand(listCmd)

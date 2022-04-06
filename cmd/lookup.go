@@ -12,35 +12,16 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var (
-	ip                 string
-	hostname           string
-	host               string
-)
-
 func init() {
-	lookupHostnameCmd.Flags().StringVar(&ip, "ip", "", "IP address.")
-	_ = lookupHostnameCmd.MarkFlagRequired("ip")
-	lookupCmd.AddCommand(lookupHostnameCmd)
-
-	lookupIpaddressCmd.Flags().StringVar(&hostname, "hostname", "", "Hostname.")
-	_ = lookupIpaddressCmd.MarkFlagRequired("hostname")
-	lookupCmd.AddCommand(lookupIpaddressCmd)
-
-	lookupIspCmd.Flags().StringVar(&host, "host", "", "IP address or hostname to get the network address for.")
 	lookupIspCmd.Flags().BoolVar(&shouldOutputAsJSON, "json", false, "Output as JSON.")
-	_ = lookupIspCmd.MarkFlagRequired("host")
 	lookupCmd.AddCommand(lookupIspCmd)
 
-	lookupNameserversCmd.Flags().StringVar(&hostname, "hostname", "", "Hostname.")
 	lookupNameserversCmd.Flags().BoolVar(&shouldOutputAsJSON, "json", false, "Output as JSON.")
-	_ = lookupNameserversCmd.MarkFlagRequired("hostname")
 	lookupCmd.AddCommand(lookupNameserversCmd)
 
-	lookupNetworkCmd.Flags().StringVar(&host, "host", "", "IP address or hostname to get the network address for.")
-	_ = lookupNetworkCmd.MarkFlagRequired("host")
+	lookupCmd.AddCommand(lookupHostnameCmd)
+	lookupCmd.AddCommand(lookupIpaddressCmd)
 	lookupCmd.AddCommand(lookupNetworkCmd)
-
 	Root.AddCommand(lookupCmd)
 }
 
@@ -50,17 +31,17 @@ var lookupCmd = &cobra.Command{
 	SuggestFor: []string{},
 	Example: `
 	Lookup IP by hostname:
-		networker lookup ip --hostname dns.google.
+		networker lookup ip dns.google.
 
 	Lookup hostname by IP:
-		networker lookup hostname --ip 8.8.8.8
+		networker lookup hostname 8.8.8.8
 
 	Lookup nameservers by hostname:
 		networker lookup nameservers --hostname dns.google.
 
 	Lookup ISP by ip or hostname:
-		networker lookup isp --host 8.8.8.8
-		networker lookup network --host dns.google.
+		networker lookup isp 8.8.8.8
+		networker lookup isp dns.google.
 
 	Lookup network by ip or hostname:
 		networker lookup network --host 8.8.8.8
@@ -77,9 +58,9 @@ var lookupHostnameCmd = &cobra.Command{
 	Short: "Lookup the hostname for a provided ip address.",
 	Args:  cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
-		ipAddr := net.ParseIP(ip)
+		ipAddr := net.ParseIP(args[0])
 		if ipAddr == nil {
-			usage.Fatalf(cmd, "%q is not a valid ip address", ip)
+			usage.Fatalf(cmd, "%q is not a valid ip address", args[0])
 		}
 
 		hostname, err := resolve.HostNameByIP(ipAddr)
@@ -93,9 +74,14 @@ var lookupHostnameCmd = &cobra.Command{
 var lookupIpaddressCmd = &cobra.Command{
 	Use:   "ip",
 	Short: "Lookup the ip address of the provided hostname.",
-	Args:  cobra.NoArgs,
+	Args:  cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
-		ipAddr, err := resolve.AddrByHostName(hostname)
+		if ip := net.ParseIP(args[0]); ip != nil {
+			usage.Fatal(cmd, "expected a hostname not an ip address")
+			return
+		}
+
+		ipAddr, err := resolve.AddrByHostName(args[0])
 		if err != nil {
 			usage.Fatalf(cmd, "lookup failed: %s", err)
 		}
@@ -106,11 +92,11 @@ var lookupIpaddressCmd = &cobra.Command{
 var lookupIspCmd = &cobra.Command{
 	Use:   "isp",
 	Short: "Lookup the internet service provider of a remote host.",
-	Args:  cobra.NoArgs,
+	Args:  cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
-		_, ip, err := resolve.HostAndAddr(host)
+		_, ip, err := resolve.HostAndAddr(args[0])
 		if err != nil {
-			usage.Fatalf(cmd, "%q is an invalid host: %s", host, err)
+			usage.Fatalf(cmd, "%q is an invalid host: %s", args[0], err)
 		}
 
 		if resolve.IsPrivate(ip) {
@@ -119,7 +105,7 @@ var lookupIspCmd = &cobra.Command{
 
 		isp, err := resolve.ServiceProvider(ip)
 		if err != nil {
-			usage.Fatalf(cmd, "failed to resolve internet service provider for %q: %s", host, err)
+			usage.Fatalf(cmd, "failed to resolve internet service provider for %q: %s", ip, err)
 		}
 
 		if shouldOutputAsJSON {
@@ -138,7 +124,7 @@ var lookupIspCmd = &cobra.Command{
 		)
 
 		if err != nil {
-			usage.Fatalf(cmd, "failed to write service provider table for %q: %s", host, err)
+			usage.Fatalf(cmd, "failed to write service provider table for %q: %s", ip, err)
 		}
 	},
 }
@@ -147,10 +133,11 @@ var lookupNameserversCmd = &cobra.Command{
 	Use:     "nameservers",
 	Aliases: []string{"ns"},
 	Short:   "Lookup nameservers for the provided hostname.",
-	Args:    cobra.NoArgs,
+	Args:    cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
-		if ip := net.ParseIP(hostname); ip != nil {
-			usage.Fatalf(cmd, "can only lookup nameservers by hostname; not ip.")
+		hostname, _, err := resolve.HostAndAddr(args[0])
+		if err != nil {
+			usage.Fatalf(cmd, "%q is an invalid host: %s", args[0], err)
 		}
 
 		nameservers, err := resolve.NameServersByHostName(hostname)
@@ -182,9 +169,9 @@ var lookupNameserversCmd = &cobra.Command{
 var lookupNetworkCmd = &cobra.Command{
 	Use:   "network",
 	Short: "Lookup the network address of a provided host.",
-	Args:  cobra.NoArgs,
+	Args:  cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
-		network, err := resolve.NetworkByHost(host)
+		network, err := resolve.NetworkByHost(args[0])
 		if err != nil {
 			usage.Fatalf(cmd, "lookup failed: %s", err)
 		}
