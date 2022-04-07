@@ -1,7 +1,7 @@
 on:
-  pull_request:
-    types: [ opened, synchronize, edited, review_requested, ready_for_review, closed ]
-    branches: [ master ]
+  push:
+    tags:
+      - "*"
 
 jobs:
   build:
@@ -24,6 +24,6 @@ jobs:
         uses: goreleaser/goreleaser-action@master
         with:
           version: latest
-          args: release --rm-dist -p 4
+          args: release --rm-dist -p 2
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
