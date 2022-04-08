@@ -13,7 +13,6 @@ import (
 )
 
 func init() {
-	listCmd.Flags().BoolVar(&shouldOutputAsJSON, "json", false, "Output as JSON.")
 	Root.AddCommand(listCmd)
 }
 
@@ -26,7 +25,7 @@ var listCmd = &cobra.Command{
 		networker ls
 
 	Output as JSON:
-		networker ls --json
+		networker ls -o json
 `,
 	Args: cobra.NoArgs,
 	Run: func(cmd *cobra.Command, args []string) {
@@ -38,7 +37,7 @@ var listCmd = &cobra.Command{
 			usage.Fatalf(cmd, "failed to list devices: %s", err)
 		}
 
-		if shouldOutputAsJSON {
+		if output == "json" {
 			enc := json.NewEncoder(os.Stdout)
 			enc.SetIndent("", "\t")
 			if err := enc.Encode(devices); err != nil {

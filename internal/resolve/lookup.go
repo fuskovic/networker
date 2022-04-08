@@ -133,7 +133,7 @@ func NameServersByHostName(hostname string) ([]NameServer, error) {
 }
 
 // NetworkByHost returns the network address for the provided hostname.
-func NetworkByHost(host string) (*net.IP, error) {
+func NetworkByHost(host string) (*Record, error) {
 	ipAddr := net.ParseIP(host)
 	if ipAddr == nil {
 		record, err := AddrByHostName(host)
@@ -147,7 +147,10 @@ func NetworkByHost(host string) (*net.IP, error) {
 	if network == nil {
 		return nil, fmt.Errorf("failed to get network address of host %q", ipAddr.String())
 	}
-	return &network, nil
+	return &Record{
+		Hostname: host,
+		IP:       network,
+	}, nil
 }
 
 // HostAndAddr returns the hostname and ip address of host whether host is an IP address or a hostname.

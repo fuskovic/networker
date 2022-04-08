@@ -14,7 +14,7 @@ import (
 func TestListCommand(t *testing.T) {
 	test.WithNetworker(t, "list devices as json output", func(t *testing.T) {
 		// start the list command
-		cmd := exec.Command("networker", "ls", "--json")
+		cmd := exec.Command("networker", "ls", "-o", "json")
 		stdout, err := cmd.StdoutPipe()
 		require.NoError(t, err)
 		require.NoError(t, cmd.Start())

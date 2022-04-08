@@ -66,7 +66,7 @@ func TestLookupCommand(t *testing.T) {
 			cmd := exec.Command("networker", "lookup", "ip", "dns.google.")
 			output, err := cmd.CombinedOutput()
 			require.NoError(t, err)
-			require.Contains(t, string(output), "8.8.8.8")
+			require.Contains(t, string(output), "8.8.")
 		})
 		test.WithNetworker(t, "lookup isp with hostname", func(t *testing.T) {
 			cmd := exec.Command("networker", "lookup", "isp", "dns.google.")
@@ -75,7 +75,7 @@ func TestLookupCommand(t *testing.T) {
 			require.Contains(t, string(output), "GOOGLE, US")
 		})
 		test.WithNetworker(t, "lookup isp with hostname as json output", func(t *testing.T) {
-			cmd := exec.Command("networker", "lookup", "isp", "dns.google.", "--json")
+			cmd := exec.Command("networker", "lookup", "isp", "dns.google.", "-o", "json")
 			output, err := cmd.CombinedOutput()
 			require.NoError(t, err)
 			isp := new(resolve.InternetServiceProvider)
@@ -88,7 +88,7 @@ func TestLookupCommand(t *testing.T) {
 			require.Contains(t, string(output), "GOOGLE, US")
 		})
 		test.WithNetworker(t, "lookup isp with ip address as json output", func(t *testing.T) {
-			cmd := exec.Command("networker", "lookup", "isp", "8.8.8.8", "--json")
+			cmd := exec.Command("networker", "lookup", "isp", "8.8.8.8", "-o", "json")
 			output, err := cmd.CombinedOutput()
 			require.NoError(t, err)
 			isp := new(resolve.InternetServiceProvider)

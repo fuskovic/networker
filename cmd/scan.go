@@ -14,11 +14,10 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var shouldScanAll, shouldOutputAsJSON bool
+var shouldScanAll bool
 
 func init() {
 	scanCmd.Flags().BoolVar(&shouldScanAll, "all-ports", false, "Scan all ports(scans first 1024 if not enabled).")
-	scanCmd.Flags().BoolVar(&shouldOutputAsJSON, "json", false, "Output as json.")
 	Root.AddCommand(scanCmd)
 }
 
@@ -37,7 +36,7 @@ var scanCmd = &cobra.Command{
 		networker scan 127.0.0.1 --all-ports
 
 	Output a scan as json:
-		networker scan 127.0.0.1 --json
+		networker scan 127.0.0.1 -o json
 `,
 	Args: cobra.MaximumNArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
@@ -70,7 +69,7 @@ var scanCmd = &cobra.Command{
 			usage.Fatalf(cmd, "failed scan hosts: %s", err)
 		}
 
-		if shouldOutputAsJSON {
+		if output == "json" {
 			enc := json.NewEncoder(os.Stdout)
 			enc.SetIndent("", "\t")
 			if err := enc.Encode(scans); err != nil {

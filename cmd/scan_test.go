@@ -13,7 +13,7 @@ import (
 func TestScanCommand(t *testing.T) {
 	test.WithNetworker(t, "output scanned devices as json output", func(t *testing.T) {
 		// start the list command
-		cmd := exec.Command("networker", "scan", "--json")
+		cmd := exec.Command("networker", "scan", "-o", "json")
 		stdout, err := cmd.StdoutPipe()
 		require.NoError(t, err)
 		require.NoError(t, cmd.Start())
