@@ -49,9 +49,10 @@ var lookupCmd = &cobra.Command{
 }
 
 var lookupHostnameCmd = &cobra.Command{
-	Use:   "hostname",
-	Short: "Lookup the hostname for a provided ip address.",
-	Args:  cobra.ExactArgs(1),
+	Use:     "hostname",
+	Short:   "Lookup the hostname for a provided ip address.",
+	Aliases: []string{"hn"},
+	Args:    cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 		ipAddr := net.ParseIP(args[0])
 		if ipAddr == nil {
@@ -178,9 +179,10 @@ var lookupNameserversCmd = &cobra.Command{
 }
 
 var lookupNetworkCmd = &cobra.Command{
-	Use:   "network",
-	Short: "Lookup the network address of a provided host.",
-	Args:  cobra.ExactArgs(1),
+	Use:     "network",
+	Short:   "Lookup the network address of a provided host.",
+	Args:    cobra.ExactArgs(1),
+	Aliases: []string{"n"},
 	Run: func(cmd *cobra.Command, args []string) {
 		record, err := resolve.NetworkByHost(args[0])
 		if err != nil {

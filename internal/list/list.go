@@ -86,7 +86,7 @@ func getDevice(_ context.Context, ip string) (*Device, error) {
 	if err != nil {
 		return nil, fmt.Errorf("failed to lookup hostname by ip address %q: %w", ip, err)
 	}
-	
+
 	return &Device{
 		LocalIP:  ipAddr,
 		Hostname: record.Hostname,

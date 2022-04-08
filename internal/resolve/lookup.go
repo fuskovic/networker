@@ -134,21 +134,30 @@ func NameServersByHostName(hostname string) ([]NameServer, error) {
 
 // NetworkByHost returns the network address for the provided hostname.
 func NetworkByHost(host string) (*Record, error) {
+	var hostname string
 	ipAddr := net.ParseIP(host)
 	if ipAddr == nil {
+		hostname = host
 		record, err := AddrByHostName(host)
 		if err != nil {
 			return nil, fmt.Errorf("%q is an invalild host: %v", host, err)
 		}
 		ipAddr = record.IP
+	} else {
+		record, err := HostNameByIP(ipAddr)
+		if err != nil {
+			return nil, fmt.Errorf("failed to resolve hostname for ip %q: %s", ipAddr, err)
+		}
+		hostname = record.Hostname
 	}
 
 	network := ipAddr.Mask(ipAddr.DefaultMask())
 	if network == nil {
 		return nil, fmt.Errorf("failed to get network address of host %q", ipAddr.String())
 	}
+
 	return &Record{
-		Hostname: host,
+		Hostname: hostname,
 		IP:       network,
 	}, nil
 }
