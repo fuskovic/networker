@@ -35,8 +35,8 @@ type Config struct {
 	FilePaths string
 }
 
-// NewNetworkerCraftedHTTPRequest builds a new HTTP request.
-func NewNetworkerCraftedHTTPRequest(cfg *Config) (*http.Request, error) {
+// New builds a new HTTP request.
+func New(cfg *Config) (*http.Request, error) {
 	// validate URL and method
 	switch {
 	case cfg.URL == "":

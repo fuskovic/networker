@@ -18,7 +18,7 @@ func TestRequestCrafting(t *testing.T) {
 		t.Parallel()
 		t.Run("if request URL is not specified", func(t *testing.T) {
 			t.Parallel()
-			_, err := NewNetworkerCraftedHTTPRequest(
+			_, err := New(
 				&Config{URL: "", Method: http.MethodGet},
 			)
 			require.Error(t, err)
@@ -26,7 +26,7 @@ func TestRequestCrafting(t *testing.T) {
 		})
 		t.Run("if request URL is missing protocol", func(t *testing.T) {
 			t.Parallel()
-			_, err := NewNetworkerCraftedHTTPRequest(
+			_, err := New(
 				&Config{URL: "urlwithmissingprotocol.com", Method: http.MethodGet},
 			)
 			require.Error(t, err)
@@ -34,7 +34,7 @@ func TestRequestCrafting(t *testing.T) {
 		})
 		t.Run("if request method is invalid", func(t *testing.T) {
 			t.Parallel()
-			_, err := NewNetworkerCraftedHTTPRequest(
+			_, err := New(
 				&Config{URL: "http://validurl.com", Method: "invalid"},
 			)
 			require.Error(t, err)
@@ -42,7 +42,7 @@ func TestRequestCrafting(t *testing.T) {
 		})
 		t.Run("if file extension for provisioning request body is not .json", func(t *testing.T) {
 			t.Parallel()
-			_, err := NewNetworkerCraftedHTTPRequest(
+			_, err := New(
 				&Config{
 					URL:    "http://validurl.com",
 					Method: http.MethodPost,
@@ -59,7 +59,7 @@ func TestRequestCrafting(t *testing.T) {
 		})
 		t.Run("if multipart form data arg does not contain an equals sign character", func(t *testing.T) {
 			t.Parallel()
-			_, err := NewNetworkerCraftedHTTPRequest(
+			_, err := New(
 				&Config{
 					URL:       "http://validurl.com",
 					Method:    http.MethodPost,
@@ -76,7 +76,7 @@ func TestRequestCrafting(t *testing.T) {
 		})
 		t.Run("if multipart form data arg does not designate any files", func(t *testing.T) {
 			t.Parallel()
-			_, err := NewNetworkerCraftedHTTPRequest(
+			_, err := New(
 				&Config{
 					URL:       "http://validurl.com",
 					Method:    http.MethodPost,
@@ -93,7 +93,7 @@ func TestRequestCrafting(t *testing.T) {
 		})
 		t.Run("if multipart form data arg does not designate a formname", func(t *testing.T) {
 			t.Parallel()
-			_, err := NewNetworkerCraftedHTTPRequest(
+			_, err := New(
 				&Config{
 					URL:       "http://validurl.com",
 					Method:    http.MethodPost,
@@ -110,7 +110,7 @@ func TestRequestCrafting(t *testing.T) {
 		})
 		t.Run("if multipart form data arg designates files that dont exist", func(t *testing.T) {
 			t.Parallel()
-			_, err := NewNetworkerCraftedHTTPRequest(
+			_, err := New(
 				&Config{
 					URL:       "http://validurl.com",
 					Method:    http.MethodPost,
@@ -122,7 +122,7 @@ func TestRequestCrafting(t *testing.T) {
 		})
 		t.Run("if uneven number of key/value pairs for request headers is specified", func(t *testing.T) {
 			t.Parallel()
-			_, err := NewNetworkerCraftedHTTPRequest(
+			_, err := New(
 				&Config{
 					URL:     "http://validurl.com",
 					Headers: []string{"key:value", "key"},
@@ -145,7 +145,7 @@ func TestRequestCrafting(t *testing.T) {
 				Method:  http.MethodPost,
 				Body:    `{"field": "doesntmatter"}`,
 			}
-			req, err := NewNetworkerCraftedHTTPRequest(cfg)
+			req, err := New(cfg)
 			require.NoError(t, err)
 			resp, err := http.DefaultClient.Do(req)
 			require.NoError(t, err)
@@ -160,7 +160,7 @@ func TestRequestCrafting(t *testing.T) {
 			cfg.URL = fmt.Sprintf("%s?id=%d", cfg.URL, createdObject.ID)
 			cfg.Method = http.MethodGet
 			cfg.Body = ""
-			req, err = NewNetworkerCraftedHTTPRequest(cfg)
+			req, err = New(cfg)
 			require.NoError(t, err)
 			resp, err = http.DefaultClient.Do(req)
 			require.NoError(t, err)
@@ -174,7 +174,7 @@ func TestRequestCrafting(t *testing.T) {
 
 			// delete the object
 			cfg.Method = http.MethodDelete
-			req, err = NewNetworkerCraftedHTTPRequest(cfg)
+			req, err = New(cfg)
 			require.NoError(t, err)
 			resp, err = http.DefaultClient.Do(req)
 			require.NoError(t, err)
@@ -182,7 +182,7 @@ func TestRequestCrafting(t *testing.T) {
 
 			// make sure its gone
 			cfg.Method = http.MethodGet
-			req, err = NewNetworkerCraftedHTTPRequest(cfg)
+			req, err = New(cfg)
 			require.NoError(t, err)
 			resp, err = http.DefaultClient.Do(req)
 			require.NoError(t, err)
@@ -197,7 +197,7 @@ func TestRequestCrafting(t *testing.T) {
 				Method:  http.MethodPost,
 				Body:    path.Join(root, "internal/test/body.json"),
 			}
-			req, err = NewNetworkerCraftedHTTPRequest(cfg)
+			req, err = New(cfg)
 			require.NoError(t, err)
 			resp, err = http.DefaultClient.Do(req)
 			require.NoError(t, err)
@@ -221,7 +221,7 @@ func TestRequestCrafting(t *testing.T) {
 				Method:    http.MethodPut,
 				FilePaths: multiPartFormUploadArg,
 			}
-			req, err = NewNetworkerCraftedHTTPRequest(cfg)
+			req, err = New(cfg)
 			require.NoError(t, err)
 			resp, err = http.DefaultClient.Do(req)
 			require.NoError(t, err)
