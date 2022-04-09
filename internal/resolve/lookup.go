@@ -16,6 +16,11 @@ type Record struct {
 	IP       net.IP `json:"ip" yaml:"ip" table:"IP_ADDRESS"`
 }
 
+type NetworkRecord struct {
+	Hostname  string `json:"hostname" yaml:"hostname" table:"HOSTNAME"`
+	NetworkIP net.IP `json:"network" yaml:"network" table:"NETWORK"`
+}
+
 type Func func(string) error
 
 // InternetServiceProvider describes an internet service provider.
@@ -133,7 +138,7 @@ func NameServersByHostName(hostname string) ([]NameServer, error) {
 }
 
 // NetworkByHost returns the network address for the provided hostname.
-func NetworkByHost(host string) (*Record, error) {
+func NetworkByHost(host string) (*NetworkRecord, error) {
 	var hostname string
 	ipAddr := net.ParseIP(host)
 	if ipAddr == nil {
@@ -156,9 +161,9 @@ func NetworkByHost(host string) (*Record, error) {
 		return nil, fmt.Errorf("failed to get network address of host %q", ipAddr.String())
 	}
 
-	return &Record{
-		Hostname: hostname,
-		IP:       network,
+	return &NetworkRecord{
+		Hostname:  hostname,
+		NetworkIP: network,
 	}, nil
 }
 

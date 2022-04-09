@@ -36,7 +36,7 @@ func TestLookup(t *testing.T) {
 			expected := net.ParseIP("8.0.0.0")
 			record, err := NetworkByHost(googleDNS.String())
 			require.NoError(t, err)
-			require.Equal(t, expected.String(), record.IP.String())
+			require.Equal(t, expected.String(), record.NetworkIP.String())
 		})
 		t.Run("hostname and ip address using hostname", func(t *testing.T) {
 			t.Parallel()

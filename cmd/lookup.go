@@ -147,13 +147,13 @@ var lookupNetworkCmd = &cobra.Command{
 	Args:    cobra.ExactArgs(1),
 	Aliases: []string{"n"},
 	Run: func(cmd *cobra.Command, args []string) {
-		record, err := resolve.NetworkByHost(args[0])
+		nwRecord, err := resolve.NetworkByHost(args[0])
 		if err != nil {
 			usage.Fatalf(cmd, "lookup failed: %s", err)
 		}
 
-		enc := encoder.New[resolve.Record](os.Stdout, output)
-		if err := enc.Encode(*record); err != nil {
+		enc := encoder.New[resolve.NetworkRecord](os.Stdout, output)
+		if err := enc.Encode(*nwRecord); err != nil {
 			usage.Fatalf(cmd, "failed to encode network record: %s", err)
 		}
 	},
