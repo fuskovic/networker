@@ -14,7 +14,7 @@ var (
 )
 
 func init() {
-	Root.PersistentFlags().StringVarP(&output, "output", "o", output, "Output format. Supported values include json.")
+	Root.PersistentFlags().StringVarP(&output, "output", "o", output, "Output format. Supported values include json and yaml.")
 	Root.Flags().BoolVarP(&shouldOutputVersion, "version", "v", false, "Print installed version.")
 }
 

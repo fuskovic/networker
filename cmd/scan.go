@@ -2,14 +2,13 @@ package cmd
 
 import (
 	"context"
-	"encoding/json"
 	"net"
 	"os"
 
+	"github.com/fuskovic/networker/internal/encoder"
 	"github.com/fuskovic/networker/internal/list"
 	"github.com/fuskovic/networker/internal/ports"
 	"github.com/fuskovic/networker/internal/resolve"
-	"github.com/fuskovic/networker/internal/table"
 	"github.com/fuskovic/networker/internal/usage"
 	"github.com/spf13/cobra"
 )
@@ -69,18 +68,9 @@ var scanCmd = &cobra.Command{
 			usage.Fatalf(cmd, "failed scan hosts: %s", err)
 		}
 
-		if output == "json" {
-			enc := json.NewEncoder(os.Stdout)
-			enc.SetIndent("", "\t")
-			if err := enc.Encode(scans); err != nil {
-				usage.Fatalf(cmd, "failed to encode scan as json: %s", err)
-			}
-			return
-		}
-
-		tableWriter := table.NewWriter(os.Stdout, scans)
-		if _, err := tableWriter.Write(nil); err != nil {
-			usage.Fatalf(cmd, "failed to write scans table: %s", err)
+		enc := encoder.New[ports.Scan](os.Stdout, output)
+		if err := enc.Encode(scans...); err != nil {
+			usage.Fatalf(cmd, "failed to encode devices: %s", err)
 		}
 	},
 }

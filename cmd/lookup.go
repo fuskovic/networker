@@ -1,12 +1,11 @@
 package cmd
 
 import (
-	"encoding/json"
 	"net"
 	"os"
 
+	"github.com/fuskovic/networker/internal/encoder"
 	"github.com/fuskovic/networker/internal/resolve"
-	"github.com/fuskovic/networker/internal/table"
 	"github.com/fuskovic/networker/internal/usage"
 	"github.com/spf13/cobra"
 )
@@ -64,18 +63,9 @@ var lookupHostnameCmd = &cobra.Command{
 			usage.Fatalf(cmd, "lookup failed: %s", err)
 		}
 
-		if output == "json" {
-			enc := json.NewEncoder(os.Stdout)
-			enc.SetIndent("", "\t")
-			if err := enc.Encode(record); err != nil {
-				usage.Fatalf(cmd, "failed to encode hostname record as json: %s", err)
-			}
-			return
-		}
-
-		tw := table.NewWriter(os.Stdout, []resolve.Record{*record})
-		if _, err := tw.Write(nil); err != nil {
-			usage.Fatalf(cmd, "failed to write hostname table: %s", err)
+		enc := encoder.New[resolve.Record](os.Stdout, output)
+		if err := enc.Encode(*record); err != nil {
+			usage.Fatalf(cmd, "failed to encode hostname record: %s", err)
 		}
 	},
 }
@@ -95,18 +85,9 @@ var lookupIpaddressCmd = &cobra.Command{
 			usage.Fatalf(cmd, "lookup failed: %s", err)
 		}
 
-		if output == "json" {
-			enc := json.NewEncoder(os.Stdout)
-			enc.SetIndent("", "\t")
-			if err := enc.Encode(record); err != nil {
-				usage.Fatalf(cmd, "failed to encode ip address record as json: %s", err)
-			}
-			return
-		}
-
-		tw := table.NewWriter(os.Stdout, []resolve.Record{*record})
-		if _, err := tw.Write(nil); err != nil {
-			usage.Fatalf(cmd, "failed to write table for hostname record: %s", err)
+		enc := encoder.New[resolve.Record](os.Stdout, output)
+		if err := enc.Encode(*record); err != nil {
+			usage.Fatalf(cmd, "failed to encode ip address record: %s", err)
 		}
 	},
 }
@@ -130,18 +111,9 @@ var lookupIspCmd = &cobra.Command{
 			usage.Fatalf(cmd, "failed to resolve internet service provider for %q: %s", ip, err)
 		}
 
-		if output == "json" {
-			enc := json.NewEncoder(os.Stdout)
-			enc.SetIndent("", "\t")
-			if err := enc.Encode(isp); err != nil {
-				usage.Fatalf(cmd, "failed to encode internet service provider as json: %s", err)
-			}
-			return
-		}
-
-		tw := table.NewWriter(os.Stdout, []resolve.InternetServiceProvider{*isp})
-		if _, err := tw.Write(nil); err != nil {
-			usage.Fatalf(cmd, "failed to write table for service provider record: %s", err)
+		enc := encoder.New[resolve.InternetServiceProvider](os.Stdout, output)
+		if err := enc.Encode(*isp); err != nil {
+			usage.Fatalf(cmd, "failed to encode internet service provider: %s", err)
 		}
 	},
 }
@@ -162,18 +134,9 @@ var lookupNameserversCmd = &cobra.Command{
 			usage.Fatalf(cmd, "lookup failed: %s", err)
 		}
 
-		if output == "json" {
-			enc := json.NewEncoder(os.Stdout)
-			enc.SetIndent("", "\t")
-			if err := enc.Encode(nameservers); err != nil {
-				usage.Fatalf(cmd, "failed to encode nameservers as json: %s", err)
-			}
-			return
-		}
-
-		tw := table.NewWriter(os.Stdout, nameservers)
-		if _, err := tw.Write(nil); err != nil {
-			usage.Fatalf(cmd, "failed to write table for nameservers: %s", err)
+		enc := encoder.New[resolve.NameServer](os.Stdout, output)
+		if err := enc.Encode(nameservers...); err != nil {
+			usage.Fatalf(cmd, "failed to encode nameservers: %s", err)
 		}
 	},
 }
@@ -189,18 +152,9 @@ var lookupNetworkCmd = &cobra.Command{
 			usage.Fatalf(cmd, "lookup failed: %s", err)
 		}
 
-		if output == "json" {
-			enc := json.NewEncoder(os.Stdout)
-			enc.SetIndent("", "\t")
-			if err := enc.Encode(record); err != nil {
-				usage.Fatalf(cmd, "failed to encode network record as json: %s", err)
-			}
-			return
-		}
-
-		tw := table.NewWriter(os.Stdout, []resolve.Record{*record})
-		if _, err := tw.Write(nil); err != nil {
-			usage.Fatalf(cmd, "failed to write table for network record: %s", err)
+		enc := encoder.New[resolve.Record](os.Stdout, output)
+		if err := enc.Encode(*record); err != nil {
+			usage.Fatalf(cmd, "failed to encode network record: %s", err)
 		}
 	},
 }

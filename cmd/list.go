@@ -2,13 +2,12 @@ package cmd
 
 import (
 	"context"
-	"encoding/json"
 	"os"
 
 	"github.com/spf13/cobra"
 
+	"github.com/fuskovic/networker/internal/encoder"
 	"github.com/fuskovic/networker/internal/list"
-	"github.com/fuskovic/networker/internal/table"
 	"github.com/fuskovic/networker/internal/usage"
 )
 
@@ -37,18 +36,9 @@ var listCmd = &cobra.Command{
 			usage.Fatalf(cmd, "failed to list devices: %s", err)
 		}
 
-		if output == "json" {
-			enc := json.NewEncoder(os.Stdout)
-			enc.SetIndent("", "\t")
-			if err := enc.Encode(devices); err != nil {
-				usage.Fatalf(cmd, "failed to encode devices as json: %s", err)
-			}
-			return
-		}
-
-		tw := table.NewWriter(os.Stdout, devices)
-		if _, err := tw.Write(nil); err != nil {
-			usage.Fatalf(cmd, "failed to write devices table: %s", err)
+		enc := encoder.New[list.Device](os.Stdout, output)
+		if err := enc.Encode(devices...); err != nil {
+			usage.Fatalf(cmd, "failed to encode devices: %s", err)
 		}
 	},
 }

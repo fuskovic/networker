@@ -12,8 +12,8 @@ import (
 // Record can be used as a common type between lookup commands
 // that supports json and table output.
 type Record struct {
-	Hostname string `json:"hostname" table:"HOSTNAME"`
-	IP       net.IP `json:"ip" table:"IP_ADDRESS"`
+	Hostname string `json:"hostname" yaml:"hostname" table:"HOSTNAME"`
+	IP       net.IP `json:"ip" yaml:"ip" table:"IP_ADDRESS"`
 }
 
 type Func func(string) error
