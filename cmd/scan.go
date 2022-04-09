@@ -4,13 +4,16 @@ import (
 	"context"
 	"net"
 	"os"
+	"time"
+
+	"github.com/briandowns/spinner"
+	"github.com/spf13/cobra"
 
 	"github.com/fuskovic/networker/internal/encoder"
 	"github.com/fuskovic/networker/internal/list"
 	"github.com/fuskovic/networker/internal/ports"
 	"github.com/fuskovic/networker/internal/resolve"
 	"github.com/fuskovic/networker/internal/usage"
-	"github.com/spf13/cobra"
 )
 
 var shouldScanAll bool
@@ -63,10 +66,15 @@ var scanCmd = &cobra.Command{
 			hosts = append(hosts, ip.String())
 		}
 
+		s := spinner.New(spinner.CharSets[36], 500*time.Millisecond)
+		s.Start()
+
 		scans, err := ports.NewScanner(hosts, shouldScanAll).Scan(ctx)
 		if err != nil {
 			usage.Fatalf(cmd, "failed scan hosts: %s", err)
 		}
+
+		s.Stop()
 
 		enc := encoder.New[ports.Scan](os.Stdout, output)
 		if err := enc.Encode(scans...); err != nil {
