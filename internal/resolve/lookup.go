@@ -17,7 +17,7 @@ type Record struct {
 }
 
 type NetworkRecord struct {
-	Hostname  string `json:"hostname" yaml:"hostname" table:"HOSTNAME"`
+	Hostname  string `json:"hostname" yaml:"hostname,flow" table:"HOSTNAME"`
 	NetworkIP net.IP `json:"network" yaml:"network" table:"NETWORK"`
 }
 

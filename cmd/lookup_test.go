@@ -8,11 +8,10 @@ import (
 	"github.com/fuskovic/networker/internal/resolve"
 	"github.com/fuskovic/networker/internal/test"
 	"github.com/stretchr/testify/require"
-	"gopkg.in/yaml.v3"
 )
 
-func TestLookupHostnameCommand(t *testing.T){
-	t.Run("ShouldPass", func(t *testing.T){
+func TestLookupHostnameCommand(t *testing.T) {
+	t.Run("ShouldPass", func(t *testing.T) {
 		test.WithNetworker(t, "lookup hostname", func(t *testing.T) {
 			cmd := exec.Command("networker", "lookup", "hostname", "8.8.8.8")
 			output, err := cmd.CombinedOutput()
@@ -32,9 +31,7 @@ func TestLookupHostnameCommand(t *testing.T){
 			cmd := exec.Command("networker", "lookup", "hostname", "8.8.8.8", "-o", "yaml")
 			output, err := cmd.CombinedOutput()
 			require.NoError(t, err)
-			record := new(resolve.Record)
-			require.NoError(t, yaml.Unmarshal(output, record))
-			require.Equal(t, "dns.google.", record.Hostname)
+			require.Contains(t, string(output), "- hostname: dns.google.")
 		})
 	})
 	t.Run("ShouldFail", func(t *testing.T) {
@@ -51,8 +48,8 @@ func TestLookupHostnameCommand(t *testing.T){
 	})
 }
 
-func TestLookupIpAddressCommand(t *testing.T){
-	t.Run("ShouldPass", func(t *testing.T){
+func TestLookupIpAddressCommand(t *testing.T) {
+	t.Run("ShouldPass", func(t *testing.T) {
 		test.WithNetworker(t, "lookup ip", func(t *testing.T) {
 			cmd := exec.Command("networker", "lookup", "ip", "dns.google.")
 			output, err := cmd.CombinedOutput()
@@ -60,7 +57,7 @@ func TestLookupIpAddressCommand(t *testing.T){
 			require.Contains(t, string(output), "8.8.")
 		})
 		test.WithNetworker(t, "lookup ip output as json", func(t *testing.T) {
-			cmd := exec.Command("networker", "lookup", "hostname", "dns.google.", "-o", "json")
+			cmd := exec.Command("networker", "lookup", "ip", "dns.google.", "-o", "json")
 			output, err := cmd.CombinedOutput()
 			require.NoError(t, err)
 			record := new(resolve.Record)
@@ -69,12 +66,10 @@ func TestLookupIpAddressCommand(t *testing.T){
 
 		})
 		test.WithNetworker(t, "lookup ip output as yaml", func(t *testing.T) {
-			cmd := exec.Command("networker", "lookup", "hostname", "dns.google.", "-o", "yaml")
+			cmd := exec.Command("networker", "lookup", "ip", "dns.google.", "-o", "yaml")
 			output, err := cmd.CombinedOutput()
 			require.NoError(t, err)
-			record := new(resolve.Record)
-			require.NoError(t, yaml.Unmarshal(output, record))
-			require.Equal(t, "dns.google.", record.Hostname)
+			require.Contains(t, string(output), "- hostname: dns.google.")
 		})
 	})
 	t.Run("ShouldFail", func(t *testing.T) {
@@ -91,8 +86,8 @@ func TestLookupIpAddressCommand(t *testing.T){
 	})
 }
 
-func TestLookupIspCommand(t *testing.T){
-	t.Run("ShouldPass", func(t *testing.T){
+func TestLookupIspCommand(t *testing.T) {
+	t.Run("ShouldPass", func(t *testing.T) {
 		test.WithNetworker(t, "lookup isp with hostname", func(t *testing.T) {
 			cmd := exec.Command("networker", "lookup", "isp", "dns.google.")
 			output, err := cmd.CombinedOutput()
@@ -110,8 +105,7 @@ func TestLookupIspCommand(t *testing.T){
 			cmd := exec.Command("networker", "lookup", "isp", "dns.google.", "-o", "yaml")
 			output, err := cmd.CombinedOutput()
 			require.NoError(t, err)
-			isp := new(resolve.InternetServiceProvider)
-			require.NoError(t, yaml.Unmarshal(output, isp))
+			require.Contains(t, string(output), "- name: GOOGLE, US")
 		})
 		test.WithNetworker(t, "lookup isp with ip address", func(t *testing.T) {
 			cmd := exec.Command("networker", "lookup", "isp", "8.8.8.8")
@@ -130,8 +124,7 @@ func TestLookupIspCommand(t *testing.T){
 			cmd := exec.Command("networker", "lookup", "isp", "8.8.8.8", "-o", "yaml")
 			output, err := cmd.CombinedOutput()
 			require.NoError(t, err)
-			isp := new(resolve.InternetServiceProvider)
-			require.NoError(t, yaml.Unmarshal(output, isp))
+			require.Contains(t, string(output), "- name: GOOGLE, US")
 		})
 	})
 	t.Run("ShouldFail", func(t *testing.T) {
@@ -149,8 +142,8 @@ func TestLookupIspCommand(t *testing.T){
 	})
 }
 
-func TestLookupNetworkCommand(t *testing.T){
-	t.Run("ShouldPass", func(t *testing.T){
+func TestLookupNetworkCommand(t *testing.T) {
+	t.Run("ShouldPass", func(t *testing.T) {
 		test.WithNetworker(t, "lookup network with hostname", func(t *testing.T) {
 			cmd := exec.Command("networker", "lookup", "network", "dns.google.")
 			output, err := cmd.CombinedOutput()
@@ -163,15 +156,13 @@ func TestLookupNetworkCommand(t *testing.T){
 			require.NoError(t, err)
 			record := new(resolve.NetworkRecord)
 			require.NoError(t, err, json.Unmarshal(output, &record))
-			require.Equal(t, "8.0.0.0", record.NetworkIP)
+			require.Equal(t, "8.0.0.0", record.NetworkIP.String())
 		})
 		test.WithNetworker(t, "lookup network with hostname ouput as yaml", func(t *testing.T) {
 			cmd := exec.Command("networker", "lookup", "network", "dns.google.", "-o", "yaml")
 			output, err := cmd.CombinedOutput()
 			require.NoError(t, err)
-			record := new(resolve.NetworkRecord)
-			require.NoError(t, err, yaml.Unmarshal(output, &record))
-			require.Contains(t, string(output), "8.0.0.0")
+			require.Contains(t, string(output), "network: 8.0.0.0")
 		})
 		test.WithNetworker(t, "lookup network with ip", func(t *testing.T) {
 			cmd := exec.Command("networker", "lookup", "network", "8.8.8.8")
@@ -185,20 +176,18 @@ func TestLookupNetworkCommand(t *testing.T){
 			require.NoError(t, err)
 			record := new(resolve.NetworkRecord)
 			require.NoError(t, err, json.Unmarshal(output, &record))
-			require.Equal(t, "8.0.0.0", record.NetworkIP)
+			require.Equal(t, "8.0.0.0", record.NetworkIP.String())
 		})
 		test.WithNetworker(t, "lookup network with ip ouput as yaml", func(t *testing.T) {
 			cmd := exec.Command("networker", "lookup", "network", "8.8.8.8", "-o", "yaml")
 			output, err := cmd.CombinedOutput()
 			require.NoError(t, err)
-			record := new(resolve.NetworkRecord)
-			require.NoError(t, err, yaml.Unmarshal(output, &record))
-			require.Contains(t, string(output), "8.0.0.0")
+			require.Contains(t, string(output), "network: 8.0.0.0")
 		})
 	})
 	t.Run("ShouldFail", func(t *testing.T) {
 		test.WithNetworker(t, "lookup network no arg provided", func(t *testing.T) {
-			cmd := exec.Command("networker", "lookup", "network", "")
+			cmd := exec.Command("networker", "lookup", "network")
 			output, _ := cmd.CombinedOutput()
 			require.Contains(t, string(output), "Error: accepts 1 arg(s), received 0")
 		})
@@ -210,8 +199,8 @@ func TestLookupNetworkCommand(t *testing.T){
 	})
 }
 
-func TestLookupNameserversCommand(t *testing.T){
-	t.Run("ShouldPass", func(t *testing.T){
+func TestLookupNameserversCommand(t *testing.T) {
+	t.Run("ShouldPass", func(t *testing.T) {
 		test.WithNetworker(t, "lookup nameservers with hostname", func(t *testing.T) {
 			cmd := exec.Command("networker", "lookup", "nameservers", "dns.google.")
 			output, err := cmd.CombinedOutput()
@@ -230,9 +219,7 @@ func TestLookupNameserversCommand(t *testing.T){
 			cmd := exec.Command("networker", "lookup", "nameservers", "dns.google.", "-o", "yaml")
 			output, err := cmd.CombinedOutput()
 			require.NoError(t, err)
-			var nameservers []resolve.NameServer
-			require.NoError(t, err, yaml.Unmarshal(output, &nameservers))
-			require.False(t, len(nameservers) == 0)
+			require.Contains(t, string(output), "host: ns1.zdns.google.")
 		})
 		test.WithNetworker(t, "lookup nameservers with ip", func(t *testing.T) {
 			cmd := exec.Command("networker", "lookup", "nameservers", "8.8.8.8")
@@ -252,9 +239,7 @@ func TestLookupNameserversCommand(t *testing.T){
 			cmd := exec.Command("networker", "lookup", "nameservers", "8.8.8.8", "-o", "yaml")
 			output, err := cmd.CombinedOutput()
 			require.NoError(t, err)
-			var nameservers []resolve.NameServer
-			require.NoError(t, err, yaml.Unmarshal(output, &nameservers))
-			require.False(t, len(nameservers) == 0)
+			require.Contains(t, string(output), "host: ns1.zdns.google.")
 		})
 	})
 	t.Run("ShouldFail", func(t *testing.T) {
