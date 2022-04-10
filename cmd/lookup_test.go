@@ -5,8 +5,8 @@ import (
 	"os/exec"
 	"testing"
 
-	"github.com/fuskovic/networker/internal/resolve"
-	"github.com/fuskovic/networker/internal/test"
+	"github.com/fuskovic/networker/v2/internal/resolve"
+	"github.com/fuskovic/networker/v2/internal/test"
 	"github.com/stretchr/testify/require"
 )
 

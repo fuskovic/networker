@@ -9,11 +9,11 @@ import (
 	"github.com/briandowns/spinner"
 	"github.com/spf13/cobra"
 
-	"github.com/fuskovic/networker/internal/encoder"
-	"github.com/fuskovic/networker/internal/list"
-	"github.com/fuskovic/networker/internal/ports"
-	"github.com/fuskovic/networker/internal/resolve"
-	"github.com/fuskovic/networker/internal/usage"
+	"github.com/fuskovic/networker/v2/internal/encoder"
+	"github.com/fuskovic/networker/v2/internal/list"
+	"github.com/fuskovic/networker/v2/internal/ports"
+	"github.com/fuskovic/networker/v2/internal/resolve"
+	"github.com/fuskovic/networker/v2/internal/usage"
 )
 
 var shouldScanAll bool

@@ -5,10 +5,9 @@ import (
 	"os/exec"
 	"testing"
 
-	"github.com/fuskovic/networker/internal/ports"
-	"github.com/fuskovic/networker/internal/test"
+	"github.com/fuskovic/networker/v2/internal/ports"
+	"github.com/fuskovic/networker/v2/internal/test"
 	"github.com/stretchr/testify/require"
-	"gopkg.in/yaml.v3"
 )
 
 func TestScanCommand(t *testing.T) {
@@ -34,9 +33,9 @@ func TestScanCommand(t *testing.T) {
 		require.NoError(t, err)
 		require.NoError(t, cmd.Start())
 
-		// assert we can unmarshal the yaml output as expected
+		// assert we can unmarshal the json output as expected
 		var scanResults []ports.Scan
-		require.NoError(t, yaml.NewDecoder(stdout).Decode(&scanResults))
+		require.NoError(t, json.NewDecoder(stdout).Decode(&scanResults))
 		require.NoError(t, cmd.Wait())
 
 		// assert that the results are not empty

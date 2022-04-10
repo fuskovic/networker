@@ -1,4 +1,4 @@
-module github.com/fuskovic/networker
+module github.com/fuskovic/networker/v2
 
 go 1.18
 

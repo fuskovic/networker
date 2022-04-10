@@ -9,8 +9,8 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/fuskovic/networker/internal/request"
-	"github.com/fuskovic/networker/internal/usage"
+	"github.com/fuskovic/networker/v2/internal/request"
+	"github.com/fuskovic/networker/v2/internal/usage"
 )
 
 var (

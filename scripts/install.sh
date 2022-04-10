@@ -21,7 +21,7 @@ fi
 
 PROJECT_ROOT=$(git rev-parse --show-toplevel)
 echo "installing"
-    # -ldflags "-X github.com/fuskovic/networker/cmd.Version=`git describe --tags`" \
+    # -ldflags "-X github.com/fuskovic/networker/v2/cmd.Version=`git describe --tags`" \
 go build \
     -o $TARGET_DIR/networker \
     main.go
