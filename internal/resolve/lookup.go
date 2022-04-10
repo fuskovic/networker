@@ -21,8 +21,6 @@ type NetworkRecord struct {
 	NetworkIP net.IP `json:"network" yaml:"network" table:"NETWORK"`
 }
 
-type Func func(string) error
-
 // InternetServiceProvider describes an internet service provider.
 type InternetServiceProvider struct {
 	Name                    string     `json:"name" table:"NAME"`

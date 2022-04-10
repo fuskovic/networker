@@ -66,7 +66,7 @@ var scanCmd = &cobra.Command{
 			hosts = append(hosts, ip.String())
 		}
 
-		s := spinner.New(spinner.CharSets[36], 500*time.Millisecond)
+		s := spinner.New(spinner.CharSets[36], 50*time.Millisecond)
 		s.Start()
 
 		scans, err := ports.NewScanner(hosts, shouldScanAll).Scan(ctx)
