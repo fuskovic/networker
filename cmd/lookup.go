@@ -1,46 +1,21 @@
 package cmd
 
 import (
-	"encoding/json"
-	"log"
 	"net"
 	"os"
 
-	"cdr.dev/coder-cli/pkg/tablewriter"
+	"github.com/fuskovic/networker/internal/encoder"
 	"github.com/fuskovic/networker/internal/resolve"
 	"github.com/fuskovic/networker/internal/usage"
 	"github.com/spf13/cobra"
 )
 
-var (
-	ip                 string
-	hostname           string
-	host               string
-)
-
 func init() {
-	lookupHostnameCmd.Flags().StringVar(&ip, "ip", "", "IP address.")
-	_ = lookupHostnameCmd.MarkFlagRequired("ip")
-	lookupCmd.AddCommand(lookupHostnameCmd)
-
-	lookupIpaddressCmd.Flags().StringVar(&hostname, "hostname", "", "Hostname.")
-	_ = lookupIpaddressCmd.MarkFlagRequired("hostname")
-	lookupCmd.AddCommand(lookupIpaddressCmd)
-
-	lookupIspCmd.Flags().StringVar(&host, "host", "", "IP address or hostname to get the network address for.")
-	lookupIspCmd.Flags().BoolVar(&shouldOutputAsJSON, "json", false, "Output as JSON.")
-	_ = lookupIspCmd.MarkFlagRequired("host")
 	lookupCmd.AddCommand(lookupIspCmd)
-
-	lookupNameserversCmd.Flags().StringVar(&hostname, "hostname", "", "Hostname.")
-	lookupNameserversCmd.Flags().BoolVar(&shouldOutputAsJSON, "json", false, "Output as JSON.")
-	_ = lookupNameserversCmd.MarkFlagRequired("hostname")
 	lookupCmd.AddCommand(lookupNameserversCmd)
-
-	lookupNetworkCmd.Flags().StringVar(&host, "host", "", "IP address or hostname to get the network address for.")
-	_ = lookupNetworkCmd.MarkFlagRequired("host")
+	lookupCmd.AddCommand(lookupHostnameCmd)
+	lookupCmd.AddCommand(lookupIpaddressCmd)
 	lookupCmd.AddCommand(lookupNetworkCmd)
-
 	Root.AddCommand(lookupCmd)
 }
 
@@ -49,22 +24,90 @@ var lookupCmd = &cobra.Command{
 	Aliases:    []string{"lu"},
 	SuggestFor: []string{},
 	Example: `
-	Lookup IP by hostname:
-		networker lookup ip --hostname dns.google.
+# Lookup hostname by IP:
 
-	Lookup hostname by IP:
-		networker lookup hostname --ip 8.8.8.8
+	networker lookup hostname 8.8.8.8
 
-	Lookup nameservers by hostname:
-		networker lookup nameservers --hostname dns.google.
+# Lookup hostname by IP(short-hand):
 
-	Lookup ISP by ip or hostname:
-		networker lookup isp --host 8.8.8.8
-		networker lookup network --host dns.google.
+	nw lu hn 8.8.8.8
 
-	Lookup network by ip or hostname:
-		networker lookup network --host 8.8.8.8
-		networker lookup network --host dns.google.
+# Lookup hostname by IP(short-hand) and output as json:
+
+	nw lu hn 8.8.8.8 -o json
+
+# Lookup hostname by IP(short-hand) and output as yaml:
+
+	nw lu hn 8.8.8.8 -o yaml
+
+# Lookup IP by hostname:
+
+	networker lookup ip dns.google.
+
+# Lookup IP by hostname(short-hand):
+
+	nw lu ip dns.google.
+
+# Lookup IP by hostname(short-hand) and output as json:
+
+	nw lu ip dns.google. -o json
+
+# Lookup IP by hostname(short-hand) and output as yaml:
+
+	nw lu ip dns.google. -o yaml
+
+# Lookup nameservers by hostname:
+
+	networker lookup nameservers dns.google.
+
+# Lookup nameservers by hostname(short-hand):
+
+	nw lu ns dns.google.
+
+# Lookup nameservers by hostname(short-hand) and output as json:
+
+	nw lu ns dns.google. -o json
+
+# Lookup nameservers by hostname(short-hand) and output as yaml:
+
+	nw lu ns dns.google. -o yaml
+
+# Lookup ISP by ip or hostname:
+
+	networker lookup isp 8.8.8.8
+	networker lookup isp dns.google.
+
+# Lookup ISP by ip or hostname(short-hand):
+
+	nw lu isp 8.8.8.8
+	nw lu isp dns.google.
+
+# Lookup ISP by ip or hostname(short-hand) and ouput as json:
+
+	nw lu isp 8.8.8.8 -o json
+	nw lu isp dns.google. -o json
+
+# Lookup ISP by ip or hostname(short-hand) and ouput as yaml:
+
+	nw lu isp 8.8.8.8 -o yaml
+	nw lu isp dns.google. -o yaml
+
+# Lookup network by ip or hostname:
+	networker lookup network 8.8.8.8
+	networker lookup network dns.google.
+
+# Lookup network by ip or hostname(short-hand):
+	nw lu n 8.8.8.8
+	nw lu n dns.google.
+
+# Lookup network by ip or hostname(short-hand) and output as json:
+	nw lu n 8.8.8.8 -o json
+	nw lu n dns.google. -o json
+
+# Lookup network by ip or hostname(short-hand) and output as json:
+	nw lu n 8.8.8.8 -o yaml
+	nw lu n dns.google. -o yaml
+
 `,
 	Short: "Lookup hostnames, IPs, ISPs, nameservers, and networks.",
 	Run: func(cmd *cobra.Command, args []string) {
@@ -73,44 +116,115 @@ var lookupCmd = &cobra.Command{
 }
 
 var lookupHostnameCmd = &cobra.Command{
-	Use:   "hostname",
-	Short: "Lookup the hostname for a provided ip address.",
-	Args:  cobra.ExactArgs(1),
+	Use:     "hostname",
+	Short:   "Lookup the hostname for a provided ip address.",
+	Aliases: []string{"hn"},
+	Example: `
+# Lookup hostname by IP:
+
+	networker lookup hostname 8.8.8.8
+
+# Lookup hostname by IP(short-hand):
+
+	nw lu hn 8.8.8.8
+
+# Lookup hostname by IP(short-hand) and output as json:
+
+	nw lu hn 8.8.8.8 -o json
+
+# Lookup hostname by IP(short-hand) and output as yaml:
+
+	nw lu hn 8.8.8.8 -o yaml
+
+	`,
+	Args: cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
-		ipAddr := net.ParseIP(ip)
+		ipAddr := net.ParseIP(args[0])
 		if ipAddr == nil {
-			usage.Fatalf(cmd, "%q is not a valid ip address", ip)
+			usage.Fatalf(cmd, "%q is not a valid ip address", args[0])
 		}
 
-		hostname, err := resolve.HostNameByIP(ipAddr)
+		record, err := resolve.HostNameByIP(ipAddr)
 		if err != nil {
 			usage.Fatalf(cmd, "lookup failed: %s", err)
 		}
-		log.Printf("lookup successful - hostname: %s", hostname)
+
+		enc := encoder.New[resolve.Record](os.Stdout, output)
+		if err := enc.Encode(*record); err != nil {
+			usage.Fatalf(cmd, "failed to encode hostname record: %s", err)
+		}
 	},
 }
 
 var lookupIpaddressCmd = &cobra.Command{
 	Use:   "ip",
 	Short: "Lookup the ip address of the provided hostname.",
-	Args:  cobra.NoArgs,
+	Example: `
+# Lookup IP by hostname:
+
+	networker lookup ip dns.google.
+
+# Lookup IP by hostname(short-hand):
+
+	nw lu ip dns.google.
+
+# Lookup IP by hostname(short-hand) and output as json:
+
+	nw lu ip dns.google. -o json
+
+# Lookup IP by hostname(short-hand) and output as yaml:
+
+	nw lu ip dns.google. -o yaml
+
+	`,
+	Args: cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
-		ipAddr, err := resolve.AddrByHostName(hostname)
+		if ip := net.ParseIP(args[0]); ip != nil {
+			usage.Fatal(cmd, "expected a hostname not an ip address")
+			return
+		}
+
+		record, err := resolve.AddrByHostName(args[0])
 		if err != nil {
 			usage.Fatalf(cmd, "lookup failed: %s", err)
 		}
-		log.Printf("lookup successful - ip-address: %s", ipAddr)
+
+		enc := encoder.New[resolve.Record](os.Stdout, output)
+		if err := enc.Encode(*record); err != nil {
+			usage.Fatalf(cmd, "failed to encode ip address record: %s", err)
+		}
 	},
 }
 
 var lookupIspCmd = &cobra.Command{
-	Use:   "isp",
+	Use: "isp",
+	Example: `
+# Lookup ISP by ip or hostname:
+
+	networker lookup isp 8.8.8.8
+	networker lookup isp dns.google.
+
+# Lookup ISP by ip or hostname(short-hand):
+
+	nw lu isp 8.8.8.8
+	nw lu isp dns.google.
+
+# Lookup ISP by ip or hostname(short-hand) and ouput as json:
+
+	nw lu isp 8.8.8.8 -o json
+	nw lu isp dns.google. -o json
+
+# Lookup ISP by ip or hostname(short-hand) and ouput as yaml:
+
+	nw lu isp 8.8.8.8 -o yaml
+	nw lu isp dns.google. -o yaml
+`,
 	Short: "Lookup the internet service provider of a remote host.",
-	Args:  cobra.NoArgs,
+	Args:  cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
-		_, ip, err := resolve.HostAndAddr(host)
+		_, ip, err := resolve.HostAndAddr(args[0])
 		if err != nil {
-			usage.Fatalf(cmd, "%q is an invalid host: %s", host, err)
+			usage.Fatalf(cmd, "%q is an invalid host: %s", args[0], err)
 		}
 
 		if resolve.IsPrivate(ip) {
@@ -119,27 +233,12 @@ var lookupIspCmd = &cobra.Command{
 
 		isp, err := resolve.ServiceProvider(ip)
 		if err != nil {
-			usage.Fatalf(cmd, "failed to resolve internet service provider for %q: %s", host, err)
+			usage.Fatalf(cmd, "failed to resolve internet service provider for %q: %s", ip, err)
 		}
 
-		if shouldOutputAsJSON {
-			enc := json.NewEncoder(os.Stdout)
-			enc.SetIndent("", "\t")
-			enc.SetEscapeHTML(false)
-			if err := enc.Encode(isp); err != nil {
-				usage.Fatalf(cmd, "failed to encode internet service provider as json: %s", err)
-			}
-			return
-		}
-
-		err = tablewriter.WriteTable(os.Stdout, 1,
-			func(_ int) interface{} {
-				return *isp
-			},
-		)
-
-		if err != nil {
-			usage.Fatalf(cmd, "failed to write service provider table for %q: %s", host, err)
+		enc := encoder.New[resolve.InternetServiceProvider](os.Stdout, output)
+		if err := enc.Encode(*isp); err != nil {
+			usage.Fatalf(cmd, "failed to encode internet service provider: %s", err)
 		}
 	},
 }
@@ -148,10 +247,28 @@ var lookupNameserversCmd = &cobra.Command{
 	Use:     "nameservers",
 	Aliases: []string{"ns"},
 	Short:   "Lookup nameservers for the provided hostname.",
-	Args:    cobra.NoArgs,
+	Example: `
+# Lookup nameservers by hostname:
+
+	networker lookup nameservers dns.google.
+
+# Lookup nameservers by hostname(short-hand):
+
+	nw lu ns dns.google.
+
+# Lookup nameservers by hostname(short-hand) and output as json:
+
+	nw lu ns dns.google. -o json
+
+# Lookup nameservers by hostname(short-hand) and output as yaml:
+
+	nw lu ns dns.google. -o yaml
+`,
+	Args: cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
-		if ip := net.ParseIP(hostname); ip != nil {
-			usage.Fatalf(cmd, "can only lookup nameservers by hostname; not ip.")
+		hostname, _, err := resolve.HostAndAddr(args[0])
+		if err != nil {
+			usage.Fatalf(cmd, "%q is an invalid host: %s", args[0], err)
 		}
 
 		nameservers, err := resolve.NameServersByHostName(hostname)
@@ -159,24 +276,9 @@ var lookupNameserversCmd = &cobra.Command{
 			usage.Fatalf(cmd, "lookup failed: %s", err)
 		}
 
-		if shouldOutputAsJSON {
-			enc := json.NewEncoder(os.Stdout)
-			enc.SetIndent("", "\t")
-			enc.SetEscapeHTML(false)
-			if err := enc.Encode(nameservers); err != nil {
-				usage.Fatalf(cmd, "failed to encode nameservers as json: %s", err)
-			}
-			return
-		}
-
-		err = tablewriter.WriteTable(os.Stdout, len(nameservers),
-			func(i int) interface{} {
-				return nameservers[i]
-			},
-		)
-
-		if err != nil {
-			usage.Fatalf(cmd, "failed to write nameservers table: %s", err)
+		enc := encoder.New[resolve.NameServer](os.Stdout, output)
+		if err := enc.Encode(nameservers...); err != nil {
+			usage.Fatalf(cmd, "failed to encode nameservers: %s", err)
 		}
 	},
 }
@@ -184,12 +286,35 @@ var lookupNameserversCmd = &cobra.Command{
 var lookupNetworkCmd = &cobra.Command{
 	Use:   "network",
 	Short: "Lookup the network address of a provided host.",
-	Args:  cobra.NoArgs,
+	Example: `
+# Lookup network by ip or hostname:
+	networker lookup network 8.8.8.8
+	networker lookup network dns.google.
+
+# Lookup network by ip or hostname(short-hand):
+	nw lu n 8.8.8.8
+	nw lu n dns.google.
+
+# Lookup network by ip or hostname(short-hand) and output as json:
+	nw lu n 8.8.8.8 -o json
+	nw lu n dns.google. -o json
+
+# Lookup network by ip or hostname(short-hand) and output as json:
+	nw lu n 8.8.8.8 -o yaml
+	nw lu n dns.google. -o yaml
+
+`,
+	Args:    cobra.ExactArgs(1),
+	Aliases: []string{"n"},
 	Run: func(cmd *cobra.Command, args []string) {
-		network, err := resolve.NetworkByHost(host)
+		nwRecord, err := resolve.NetworkByHost(args[0])
 		if err != nil {
 			usage.Fatalf(cmd, "lookup failed: %s", err)
 		}
-		log.Printf("lookup successful - network address: %s", network)
+
+		enc := encoder.New[resolve.NetworkRecord](os.Stdout, output)
+		if err := enc.Encode(*nwRecord); err != nil {
+			usage.Fatalf(cmd, "failed to encode network record: %s", err)
+		}
 	},
 }

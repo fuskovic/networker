@@ -1,12 +1,10 @@
 package cmd
 
 import (
-	"bytes"
-	"encoding/json"
+	"fmt"
 	"io/ioutil"
-	"log"
+
 	"net/http"
-	"os"
 	"time"
 
 	"github.com/spf13/cobra"
@@ -20,15 +18,17 @@ var (
 	body      string
 	filePaths string
 	headers   []string
-	jsonOnly  bool
+	silence   bool
+	verbose   bool
 )
 
 func init() {
 	requestCmd.Flags().StringSliceVarP(&headers, "headers", "H", headers, "Request headers.(format: key:value,key:value,key:value)")
 	requestCmd.Flags().StringVarP(&method, "method", "m", "GET", "Request method.")
 	requestCmd.Flags().StringVarP(&body, "body", "b", body, "Request body. (you can use a JSON string literal or a path to a json file)")
-	requestCmd.Flags().StringVarP(&filePaths, "files", "f", filePaths, "Files to upload. (format: formname=path/to/file1,path/to/file2,path/to/file3)")
-	requestCmd.Flags().BoolVarP(&jsonOnly, "json-only", "j", jsonOnly, "Only output json response body.")
+	requestCmd.Flags().StringVarP(&filePaths, "files", "f", filePaths, "Upload form file(s). (format: formname=path/to/file1,path/to/file2,path/to/file3)")
+	requestCmd.Flags().BoolVarP(&silence, "silence", "s", silence, "Omit output of everything except JSON response body.")
+	requestCmd.Flags().BoolVarP(&verbose, "verbose", "v", verbose, "Include response headers in output.")
 	Root.AddCommand(requestCmd)
 }
 
@@ -37,35 +37,51 @@ var requestCmd = &cobra.Command{
 	Aliases: []string{"r", "req"},
 	Short:   "Send an HTTP request.",
 	Example: `
-	POST request using json body sourced from stdin:
-		networker request \
-			-H "Authorization: Bearer doesntmatter" \
-			-m post \
-			-b '{"field": "doesntmatter"}'
+# POST request using json body sourced from stdin(short-hand):
 
-	POST request using json body sourced from file:
-		networker request \
-			-H "Authorization: Bearer doesntmatter" \
-			-m post -b /path/to/file.json
+	nw r \
+		-H "Authorization: Bearer doesntmatter" \
+		-m post \
+		-b '{"field": "doesntmatter"}' \
+		https://some-url.com/api/v1/some/endpoint
 
-	PUT request for file upload:
-		networker request \
-			-H "Authorization: Bearer doesntmatter" \
-			-m put \
-			-f=/path/to/file1.jpeg
+# POST request using json body sourced from file:
 
-	PUT request for uploading multiple files:
-		networker request \
-			-H "Authorization: Bearer doesntmatter" \
-			-m put \
-			-f=/path/to/file1.jpeg,/path/to/file2.jpeg,/path/to/file3.jpeg
+	nw r \
+		-H "Authorization: Bearer doesntmatter" \
+		-m post -b /path/to/file.json \
+		https://some-url.com/api/v1/some/endpoint
+
+# PUT request for file upload:
+
+	nw r \
+		-H "Authorization: Bearer doesntmatter" \
+		-m put \
+		-f formname=/path/to/file1.jpeg \
+		https://some-url.com/api/v1/some/endpoint
+
+# PUT request for uploading multiple files:
+
+	nw r \
+		-H "Authorization: Bearer doesntmatter" \
+		-m put \
+		-f formname=/path/to/file1.jpeg,/path/to/file2.jpeg,/path/to/file3.jpeg \
+		https://some-url.com/api/v1/some/endpoint
+
+# GET(default if -m is not provided) request + silence all output except json response body:
+
+	nw r https://jsonplaceholder.typicode.com/todos/1 -s
+
+# GET(default if -m is not provided) + include all response headers in output:
+
+	nw r https://jsonplaceholder.typicode.com/todos/1 -v
 `,
 	Args: cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
-		req, err := request.NewNetworkerCraftedHTTPRequest(
+		req, err := request.New(
 			&request.Config{
 				Headers:   headers,
-				URL:       os.Args[len(os.Args)-1],
+				URL:       args[0],
 				Method:    method,
 				Body:      body,
 				FilePaths: filePaths,
@@ -84,26 +100,21 @@ var requestCmd = &cobra.Command{
 		}
 		defer resp.Body.Close()
 
-		ended := time.Since(started)
-		if !jsonOnly {
-			log.Printf("received response in: %s\nstatus: %s\n", ended, resp.Status)
+		if !silence {
+			fmt.Printf("status_code: %d\n", resp.StatusCode)
+			fmt.Printf("latency(ms): %s\n", time.Since(started))
+		}
+
+		if verbose {
+			for k, v := range resp.Header {
+				fmt.Printf("%s: %s\n", k, v)
+			}
 		}
 
 		data, err := ioutil.ReadAll(resp.Body)
 		if err != nil {
 			usage.Fatalf(cmd, "failed to read response body : %v", err)
 		}
-
-		b := bytes.NewBuffer(nil)
-		if err := json.Indent(b, data, "", " "); err != nil {
-			// it's possible that a non-json response is received so if we fail to encode here just output whatever came back
-			b = bytes.NewBuffer(data)
-		}
-
-		if jsonOnly {
-			println(b.String())
-		} else {
-			log.Printf("response:\n%s\n", b.String())
-		}
+		println(string(data))
 	},
 }

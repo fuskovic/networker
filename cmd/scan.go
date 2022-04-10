@@ -2,24 +2,24 @@ package cmd
 
 import (
 	"context"
-	"encoding/json"
 	"net"
 	"os"
+	"time"
 
-	"cdr.dev/coder-cli/pkg/tablewriter"
+	"github.com/briandowns/spinner"
+	"github.com/spf13/cobra"
+
+	"github.com/fuskovic/networker/internal/encoder"
 	"github.com/fuskovic/networker/internal/list"
 	"github.com/fuskovic/networker/internal/ports"
 	"github.com/fuskovic/networker/internal/resolve"
 	"github.com/fuskovic/networker/internal/usage"
-	"github.com/spf13/cobra"
 )
 
-var shouldScanAll, shouldOutputAsJSON bool
+var shouldScanAll bool
 
 func init() {
 	scanCmd.Flags().BoolVar(&shouldScanAll, "all-ports", false, "Scan all ports(scans first 1024 if not enabled).")
-	scanCmd.Flags().BoolVar(&shouldOutputAsJSON, "json", false, "Output as json.")
-	scanCmd.Flags().StringVar(&host, "host", "", "Host to scan.")
 	Root.AddCommand(scanCmd)
 }
 
@@ -28,17 +28,70 @@ var scanCmd = &cobra.Command{
 	Aliases: []string{"s"},
 	Short:   "Scan hosts for open ports.",
 	Example: `
-	Scan well-known ports of single device on network:
-		networker scan --host 127.0.0.1
+# Scan well-known ports(first 1024) of all devices on network:
 
-	Scan well-known ports of all devices on network:
 		networker scan
 
-	Scan all ports of single device on network:
-		networker scan --host 127.0.0.1 --all-ports
+# Scan well-known ports(first 1024) of all devices on network(short-hand):
 
-	Output a scan as json:
-		networker scan --host 127.0.0.1 --json
+		nw s
+
+# Scan well-known ports(first 1024) of all devices on network(short-hand) and output as json:
+
+		nw s -o json
+
+# Scan well-known ports(first 1024) of all devices on network(short-hand) and output as yaml:
+
+		nw s -o yaml
+
+# Scan all ports of all devices on network:
+
+		networker scan --all-ports
+
+# Scan all ports of all devices on network(short-hand):
+
+		nw s --all-ports
+
+# Scan all ports of all devices on network(short-hand) and output as json:
+
+		nw s -o json --all-ports
+
+# Scan all ports of all devices on network(short-hand) and output as yaml:
+
+		nw s -o yaml --all-ports
+
+# Scan well-known ports(first 1024) of single host:
+
+		networker scan localhost
+
+# Scan well-known ports(first 1024) of single host(short-hand):
+
+		nw s localhost
+
+# Scan well-known ports(first 1024) of single host(short-hand) and output as json:
+
+		nw s localhost -o json
+
+# Scan well-known ports(first 1024) of single host(short-hand) and output as yaml:
+
+		nw s localhost -o yaml
+
+# Scan all ports of single host:
+
+		networker scan localhost --all-ports
+
+# Scan all ports of single host(short-hand):
+
+		nw s localhost --all-ports
+
+# Scan all ports of single host(short-hand) and output as json:
+
+		nw s localhost -o json --all-ports
+
+# Scan all ports of single host(short-hand) and output as yaml:
+
+		nw s localhost -o yaml --all-ports
+
 `,
 	Args: cobra.MaximumNArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
@@ -46,7 +99,7 @@ var scanCmd = &cobra.Command{
 		defer cancel()
 
 		var hosts []string
-		if host == "" {
+		if len(args) == 0 {
 			devices, err := list.Devices(ctx)
 			if err != nil {
 				usage.Fatalf(cmd, "failed to list network devices: %s", err)
@@ -55,34 +108,30 @@ var scanCmd = &cobra.Command{
 				hosts = append(hosts, devices[i].LocalIP.String())
 			}
 		} else {
-			ip := net.ParseIP(host)
+			ip := net.ParseIP(args[0])
 			if ip == nil {
-				addr, err := resolve.AddrByHostName(host)
+				record, err := resolve.AddrByHostName(args[0])
 				if err != nil {
 					usage.Fatalf(cmd, "failed to resolve ip address from hostname: %s", err)
 				}
-				ip = *addr
+				ip = record.IP
 			}
 			hosts = append(hosts, ip.String())
 		}
+
+		s := spinner.New(spinner.CharSets[36], 50*time.Millisecond)
+		s.Start()
 
 		scans, err := ports.NewScanner(hosts, shouldScanAll).Scan(ctx)
 		if err != nil {
 			usage.Fatalf(cmd, "failed scan hosts: %s", err)
 		}
 
-		if shouldOutputAsJSON {
-			enc := json.NewEncoder(os.Stdout)
-			enc.SetIndent("", "\t")
-			enc.SetEscapeHTML(false)
-			if err := enc.Encode(scans); err != nil {
-				usage.Fatalf(cmd, "failed to encode scan as json: %s", err)
-			}
-			return
-		}
+		s.Stop()
 
-		if err := tablewriter.WriteTable(os.Stdout, len(scans), func(i int) interface{} { return scans[i] }); err != nil {
-			usage.Fatalf(cmd, "failed to write scans table: %s", err)
+		enc := encoder.New[ports.Scan](os.Stdout, output)
+		if err := enc.Encode(scans...); err != nil {
+			usage.Fatalf(cmd, "failed to encode devices: %s", err)
 		}
 	},
 }

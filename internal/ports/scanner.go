@@ -5,8 +5,11 @@ import (
 	"fmt"
 	"net"
 	"strconv"
+	"strings"
 	"sync"
 	"time"
+
+	goping "github.com/tatsushid/go-fastping"
 
 	"github.com/fuskovic/networker/internal/resolve"
 )
@@ -20,6 +23,7 @@ type Scan struct {
 	IP    string `json:"ip" table:"IP"`
 	Host  string `json:"hostname" table:"HOSTNAME"`
 	Ports []int  `json:"open_ports" table:"OPEN_PORTS"`
+	Up    bool   `json:"up" yaml:"up" table:"UP"`
 }
 
 type Scanner interface {
@@ -28,16 +32,50 @@ type Scanner interface {
 
 type scanner struct {
 	sync.Mutex
-	scans         map[string][]int
+	scans         []Scan
 	shouldScanAll bool
 }
 
 // NewScanner initializes a new port-scanner based on whether or not the user wants to scan all ports or just the well-known ports.
 func NewScanner(hosts []string, shouldScanAll bool) Scanner {
-	scans := make(map[string][]int)
+	var (
+		scans []Scan
+		wg    sync.WaitGroup
+		mu    sync.Mutex
+	)
+
 	for _, host := range hosts {
-		scans[host] = []int{}
+		wg.Add(1)
+		go func(ip string) {
+			defer wg.Done()
+			p := goping.NewPinger()
+			_, _ = p.Network("udp")
+
+			netProto := "ip4:icmp"
+			if strings.Index(ip, ":") != -1 {
+				netProto = "ip6:ipv6-icmp"
+			}
+
+			addr, err := net.ResolveIPAddr(netProto, ip)
+			if err != nil {
+				return
+			}
+
+			p.AddIPAddr(addr)
+			p.MaxRTT = time.Second
+
+			s := Scan{IP: ip}
+			p.OnRecv = func(addr *net.IPAddr, t time.Duration) { s.Up = true }
+			if err := p.Run(); err != nil {
+				return
+			}
+
+			mu.Lock()
+			scans = append(scans, s)
+			mu.Unlock()
+		}(host)
 	}
+	wg.Wait()
 
 	return &scanner{
 		Mutex:         sync.Mutex{},
@@ -48,28 +86,25 @@ func NewScanner(hosts []string, shouldScanAll bool) Scanner {
 
 func (s *scanner) Scan(ctx context.Context) ([]Scan, error) {
 	var wg sync.WaitGroup
-	for host := range s.scans {
-		wg.Add(1)
-		go func(ip string) {
-			s.scanHost(ip)
-			wg.Done()
-		}(host)
+	for _, scan := range s.scans {
+		if scan.Up {
+			wg.Add(1)
+			go func(ip string) {
+				defer wg.Done()
+				s.scanHost(ip)
+			}(scan.IP)
+		}
 	}
 	wg.Wait()
 
-	var scans []Scan
-	for ip, ports := range s.scans {
-		hostname, _, err := resolve.HostAndAddr(ip)
+	for i := range s.scans {
+		hostname, _, err := resolve.HostAndAddr(s.scans[i].IP)
 		if err != nil {
-			return nil, fmt.Errorf("failed to lookup hostname by ip for %s: %w", ip, err)
+			return nil, fmt.Errorf("failed to lookup hostname by ip for %s: %w", s.scans[i].IP, err)
 		}
-		scans = append(scans, Scan{
-			IP:    ip,
-			Host:  hostname,
-			Ports: ports,
-		})
+		s.scans[i].Host = hostname
 	}
-	return scans, nil
+	return s.scans, nil
 }
 
 func (s *scanner) scanHost(host string) {
@@ -77,10 +112,10 @@ func (s *scanner) scanHost(host string) {
 	for _, port := range portsToScan(s.shouldScanAll) {
 		wg.Add(1)
 		go func(p int) {
+			defer wg.Done()
 			if isOpen(host, p) {
 				s.add(host, p)
 			}
-			wg.Done()
 		}(port)
 	}
 	wg.Wait()
@@ -88,7 +123,11 @@ func (s *scanner) scanHost(host string) {
 
 func (s *scanner) add(ip string, port int) {
 	s.Lock()
-	s.scans[ip] = append(s.scans[ip], port)
+	for i := range s.scans {
+		if s.scans[i].IP == ip {
+			s.scans[i].Ports = append(s.scans[i].Ports, port)
+		}
+	}
 	s.Unlock()
 }
 

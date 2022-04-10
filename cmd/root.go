@@ -1,16 +1,20 @@
 package cmd
 
 import (
-	"github.com/spf13/cobra"
 	_ "embed"
+
+	"github.com/spf13/cobra"
 )
 
-var shouldOutputVersion bool
-
-//go:embed version.txt
-var version string
+var (
+	//go:embed version.txt
+	version             string
+	output              string
+	shouldOutputVersion bool
+)
 
 func init() {
+	Root.PersistentFlags().StringVarP(&output, "output", "o", output, "Output format. Supported values include json and yaml.")
 	Root.Flags().BoolVarP(&shouldOutputVersion, "version", "v", false, "Print installed version.")
 }
 
