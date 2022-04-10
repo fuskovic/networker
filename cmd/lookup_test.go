@@ -158,7 +158,7 @@ func TestLookupNetworkCommand(t *testing.T) {
 			require.NoError(t, err, json.Unmarshal(output, &record))
 			require.Equal(t, "8.0.0.0", record.NetworkIP.String())
 		})
-		test.WithNetworker(t, "lookup network with hostname ouput as yaml", func(t *testing.T) {
+		test.WithNetworker(t, "lookup network with hostname output as yaml", func(t *testing.T) {
 			cmd := exec.Command("networker", "lookup", "network", "dns.google.", "-o", "yaml")
 			output, err := cmd.CombinedOutput()
 			require.NoError(t, err)
@@ -178,7 +178,7 @@ func TestLookupNetworkCommand(t *testing.T) {
 			require.NoError(t, err, json.Unmarshal(output, &record))
 			require.Equal(t, "8.0.0.0", record.NetworkIP.String())
 		})
-		test.WithNetworker(t, "lookup network with ip ouput as yaml", func(t *testing.T) {
+		test.WithNetworker(t, "lookup network with ip output as yaml", func(t *testing.T) {
 			cmd := exec.Command("networker", "lookup", "network", "8.8.8.8", "-o", "yaml")
 			output, err := cmd.CombinedOutput()
 			require.NoError(t, err)
@@ -215,7 +215,7 @@ func TestLookupNameserversCommand(t *testing.T) {
 			require.NoError(t, err, json.Unmarshal(output, &nameservers))
 			require.False(t, len(nameservers) == 0)
 		})
-		test.WithNetworker(t, "lookup nameservers with hostname ouput as yaml", func(t *testing.T) {
+		test.WithNetworker(t, "lookup nameservers with hostname output as yaml", func(t *testing.T) {
 			cmd := exec.Command("networker", "lookup", "nameservers", "dns.google.", "-o", "yaml")
 			output, err := cmd.CombinedOutput()
 			require.NoError(t, err)
@@ -235,7 +235,7 @@ func TestLookupNameserversCommand(t *testing.T) {
 			require.NoError(t, err, json.Unmarshal(output, &nameservers))
 			require.False(t, len(nameservers) == 0)
 		})
-		test.WithNetworker(t, "lookup nameservers with ip ouput as yaml", func(t *testing.T) {
+		test.WithNetworker(t, "lookup nameservers with ip output as yaml", func(t *testing.T) {
 			cmd := exec.Command("networker", "lookup", "nameservers", "8.8.8.8", "-o", "yaml")
 			output, err := cmd.CombinedOutput()
 			require.NoError(t, err)

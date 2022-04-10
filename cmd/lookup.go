@@ -82,12 +82,12 @@ var lookupCmd = &cobra.Command{
 	nw lu isp 8.8.8.8
 	nw lu isp dns.google.
 
-# Lookup ISP by ip or hostname(short-hand) and ouput as json:
+# Lookup ISP by ip or hostname(short-hand) and output as json:
 
 	nw lu isp 8.8.8.8 -o json
 	nw lu isp dns.google. -o json
 
-# Lookup ISP by ip or hostname(short-hand) and ouput as yaml:
+# Lookup ISP by ip or hostname(short-hand) and output as yaml:
 
 	nw lu isp 8.8.8.8 -o yaml
 	nw lu isp dns.google. -o yaml
@@ -213,12 +213,12 @@ var lookupIspCmd = &cobra.Command{
 	nw lu isp 8.8.8.8
 	nw lu isp dns.google.
 
-# Lookup ISP by ip or hostname(short-hand) and ouput as json:
+# Lookup ISP by ip or hostname(short-hand) and output as json:
 
 	nw lu isp 8.8.8.8 -o json
 	nw lu isp dns.google. -o json
 
-# Lookup ISP by ip or hostname(short-hand) and ouput as yaml:
+# Lookup ISP by ip or hostname(short-hand) and output as yaml:
 
 	nw lu isp 8.8.8.8 -o yaml
 	nw lu isp dns.google. -o yaml
