@@ -25,4 +25,4 @@ Clone the repo, `cd` into it and run:
 
 # Documentation
 
-See [Docs](https://github.com/fuskovic/networker/v2/blob/master/docs/networker.md) for command examples.
+See [Docs](https://github.com/fuskovic/networker/blob/master/docs/networker.md) for command examples.
