@@ -79,10 +79,12 @@ networker lookup [flags]
 	nw lu isp dns.google. -o yaml
 
 # Lookup network by ip or hostname:
+
 	networker lookup network 8.8.8.8
 	networker lookup network dns.google.
 
 # Lookup network by ip or hostname(short-hand):
+
 	nw lu n 8.8.8.8
 	nw lu n dns.google.
 
