@@ -3,11 +3,11 @@ clean:
 	@./scripts/clean.sh
 
 .PHONY:build
-build: clean version
+build: clean
 	@./scripts/build.sh
 
 .PHONY:install
-install: version
+install:
 	@./scripts/install.sh
 
 .PHONY: test
