@@ -87,10 +87,12 @@ networker lookup [flags]
 	nw lu n dns.google.
 
 # Lookup network by ip or hostname(short-hand) and output as json:
+
 	nw lu n 8.8.8.8 -o json
 	nw lu n dns.google. -o json
 
 # Lookup network by ip or hostname(short-hand) and output as json:
+
 	nw lu n 8.8.8.8 -o yaml
 	nw lu n dns.google. -o yaml
 
