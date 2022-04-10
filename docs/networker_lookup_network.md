@@ -11,18 +11,22 @@ networker lookup network [flags]
 ```
 
 # Lookup network by ip or hostname:
+
 	networker lookup network 8.8.8.8
 	networker lookup network dns.google.
 
 # Lookup network by ip or hostname(short-hand):
+
 	nw lu n 8.8.8.8
 	nw lu n dns.google.
 
 # Lookup network by ip or hostname(short-hand) and output as json:
+
 	nw lu n 8.8.8.8 -o json
 	nw lu n dns.google. -o json
 
 # Lookup network by ip or hostname(short-hand) and output as json:
+
 	nw lu n 8.8.8.8 -o yaml
 	nw lu n dns.google. -o yaml
 
