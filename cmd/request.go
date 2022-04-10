@@ -37,32 +37,44 @@ var requestCmd = &cobra.Command{
 	Aliases: []string{"r", "req"},
 	Short:   "Send an HTTP request.",
 	Example: `
-	POST request using json body sourced from stdin:
-		networker request \
-			-H "Authorization: Bearer doesntmatter" \
-			-m post \
-			-b '{"field": "doesntmatter"}' \
-			https://some-url.com/api/v1/some/endpoint
+# POST request using json body sourced from stdin(short-hand):
 
-	POST request using json body sourced from file:
-		networker request \
-			-H "Authorization: Bearer doesntmatter" \
-			-m post -b /path/to/file.json \
-			https://some-url.com/api/v1/some/endpoint
+	nw r \
+		-H "Authorization: Bearer doesntmatter" \
+		-m post \
+		-b '{"field": "doesntmatter"}' \
+		https://some-url.com/api/v1/some/endpoint
 
-	PUT request for file upload:
-		networker request \
-			-H "Authorization: Bearer doesntmatter" \
-			-m put \
-			-f formname=/path/to/file1.jpeg \
-			https://some-url.com/api/v1/some/endpoint
+# POST request using json body sourced from file:
 
-	PUT request for uploading multiple files:
-		networker request \
-			-H "Authorization: Bearer doesntmatter" \
-			-m put \
-			-f formname=/path/to/file1.jpeg,/path/to/file2.jpeg,/path/to/file3.jpeg \
-			https://some-url.com/api/v1/some/endpoint
+	nw r \
+		-H "Authorization: Bearer doesntmatter" \
+		-m post -b /path/to/file.json \
+		https://some-url.com/api/v1/some/endpoint
+
+# PUT request for file upload:
+
+	nw r \
+		-H "Authorization: Bearer doesntmatter" \
+		-m put \
+		-f formname=/path/to/file1.jpeg \
+		https://some-url.com/api/v1/some/endpoint
+
+# PUT request for uploading multiple files:
+
+	nw r \
+		-H "Authorization: Bearer doesntmatter" \
+		-m put \
+		-f formname=/path/to/file1.jpeg,/path/to/file2.jpeg,/path/to/file3.jpeg \
+		https://some-url.com/api/v1/some/endpoint
+
+# GET(default if -m is not provided) request + silence all output except json response body:
+
+	nw r https://jsonplaceholder.typicode.com/todos/1 -s
+
+# GET(default if -m is not provided) + include all response headers in output:
+
+	nw r https://jsonplaceholder.typicode.com/todos/1 -v
 `,
 	Args: cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {

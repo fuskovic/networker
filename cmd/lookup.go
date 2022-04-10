@@ -24,22 +24,90 @@ var lookupCmd = &cobra.Command{
 	Aliases:    []string{"lu"},
 	SuggestFor: []string{},
 	Example: `
-	Lookup IP by hostname:
-		networker lookup ip dns.google.
+# Lookup hostname by IP:
 
-	Lookup hostname by IP:
-		networker lookup hostname 8.8.8.8
+	networker lookup hostname 8.8.8.8
 
-	Lookup nameservers by hostname:
-		networker lookup nameservers dns.google.
+# Lookup hostname by IP(short-hand):
 
-	Lookup ISP by ip or hostname:
-		networker lookup isp 8.8.8.8
-		networker lookup isp dns.google.
+	nw lu hn 8.8.8.8
 
-	Lookup network by ip or hostname:
-		networker lookup network 8.8.8.8
-		networker lookup network dns.google.
+# Lookup hostname by IP(short-hand) and output as json:
+
+	nw lu hn 8.8.8.8 -o json
+
+# Lookup hostname by IP(short-hand) and output as yaml:
+
+	nw lu hn 8.8.8.8 -o yaml
+
+# Lookup IP by hostname:
+
+	networker lookup ip dns.google.
+
+# Lookup IP by hostname(short-hand):
+
+	nw lu ip dns.google.
+
+# Lookup IP by hostname(short-hand) and output as json:
+
+	nw lu ip dns.google. -o json
+
+# Lookup IP by hostname(short-hand) and output as yaml:
+
+	nw lu ip dns.google. -o yaml
+
+# Lookup nameservers by hostname:
+
+	networker lookup nameservers dns.google.
+
+# Lookup nameservers by hostname(short-hand):
+
+	nw lu ns dns.google.
+
+# Lookup nameservers by hostname(short-hand) and output as json:
+
+	nw lu ns dns.google. -o json
+
+# Lookup nameservers by hostname(short-hand) and output as yaml:
+
+	nw lu ns dns.google. -o yaml
+
+# Lookup ISP by ip or hostname:
+
+	networker lookup isp 8.8.8.8
+	networker lookup isp dns.google.
+
+# Lookup ISP by ip or hostname(short-hand):
+
+	nw lu isp 8.8.8.8
+	nw lu isp dns.google.
+
+# Lookup ISP by ip or hostname(short-hand) and ouput as json:
+
+	nw lu isp 8.8.8.8 -o json
+	nw lu isp dns.google. -o json
+
+# Lookup ISP by ip or hostname(short-hand) and ouput as yaml:
+
+	nw lu isp 8.8.8.8 -o yaml
+	nw lu isp dns.google. -o yaml
+
+# Lookup network by ip or hostname:
+	networker lookup network 8.8.8.8
+	networker lookup network dns.google.
+
+# Lookup network by ip or hostname(short-hand):
+	nw lu n 8.8.8.8
+	nw lu n dns.google.
+
+# Lookup network by ip or hostname(short-hand) and output as json:
+	nw lu n 8.8.8.8 -o json
+	nw lu n dns.google. -o json
+
+# Lookup network by ip or hostname(short-hand) and output as json:
+	nw lu n 8.8.8.8 -o yaml
+	nw lu n dns.google. -o yaml
+
 `,
 	Short: "Lookup hostnames, IPs, ISPs, nameservers, and networks.",
 	Run: func(cmd *cobra.Command, args []string) {
@@ -51,7 +119,25 @@ var lookupHostnameCmd = &cobra.Command{
 	Use:     "hostname",
 	Short:   "Lookup the hostname for a provided ip address.",
 	Aliases: []string{"hn"},
-	Args:    cobra.ExactArgs(1),
+	Example: `
+# Lookup hostname by IP:
+
+	networker lookup hostname 8.8.8.8
+
+# Lookup hostname by IP(short-hand):
+
+	nw lu hn 8.8.8.8
+
+# Lookup hostname by IP(short-hand) and output as json:
+
+	nw lu hn 8.8.8.8 -o json
+
+# Lookup hostname by IP(short-hand) and output as yaml:
+
+	nw lu hn 8.8.8.8 -o yaml
+
+	`,
+	Args: cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 		ipAddr := net.ParseIP(args[0])
 		if ipAddr == nil {
@@ -73,7 +159,25 @@ var lookupHostnameCmd = &cobra.Command{
 var lookupIpaddressCmd = &cobra.Command{
 	Use:   "ip",
 	Short: "Lookup the ip address of the provided hostname.",
-	Args:  cobra.ExactArgs(1),
+	Example: `
+# Lookup IP by hostname:
+
+	networker lookup ip dns.google.
+
+# Lookup IP by hostname(short-hand):
+
+	nw lu ip dns.google.
+
+# Lookup IP by hostname(short-hand) and output as json:
+
+	nw lu ip dns.google. -o json
+
+# Lookup IP by hostname(short-hand) and output as yaml:
+
+	nw lu ip dns.google. -o yaml
+
+	`,
+	Args: cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 		if ip := net.ParseIP(args[0]); ip != nil {
 			usage.Fatal(cmd, "expected a hostname not an ip address")
@@ -93,7 +197,28 @@ var lookupIpaddressCmd = &cobra.Command{
 }
 
 var lookupIspCmd = &cobra.Command{
-	Use:   "isp",
+	Use: "isp",
+	Example: `
+# Lookup ISP by ip or hostname:
+
+	networker lookup isp 8.8.8.8
+	networker lookup isp dns.google.
+
+# Lookup ISP by ip or hostname(short-hand):
+
+	nw lu isp 8.8.8.8
+	nw lu isp dns.google.
+
+# Lookup ISP by ip or hostname(short-hand) and ouput as json:
+
+	nw lu isp 8.8.8.8 -o json
+	nw lu isp dns.google. -o json
+
+# Lookup ISP by ip or hostname(short-hand) and ouput as yaml:
+
+	nw lu isp 8.8.8.8 -o yaml
+	nw lu isp dns.google. -o yaml
+`,
 	Short: "Lookup the internet service provider of a remote host.",
 	Args:  cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
@@ -122,7 +247,24 @@ var lookupNameserversCmd = &cobra.Command{
 	Use:     "nameservers",
 	Aliases: []string{"ns"},
 	Short:   "Lookup nameservers for the provided hostname.",
-	Args:    cobra.ExactArgs(1),
+	Example: `
+# Lookup nameservers by hostname:
+
+	networker lookup nameservers dns.google.
+
+# Lookup nameservers by hostname(short-hand):
+
+	nw lu ns dns.google.
+
+# Lookup nameservers by hostname(short-hand) and output as json:
+
+	nw lu ns dns.google. -o json
+
+# Lookup nameservers by hostname(short-hand) and output as yaml:
+
+	nw lu ns dns.google. -o yaml
+`,
+	Args: cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 		hostname, _, err := resolve.HostAndAddr(args[0])
 		if err != nil {
@@ -142,8 +284,26 @@ var lookupNameserversCmd = &cobra.Command{
 }
 
 var lookupNetworkCmd = &cobra.Command{
-	Use:     "network",
-	Short:   "Lookup the network address of a provided host.",
+	Use:   "network",
+	Short: "Lookup the network address of a provided host.",
+	Example: `
+# Lookup network by ip or hostname:
+	networker lookup network 8.8.8.8
+	networker lookup network dns.google.
+
+# Lookup network by ip or hostname(short-hand):
+	nw lu n 8.8.8.8
+	nw lu n dns.google.
+
+# Lookup network by ip or hostname(short-hand) and output as json:
+	nw lu n 8.8.8.8 -o json
+	nw lu n dns.google. -o json
+
+# Lookup network by ip or hostname(short-hand) and output as json:
+	nw lu n 8.8.8.8 -o yaml
+	nw lu n dns.google. -o yaml
+
+`,
 	Args:    cobra.ExactArgs(1),
 	Aliases: []string{"n"},
 	Run: func(cmd *cobra.Command, args []string) {

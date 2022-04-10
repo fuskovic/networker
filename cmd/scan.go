@@ -28,17 +28,70 @@ var scanCmd = &cobra.Command{
 	Aliases: []string{"s"},
 	Short:   "Scan hosts for open ports.",
 	Example: `
-	Scan well-known ports of single device on network:
-		networker scan 127.0.0.1
+# Scan well-known ports(first 1024) of all devices on network:
 
-	Scan well-known ports of all devices on network:
 		networker scan
 
-	Scan all ports of single device on network:
-		networker scan 127.0.0.1 --all-ports
+# Scan well-known ports(first 1024) of all devices on network(short-hand):
 
-	Output a scan as json:
-		networker scan 127.0.0.1 -o json
+		nw s
+
+# Scan well-known ports(first 1024) of all devices on network(short-hand) and output as json:
+
+		nw s -o json
+
+# Scan well-known ports(first 1024) of all devices on network(short-hand) and output as yaml:
+
+		nw s -o yaml
+
+# Scan all ports of all devices on network:
+
+		networker scan --all-ports
+
+# Scan all ports of all devices on network(short-hand):
+
+		nw s --all-ports
+
+# Scan all ports of all devices on network(short-hand) and output as json:
+
+		nw s -o json --all-ports
+
+# Scan all ports of all devices on network(short-hand) and output as yaml:
+
+		nw s -o yaml --all-ports
+
+# Scan well-known ports(first 1024) of single host:
+
+		networker scan localhost
+
+# Scan well-known ports(first 1024) of single host(short-hand):
+
+		nw s localhost
+
+# Scan well-known ports(first 1024) of single host(short-hand) and output as json:
+
+		nw s localhost -o json
+
+# Scan well-known ports(first 1024) of single host(short-hand) and output as yaml:
+
+		nw s localhost -o yaml
+
+# Scan all ports of single host:
+
+		networker scan localhost --all-ports
+
+# Scan all ports of single host(short-hand):
+
+		nw s localhost --all-ports
+
+# Scan all ports of single host(short-hand) and output as json:
+
+		nw s localhost -o json --all-ports
+
+# Scan all ports of single host(short-hand) and output as yaml:
+
+		nw s localhost -o yaml --all-ports
+
 `,
 	Args: cobra.MaximumNArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
