@@ -8,16 +8,18 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
+// Encoder can encode generic objects into various output formats.
 type Encoder[T any] struct {
 	w      io.Writer
 	output string
 }
 
+// New initializes a new Encoder.
 func New[T any](w io.Writer, output string) Encoder[T] {
 	return Encoder[T]{w, output}
 }
 
-// object must not be a pointer?
+// Encode encodes the generic objects into the output specified during Encoder initialization.
 func (e *Encoder[T]) Encode(objects ...T) error {
 	var err error
 	switch e.output {
