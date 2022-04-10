@@ -37,3 +37,7 @@ docs:
 .PHONY: version
 version:
 	@./scripts/get_version.sh
+
+.PHONY: module_refresh
+module_refresh:
+	@GOPROXY=proxy.golang.org go list -m github.com/fuskovic/networker/v2@latest
