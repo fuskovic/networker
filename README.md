@@ -5,23 +5,25 @@
 
 # Installation
 
-## Install by downloading pre-compiled binaries
+# Download a pre-compiled binary
 
-Checkout the [releases](https://github.com/fuskovic/networker/v2/releases) page to download the latest executables for Linux, Mac, and Windows.
+You can find a networker binary for your OS on the [releases](https://github.com/fuskovic/networker/v2/releases) page.
 
-## Install globally using Go
+# Install globally using Go
+
+**Requires Go 1.18**
+
 
     go install github.com/fuskovic/networker/v2@latest
 
-Then verify your installation:
+# Compile from source
 
-    networker -v
-
-## Compile from source
+**Requires Go 1.18**
 
 Clone the repo, `cd` into it and run:
 
     make install
+
 
 # Documentation
 
