@@ -7,7 +7,7 @@
 
 # Download a pre-compiled binary
 
-You can find a networker binary for your OS on the [releases](https://github.com/fuskovic/networker/v2/releases) page.
+You can find a networker binary for your OS on the [releases](https://github.com/fuskovic/networker/releases) page.
 
 # Install globally using Go
 
