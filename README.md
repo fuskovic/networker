@@ -24,6 +24,10 @@ Clone the repo, `cd` into it and run:
 
     make install
 
+# Verify your installation
+
+    networker -v
+
 
 # Documentation
 
