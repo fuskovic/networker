@@ -37,7 +37,7 @@ func (e *Encoder[T]) Encode(objects ...T) error {
 		err = yaml.NewEncoder(e.w).Encode(objects)
 	default:
 		err = tablewriter.WriteTable(e.w, len(objects),
-			func(i int) interface{} {
+			func(i int) any {
 				return objects[i]
 			},
 		)
