@@ -28,7 +28,7 @@ func TestDialer(t *testing.T) {
 
 		go func() {
 			// start the server
-			require.NoError(t, Serve("bash", "4444"))
+			require.NoError(t, Serve("bash", 4444))
 		}()
 
 		// Connect to it

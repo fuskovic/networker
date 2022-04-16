@@ -9,7 +9,6 @@ import (
 	"os"
 	"os/exec"
 	"os/signal"
-	"strconv"
 	"syscall"
 	"time"
 
@@ -17,7 +16,7 @@ import (
 )
 
 // Serve serves a shell on the designated port.
-func Serve(shell, port string) error {
+func Serve(shell string, port int) error {
 	if !isSupportedShell(shell) {
 		return fmt.Errorf("shell %q is not supported", shell)
 	}
@@ -43,9 +42,9 @@ func Serve(shell, port string) error {
 		errChan <- nil
 	}()
 
-	l, err := net.Listen("tcp", fmt.Sprintf("localhost:%s", port))
+	l, err := net.Listen("tcp", fmt.Sprintf("localhost:%d", port))
 	if err != nil {
-		return fmt.Errorf("failed to listen on port %s: %w", port, err)
+		return fmt.Errorf("failed to listen on port %d: %w", port, err)
 	}
 	defer l.Close()
 
@@ -76,7 +75,7 @@ func Serve(shell, port string) error {
 				close(ch)
 			}()
 
-			log.Printf("serving a new shell process on localhost:%s\n", port)
+			log.Printf("serving a new %s process on localhost:%d\n", shell, port)
 
 			conn, err := l.Accept()
 			if err != nil {
@@ -127,10 +126,6 @@ func isSupportedShell(targetShell string) bool {
 	return false
 }
 
-func isValidPort(port string) bool {
-	p, err := strconv.Atoi(port)
-	if err != nil {
-		return false
-	}
-	return p > -1 && p < 65536
+func isValidPort(port int) bool {
+	return port > -1 && port < 65536
 }

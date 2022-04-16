@@ -16,13 +16,13 @@ import (
 func TestServeCommand(t *testing.T) {
 	t.Run("ShouldFail", func(t *testing.T) {
 		test.WithNetworker(t, "if shell is unsupported", func(t *testing.T) {
-			cmd := exec.Command("networker", "shell", "serve", "--shell", "unsupported")
+			cmd := exec.Command("networker", "shell", "serve", "unsupported")
 			output, err := cmd.CombinedOutput()
 			require.Error(t, err)
 			require.Contains(t, string(output), "shell \"unsupported\" is not supported")
 		})
 		test.WithNetworker(t, "if shell is not installed", func(t *testing.T) {
-			cmd := exec.Command("networker", "shell", "serve", "--shell", "fish")
+			cmd := exec.Command("networker", "shell", "serve", "fish")
 			output, err := cmd.CombinedOutput()
 			require.Error(t, err)
 			require.Contains(t,
@@ -31,15 +31,15 @@ func TestServeCommand(t *testing.T) {
 			)
 		})
 		test.WithNetworker(t, "if port is invalid", func(t *testing.T) {
-			cmd := exec.Command("networker", "shell", "serve", "70000")
+			cmd := exec.Command("networker", "shell", "serve", "-p", "70000")
 			output, err := cmd.CombinedOutput()
 			require.Error(t, err)
-			require.Contains(t, string(output), "\"70000\" is not a valid port")
+			require.Contains(t, string(output), "not a valid port")
 		})
 	})
 	t.Run("ShouldPass", func(t *testing.T) {
 		test.WithNetworker(t, "if args are valid", func(t *testing.T) {
-			cmd := exec.Command("networker", "shell", "serve", "8000")
+			cmd := exec.Command("networker", "shell", "serve", "-p", "8000")
 			require.NoError(t, cmd.Start())
 
 			// validate that the server is up
@@ -68,7 +68,7 @@ func TestDialCommand(t *testing.T) {
 	})
 	t.Run("ShouldPass", func(t *testing.T) {
 		test.WithNetworker(t, "if dialing active shell server with valid args", func(t *testing.T) {
-			cmd := exec.Command("networker", "shell", "serve", "8000")
+			cmd := exec.Command("networker", "shell", "serve", "-p", "8000")
 			require.NoError(t, cmd.Start())
 
 			// validate that the server is up

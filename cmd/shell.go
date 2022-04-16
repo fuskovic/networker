@@ -3,6 +3,7 @@ package cmd
 import (
 	"net"
 	"runtime"
+	"strings"
 
 	"github.com/spf13/cobra"
 
@@ -10,10 +11,10 @@ import (
 	"github.com/fuskovic/networker/v2/internal/usage"
 )
 
-var targetShell string
+var port int
 
 func init() {
-	serveCmd.Flags().StringVar(&targetShell, "shell", "bash", "Shell to serve. e.g. bash, zsh, sh, etc...")
+	serveCmd.Flags().IntVarP(&port, "port", "p", 4444, "Port to serve shell on.")
 	shellCmd.AddCommand(serveCmd)
 	shellCmd.AddCommand(dialCmd)
 	Root.AddCommand(shellCmd)
@@ -37,12 +38,12 @@ var serveCmd = &cobra.Command{
 			usage.Fatal(cmd, "this command is not supported on windows")
 		}
 
-		port := "4444"
+		sh := "bash"
 		if len(args) == 1 {
-			port = args[0]
+			sh = strings.Replace(args[0], "/bin/", "", 1)
 		}
 
-		if err := shell.Serve(targetShell, port); err != nil {
+		if err := shell.Serve(sh, port); err != nil {
 			usage.Fatalf(cmd, "unexpected server shutdown: %s\n", err)
 		}
 	},
