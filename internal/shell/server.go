@@ -9,7 +9,6 @@ import (
 	"os"
 	"os/exec"
 	"os/signal"
-	"syscall"
 	"time"
 
 	"github.com/creack/pty"
@@ -56,24 +55,6 @@ func Serve(shell string, port int) error {
 				return
 			}
 			defer proc.Close()
-
-			ch := make(chan os.Signal, 1)
-			signal.Notify(ch, syscall.SIGWINCH)
-
-			go func() {
-				for range ch {
-					if err := pty.InheritSize(os.Stdin, proc); err != nil {
-						log.Printf("error resizing: %s", err)
-					}
-				}
-			}()
-
-			// initial resize
-			ch <- syscall.SIGWINCH
-			defer func() {
-				signal.Stop(ch)
-				close(ch)
-			}()
 
 			log.Printf("serving a new %s process on localhost:%d\n", shell, port)
 
