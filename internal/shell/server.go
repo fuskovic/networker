@@ -26,7 +26,7 @@ func Serve(shell string, port int) error {
 	}
 
 	if !isValidPort(port) {
-		return fmt.Errorf("%q is not a valid port", port)
+		return fmt.Errorf("%d is not a valid port", port)
 	}
 
 	c := make(chan os.Signal, 1)

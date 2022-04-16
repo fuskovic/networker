@@ -25,13 +25,13 @@ func TestServer(t *testing.T) {
 			require.Equal(t, expected, got.Error())
 		})
 		t.Run("if port is negative number", func(t *testing.T) {
-			expected := "\"-1\" is not a valid port"
+			expected := "-1 is not a valid port"
 			got := Serve("bash", -1)
 			require.Error(t, got)
 			require.Equal(t, expected, got.Error())
 		})
 		t.Run("if port is invalid", func(t *testing.T) {
-			expected := "\"70000\" is not a valid port"
+			expected := "70000 is not a valid port"
 			got := Serve("bash", 70000)
 			require.Error(t, got)
 			require.Equal(t, expected, got.Error())
