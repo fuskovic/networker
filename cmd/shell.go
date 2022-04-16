@@ -23,7 +23,21 @@ func init() {
 var shellCmd = &cobra.Command{
 	Use:   "shell",
 	Short: "Serve and establish connections with remote shells.",
-	Args:  cobra.NoArgs,
+	Example: `
+# Serve using the defaults(bash is the default shell and 4444 is the default port):
+
+	nw shell serve
+
+# Serve a particular shell on a particular port:
+
+	nw shell serve zsh --port 9000
+
+# Establish a new shell session by dialing a networker initiated shell server.
+
+	nw shell dial some.remote.ip.addr:9000
+
+`,
+	Args: cobra.NoArgs,
 	Run: func(cmd *cobra.Command, args []string) {
 		_ = cmd.Usage()
 	},
@@ -32,7 +46,17 @@ var shellCmd = &cobra.Command{
 var serveCmd = &cobra.Command{
 	Use:   "serve",
 	Short: "Start a shell server.",
-	Args:  cobra.MaximumNArgs(1),
+	Example: `
+# Serve using the defaults(bash is the default shell and 4444 is the default port):
+
+	nw shell serve
+
+# Serve a particular shell on a particular port:
+
+	nw shell serve zsh -p 9000
+
+`,
+	Args: cobra.MaximumNArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 		if runtime.GOOS == "windows" {
 			usage.Fatal(cmd, "this command is not supported on windows")
@@ -52,7 +76,13 @@ var serveCmd = &cobra.Command{
 var dialCmd = &cobra.Command{
 	Use:   "dial",
 	Short: "Dial a shell server.",
-	Args:  cobra.ExactArgs(1),
+	Example: `
+# Establish a new shell session by dialing a networker initiated shell server.
+
+	nw shell dial some.remote.ip.addr:9000
+
+`,
+	Args: cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 		if _, _, err := net.SplitHostPort(args[0]); err != nil {
 			usage.Fatalf(cmd, "invalid address: %s\n", err)
