@@ -39,7 +39,7 @@ func TestDialer(t *testing.T) {
 		// grace period to wait for connection to establish
 		time.Sleep(time.Second)
 
-		// get the process id of the new
+		// get the process id of the new shell
 		getShellPid = exec.Command("bash", "-c", "echo $$")
 		output, err = getShellPid.CombinedOutput()
 		require.NoError(t, err)
@@ -47,7 +47,7 @@ func TestDialer(t *testing.T) {
 		newPid, err := strconv.Atoi(out)
 		require.NoError(t, err)
 
-		// assert that the current shells process id is different to the original
+		// assert that the current shells process id is different than the original
 		require.NotEqual(t, ogPid, newPid)
 
 		// kill the server
