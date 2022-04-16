@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"net"
+	"runtime"
 
 	"github.com/spf13/cobra"
 
@@ -32,6 +33,10 @@ var serveCmd = &cobra.Command{
 	Short: "Start a shell server.",
 	Args:  cobra.MaximumNArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
+		if runtime.GOOS == "windows" {
+			usage.Fatal(cmd, "this command is not supported on windows")
+		}
+
 		port := "4444"
 		if len(args) == 1 {
 			port = args[0]
