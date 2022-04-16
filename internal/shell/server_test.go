@@ -3,7 +3,6 @@ package shell
 import (
 	"errors"
 	"net"
-	"syscall"
 	"testing"
 	"time"
 
@@ -40,19 +39,14 @@ func TestServer(t *testing.T) {
 	t.Run("ShouldPass", func(t *testing.T) {
 		go func() {
 			// start the server
-			require.NoError(t, Serve("bash", 4444))
+			require.NoError(t, Serve("bash", 1111))
 		}()
 
 		// validate that its up
-		conn, err := net.DialTimeout("tcp", "localhost:4444", 3*time.Second)
+		conn, err := net.DialTimeout("tcp", "localhost:1111", 3*time.Second)
 		require.NoError(t, err)
 
 		// close the client connection
 		require.NoError(t, conn.Close())
-
-		// kill the server
-		require.NoError(t,
-			syscall.Kill(syscall.Getpid(), syscall.SIGINT),
-		)
 	})
 }

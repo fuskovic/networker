@@ -4,7 +4,6 @@ import (
 	"os/exec"
 	"strconv"
 	"strings"
-	"syscall"
 	"testing"
 	"time"
 
@@ -49,10 +48,5 @@ func TestDialer(t *testing.T) {
 
 		// assert that the current shells process id is different than the original
 		require.NotEqual(t, ogPid, newPid)
-
-		// kill the server
-		require.NoError(t,
-			syscall.Kill(syscall.Getpid(), syscall.SIGINT),
-		)
 	})
 }
