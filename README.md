@@ -11,6 +11,10 @@
 - DNS lookup
 - Send HTTP requests
 
+# Documentation
+
+See [Docs](https://github.com/fuskovic/networker/blob/master/docs/networker.md) for command examples.
+
 # Installation
 
 # Download a pre-compiled binary
@@ -34,7 +38,3 @@ You can find a networker binary for your OS on the [releases](https://github.com
 Clone the repo, `cd` into it and run:
 
     make install
-
-# Documentation
-
-See [Docs](https://github.com/fuskovic/networker/blob/master/docs/networker.md) for command examples.
