@@ -23,6 +23,10 @@ You can find a networker binary for your OS on the [releases](https://github.com
 
     go install github.com/fuskovic/networker/v2@latest
 
+# Verify your installation
+
+    networker -v
+
 # Compile from source
 
 **Requires Go 1.18**
@@ -30,10 +34,6 @@ You can find a networker binary for your OS on the [releases](https://github.com
 Clone the repo, `cd` into it and run:
 
     make install
-
-# Verify your installation
-
-    networker -v
 
 # Documentation
 

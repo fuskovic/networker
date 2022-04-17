@@ -19,14 +19,8 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 
-which networker
-if [ $? -ne 0 ]; then
-    echo "failed to install networker globally"
-    exit 1
-fi
-
 networker -v
 if [ $? -ne 0 ]; then
-    echo "failed to identify networker version"
+    echo "failed to validate networker installation"
     exit 1
 fi
