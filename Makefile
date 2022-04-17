@@ -1,11 +1,3 @@
-.PHONY:clean
-clean:
-	@./scripts/clean.sh
-
-.PHONY:build
-build: clean
-	@./scripts/build.sh
-
 .PHONY:install
 install:
 	@./scripts/install.sh
@@ -34,10 +26,6 @@ commit: fmt
 docs:
 	@go run ./scripts/doc_gen.go
 
-.PHONY: version
-version:
-	@./scripts/get_version.sh
-
-.PHONY: module_refresh
-module_refresh:
+.PHONY: refresh
+refresh:
 	@GOPROXY=proxy.golang.org go list -m github.com/fuskovic/networker/v2@latest
