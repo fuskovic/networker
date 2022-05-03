@@ -28,13 +28,12 @@ func Serve(shell string, port int) error {
 		return fmt.Errorf("%d is not a valid port", port)
 	}
 
-	c := make(chan os.Signal, 1)
-	signal.Notify(c, os.Interrupt)
-
+	sigChan := make(chan os.Signal, 1)
+	signal.Notify(sigChan, os.Interrupt)
 	errChan := make(chan error, 1)
 
 	go func() {
-		<-c
+		<-sigChan
 		println()
 		log.Println("received interrupt signal")
 		log.Println("shutting down")
