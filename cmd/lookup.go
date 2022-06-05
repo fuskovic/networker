@@ -107,7 +107,7 @@ var lookupCmd = &cobra.Command{
 	nw lu n 8.8.8.8 -o json
 	nw lu n dns.google. -o json
 
-# Lookup network by ip or hostname(short-hand) and output as json:
+# Lookup network by ip or hostname(short-hand) and output as yaml:
 
 	nw lu n 8.8.8.8 -o yaml
 	nw lu n dns.google. -o yaml
@@ -306,7 +306,7 @@ var lookupNetworkCmd = &cobra.Command{
 	nw lu n 8.8.8.8 -o json
 	nw lu n dns.google. -o json
 
-# Lookup network by ip or hostname(short-hand) and output as json:
+# Lookup network by ip or hostname(short-hand) and output as yaml:
 
 	nw lu n 8.8.8.8 -o yaml
 	nw lu n dns.google. -o yaml
