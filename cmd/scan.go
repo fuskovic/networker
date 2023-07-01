@@ -11,8 +11,8 @@ import (
 
 	"github.com/fuskovic/networker/v2/internal/encoder"
 	"github.com/fuskovic/networker/v2/internal/list"
-	"github.com/fuskovic/networker/v2/internal/ports"
 	"github.com/fuskovic/networker/v2/internal/resolve"
+	"github.com/fuskovic/networker/v2/internal/scanner"
 	"github.com/fuskovic/networker/v2/internal/usage"
 )
 
@@ -122,14 +122,14 @@ var scanCmd = &cobra.Command{
 		s := spinner.New(spinner.CharSets[36], 50*time.Millisecond)
 		s.Start()
 
-		scans, err := ports.NewScanner(hosts, shouldScanAll).Scan(ctx)
+		scans, err := scanner.New(hosts, shouldScanAll).Scan(ctx)
 		if err != nil {
 			usage.Fatalf(cmd, "failed scan hosts: %s", err)
 		}
 
 		s.Stop()
 
-		enc := encoder.New[ports.Scan](os.Stdout, output)
+		enc := encoder.New[scanner.Scan](os.Stdout, output)
 		if err := enc.Encode(scans...); err != nil {
 			usage.Fatalf(cmd, "failed to encode devices: %s", err)
 		}

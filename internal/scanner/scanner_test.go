@@ -1,4 +1,4 @@
-package ports
+package scanner
 
 import (
 	"context"
@@ -28,7 +28,7 @@ func TestScanner(t *testing.T) {
 
 	// initialize a new scanner and scan localhost
 	hostsToScan := []string{host}
-	results, err := NewScanner(hostsToScan, shouldScanAll).Scan(context.Background())
+	results, err := New(hostsToScan, shouldScanAll).Scan(context.Background())
 	require.NoError(t, err)
 	require.Equal(t, 1, len(results))
 

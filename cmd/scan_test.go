@@ -5,7 +5,7 @@ import (
 	"os/exec"
 	"testing"
 
-	"github.com/fuskovic/networker/v2/internal/ports"
+	"github.com/fuskovic/networker/v2/internal/scanner"
 	"github.com/fuskovic/networker/v2/internal/test"
 	"github.com/stretchr/testify/require"
 )
@@ -19,7 +19,7 @@ func TestScanCommand(t *testing.T) {
 		require.NoError(t, cmd.Start())
 
 		// assert we can unmarshal the json output as expected
-		var scanResults []ports.Scan
+		var scanResults []scanner.Scan
 		require.NoError(t, json.NewDecoder(stdout).Decode(&scanResults))
 		require.NoError(t, cmd.Wait())
 
@@ -34,7 +34,7 @@ func TestScanCommand(t *testing.T) {
 		require.NoError(t, cmd.Start())
 
 		// assert we can unmarshal the json output as expected
-		var scanResults []ports.Scan
+		var scanResults []scanner.Scan
 		require.NoError(t, json.NewDecoder(stdout).Decode(&scanResults))
 		require.NoError(t, cmd.Wait())
 

@@ -1,4 +1,4 @@
-package ports
+package scanner
 
 import (
 	"context"
@@ -37,7 +37,7 @@ type scanner struct {
 }
 
 // NewScanner initializes a new port-scanner based on whether or not the user wants to scan all ports or just the well-known ports.
-func NewScanner(hosts []string, shouldScanAll bool) Scanner {
+func New(hosts []string, shouldScanAll bool) Scanner {
 	var (
 		scans []Scan
 		wg    sync.WaitGroup
