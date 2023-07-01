@@ -3,13 +3,12 @@ package cmd
 import (
 	"context"
 	"os"
-	"time"
 
-	"github.com/briandowns/spinner"
 	"github.com/spf13/cobra"
 
 	"github.com/fuskovic/networker/v3/internal/encoder"
 	"github.com/fuskovic/networker/v3/internal/list"
+	"github.com/fuskovic/networker/v3/internal/spinner"
 	"github.com/fuskovic/networker/v3/internal/usage"
 )
 
@@ -43,15 +42,14 @@ var listCmd = &cobra.Command{
 		ctx, cancel := context.WithCancel(context.Background())
 		defer cancel()
 
-		s := spinner.New(spinner.CharSets[36], 50*time.Millisecond)
-		s.Start()
+		spinner.Start()
 
 		devices, err := list.Devices(ctx)
 		if err != nil {
 			usage.Fatalf(cmd, "failed to list devices: %s", err)
 		}
 
-		s.Stop()
+		spinner.Stop()
 
 		enc := encoder.New[list.Device](os.Stdout, output)
 		if err := enc.Encode(devices...); err != nil {

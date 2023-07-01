@@ -4,22 +4,21 @@ import (
 	"context"
 	"net"
 	"os"
-	"time"
 
-	"github.com/briandowns/spinner"
 	"github.com/spf13/cobra"
 
 	"github.com/fuskovic/networker/v3/internal/encoder"
 	"github.com/fuskovic/networker/v3/internal/list"
 	"github.com/fuskovic/networker/v3/internal/resolve"
 	"github.com/fuskovic/networker/v3/internal/scanner"
+	"github.com/fuskovic/networker/v3/internal/spinner"
 	"github.com/fuskovic/networker/v3/internal/usage"
 )
 
-var shouldScanAll bool
+var scanAllPorts bool
 
 func init() {
-	scanCmd.Flags().BoolVar(&shouldScanAll, "all-ports", false, "Scan all ports(scans first 1024 if not enabled).")
+	scanCmd.Flags().BoolVar(&scanAllPorts, "all-ports", false, "Scan all ports(scans first 1024 if not enabled).")
 	Root.AddCommand(scanCmd)
 }
 
@@ -119,15 +118,14 @@ var scanCmd = &cobra.Command{
 			hosts = append(hosts, ip.String())
 		}
 
-		s := spinner.New(spinner.CharSets[36], 50*time.Millisecond)
-		s.Start()
+		spinner.Start()
 
-		scans, err := scanner.New(hosts, shouldScanAll).Scan(ctx)
+		scans, err := scanner.New(hosts, scanAllPorts).Scan(ctx)
 		if err != nil {
 			usage.Fatalf(cmd, "failed scan hosts: %s", err)
 		}
 
-		s.Stop()
+		spinner.Stop()
 
 		enc := encoder.New[scanner.Scan](os.Stdout, output)
 		if err := enc.Encode(scans...); err != nil {
