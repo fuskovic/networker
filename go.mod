@@ -7,15 +7,15 @@ require (
 	github.com/ammario/ipisp v1.0.0
 	github.com/spf13/cobra v1.4.0
 	github.com/stretchr/testify v1.7.0
-	golang.org/x/net v0.0.0-20211112202133-69e39bad7dc2
+	golang.org/x/net v0.7.0
 )
 
 require (
 	github.com/fatih/color v1.10.0 // indirect
 	github.com/mattn/go-colorable v0.1.8 // indirect
 	github.com/mattn/go-isatty v0.0.12 // indirect
-	golang.org/x/sys v0.0.0-20220408201424-a24fb2fb8a0f // indirect
-	golang.org/x/term v0.0.0-20201126162022-7de9c90e9dd1 // indirect
+	golang.org/x/sys v0.5.0 // indirect
+	golang.org/x/term v0.5.0 // indirect
 )
 
 require (
