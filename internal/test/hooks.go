@@ -18,17 +18,3 @@ func WithNetworker(t *testing.T, name string, fn func(t *testing.T)) {
 		fn(t)
 	})
 }
-
-// RequestFunc is the method signature the WithMockServer hook expects.
-type RequestFunc func(t *testing.T, serverURL string)
-
-// WithMockServer is a pre-test hook that starts the pre-configured mock server
-// and passes it's URL to to the down stream test. It also handles teardown of the server
-// and ensures the underlying test is parallelized.
-func WithMockServer(t *testing.T, fn RequestFunc) {
-	t.Helper()
-	t.Parallel()
-	testServer := newMockServer()
-	defer testServer.Close()
-	fn(t, testServer.URL)
-}
