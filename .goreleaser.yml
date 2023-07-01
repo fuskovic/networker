@@ -36,8 +36,6 @@ archives:
       format_overrides:
         - goos: windows
           format: zip
-      replacements:
-          darwin: macOS
       wrap_in_directory: true
 checksum:
   name_template: "{{ .ProjectName }}_{{ .Version }}--sha256_checksums.txt"
