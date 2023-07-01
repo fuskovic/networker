@@ -34,6 +34,12 @@ You can find a networker binary for your OS on the [releases](https://github.com
 
 **Requires Go 1.18**
 
+## install globally
+
 Clone the repo, `cd` into it and run:
 
     make install
+
+## output to ./bin
+
+    make build
