@@ -9,16 +9,13 @@ import (
 	"net/http"
 	"strings"
 	"sync"
-	"syscall"
 	"time"
 
+	gw "github.com/jackpal/gateway"
 	goping "github.com/tatsushid/go-fastping"
-	"golang.org/x/net/route"
 
-	"github.com/fuskovic/networker/v2/internal/resolve"
+	"github.com/fuskovic/networker/v3/internal/resolve"
 )
-
-var errNoGateway = errors.New("no gateway found")
 
 const (
 	DeviceKindUnknown Kind = "unknown"
@@ -81,7 +78,7 @@ func Devices(ctx context.Context) ([]Device, error) {
 			_, _ = p.Network("udp")
 
 			netProto := "ip4:icmp"
-			if strings.Contains(ip, ":") {
+			if strings.Index(ip, ":") != -1 {
 				netProto = "ip6:ipv6-icmp"
 			}
 
@@ -151,41 +148,19 @@ func getCurrentDevice(_ context.Context) (*Device, error) {
 }
 
 func getRouter(_ context.Context) (*Device, error) {
-	rib, err := route.FetchRIB(syscall.AF_INET, syscall.NET_RT_DUMP, 0)
+	ipAddr, err := gw.DiscoverGateway()
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to discover gateway: %w", err)
 	}
 
-	msgs, err := route.ParseRIB(syscall.NET_RT_DUMP, rib)
+	record, err := resolve.HostNameByIP(ipAddr)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to resolve hostname by ip for gateway: %w", err)
 	}
 
-	var ip net.IP
-OUTER_LOOP:
-	for _, m := range msgs {
-		switch m := m.(type) {
-		case *route.RouteMessage:
-			switch sa := m.Addrs[syscall.RTAX_GATEWAY].(type) {
-			case *route.Inet4Addr:
-				ip = net.IPv4(sa.IP[0], sa.IP[1], sa.IP[2], sa.IP[3])
-				break OUTER_LOOP
-			case *route.Inet6Addr:
-				ip = make(net.IP, net.IPv6len)
-				copy(ip, sa.IP[:])
-				break OUTER_LOOP
-			}
-		}
-	}
-
-	if ip == nil {
-		return nil, errNoGateway
-	}
-
-	record, _ := resolve.HostNameByIP(ip)
 	return &Device{
 		Hostname: record.Hostname,
-		LocalIP:  ip,
+		LocalIP:  ipAddr,
 		Kind:     DeviceKindRouter,
 		Up:       true,
 	}, nil

@@ -11,7 +11,7 @@ import (
 
 	goping "github.com/tatsushid/go-fastping"
 
-	"github.com/fuskovic/networker/v2/internal/resolve"
+	"github.com/fuskovic/networker/v3/internal/resolve"
 )
 
 var (

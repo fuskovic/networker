@@ -7,8 +7,8 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/fuskovic/networker/v2/internal/shell"
-	"github.com/fuskovic/networker/v2/internal/usage"
+	"github.com/fuskovic/networker/v3/internal/shell"
+	"github.com/fuskovic/networker/v3/internal/usage"
 )
 
 var port int

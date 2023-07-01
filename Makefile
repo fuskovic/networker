@@ -1,3 +1,7 @@
+.PHONY:clean
+clean:
+	@./scripts/clean.sh
+	
 .PHONY:install
 install:
 	@./scripts/install.sh
@@ -5,6 +9,10 @@ install:
 .PHONY: test
 test:
 	@go clean -testcache && go test -v ./...
+
+.PHONY:build
+build: clean
+	@./scripts/build.sh
 
 .PHONY: coverage
 coverage:
@@ -28,4 +36,4 @@ docs:
 
 .PHONY: refresh
 refresh:
-	@GOPROXY=proxy.golang.org go list -m github.com/fuskovic/networker/v2@latest
+	@GOPROXY=proxy.golang.org go list -m github.com/fuskovic/networker/v3@latest
