@@ -9,7 +9,6 @@
 - Port scanning
 - Remote TTY
 - DNS lookup
-- Send HTTP requests
 
 # Documentation
 
