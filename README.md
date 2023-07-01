@@ -10,36 +10,19 @@
 - Remote TTY
 - DNS lookup
 
-# Documentation
+# Installation Methods
 
-See [Docs](https://github.com/fuskovic/networker/blob/master/docs/networker.md) for command examples.
+Install globally using Go (requires Go 1.18^)
 
-# Installation
+        go install github.com/fuskovic/networker/v3@latest
 
-# Download a pre-compiled binary
+Or Download a pre-compiled binary from the [releases](https://github.com/fuskovic/networker/releases) page.
 
-You can find a networker binary for your OS on the [releases](https://github.com/fuskovic/networker/releases) page.
-
-# Install globally using Go
-
-**Requires Go 1.18**
-
-    go install github.com/fuskovic/networker/v3@latest
 
 # Verify your installation
 
     networker -v
 
-# Compile from source
+# Documentation
 
-**Requires Go 1.18**
-
-## install globally
-
-Clone the repo, `cd` into it and run:
-
-    make install
-
-## output to ./bin
-
-    make build
+See [Docs](https://github.com/fuskovic/networker/blob/master/docs/networker.md) for command examples.
