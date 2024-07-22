@@ -15,14 +15,12 @@ func TestLookup(t *testing.T) {
 		t.Parallel()
 		t.Run("hostname by ip", func(t *testing.T) {
 			t.Parallel()
-			record, err := HostNameByIP(googleDNS)
-			require.NoError(t, err)
+			record := HostNameByIP(googleDNS)
 			require.Equal(t, "dns.google.", record.Hostname)
 		})
 		t.Run("hostnames by ip", func(t *testing.T) {
 			t.Parallel()
-			hostnames, err := HostNamesByIP(googleDNS)
-			require.NoError(t, err)
+			hostnames := HostNamesByIP(googleDNS)
 			require.Len(t, hostnames, 1)
 		})
 		t.Run("nameservers by hostname", func(t *testing.T) {
@@ -79,15 +77,13 @@ func TestLookup(t *testing.T) {
 		t.Parallel()
 		t.Run("hostname by ip if invalid ip is input", func(t *testing.T) {
 			t.Parallel()
-			hostname, err := HostNameByIP(net.IP("invalid"))
-			require.Empty(t, hostname)
-			require.Error(t, err)
+			record := HostNameByIP(net.IP("invalid"))
+			require.Empty(t, record.Hostname)
 		})
 		t.Run("hostnames by ip if invalid ip is input", func(t *testing.T) {
 			t.Parallel()
-			hostnames, err := HostNamesByIP(net.IP("invalid"))
+			hostnames := HostNamesByIP(net.IP("invalid"))
 			require.Nil(t, hostnames)
-			require.Error(t, err)
 		})
 		t.Run("addr by hostname if hostname is invalid", func(t *testing.T) {
 			t.Parallel()

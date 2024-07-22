@@ -38,28 +38,33 @@ type NameServer struct {
 	Host string `json:"nameserver" table:"Nameserver"`
 }
 
+const notAvailable = "N/A"
+
+func Hostname(ip net.IP) string {
+	record := HostNameByIP(ip)
+	if record.Hostname == "" {
+		return notAvailable
+	}
+	return record.Hostname
+}
+
 // HostNameByIP returns the hostname for the provided ip address.
-func HostNameByIP(ip net.IP) (*Record, error) {
-	hostnames, err := HostNamesByIP(ip)
-	if err != nil {
-		return nil, err
+func HostNameByIP(ip net.IP) *Record {
+	var hostname string
+	hostnames := HostNamesByIP(ip)
+	if len(hostnames) > 0 {
+		hostname = hostnames[0]
 	}
 	return &Record{
 		IP:       ip,
-		Hostname: hostnames[0],
-	}, nil
+		Hostname: hostname,
+	}
 }
 
 // HostNamesByIP returns all hostnames found for the provided ip address.
-func HostNamesByIP(ip net.IP) ([]string, error) {
-	hostnames, err := net.LookupAddr(ip.String())
-	if err != nil {
-		return nil, fmt.Errorf("failed to lookup hostnames for ip address %q : %v", ip, err)
-	}
-	if len(hostnames) == 0 {
-		return nil, fmt.Errorf("no hostnames found for ip address: %q", ip)
-	}
-	return hostnames, nil
+func HostNamesByIP(ip net.IP) []string {
+	hostnames, _ := net.LookupAddr(ip.String())
+	return hostnames
 }
 
 // AddrByHostName resolves the ip address of the provided hostname.
@@ -147,11 +152,7 @@ func NetworkByHost(host string) (*NetworkRecord, error) {
 		}
 		ipAddr = record.IP
 	} else {
-		record, err := HostNameByIP(ipAddr)
-		if err != nil {
-			return nil, fmt.Errorf("failed to resolve hostname for ip %q: %s", ipAddr, err)
-		}
-		hostname = record.Hostname
+		hostname = Hostname(ipAddr)
 	}
 
 	network := ipAddr.Mask(ipAddr.DefaultMask())
@@ -179,11 +180,7 @@ func HostAndAddr(host string) (string, *net.IP, error) {
 		}
 		ip = record.IP
 	} else {
-		record, err := HostNameByIP(ip)
-		if err != nil {
-			return "", nil, fmt.Errorf("failed to get hostname by ip address %q: %w", ip, err)
-		}
-		hostname = record.Hostname
+		hostname = Hostname(ip)
 	}
 	return hostname, &ip, nil
 }

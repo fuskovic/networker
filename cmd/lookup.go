@@ -147,14 +147,8 @@ var lookupHostnameCmd = &cobra.Command{
 		if ipAddr == nil {
 			usage.Fatalf(cmd, "%q is not a valid ip address", args[0])
 		}
-
-		record, err := resolve.HostNameByIP(ipAddr)
-		if err != nil {
-			usage.Fatalf(cmd, "lookup failed: %s", err)
-		}
-
 		enc := encoder.New[resolve.Record](os.Stdout, output)
-		if err := enc.Encode(*record); err != nil {
+		if err := enc.Encode(*resolve.HostNameByIP(ipAddr)); err != nil {
 			usage.Fatalf(cmd, "failed to encode hostname record: %s", err)
 		}
 	},

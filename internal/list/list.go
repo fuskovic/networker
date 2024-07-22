@@ -4,7 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net"
 	"net/http"
 	"strings"
@@ -15,6 +15,12 @@ import (
 	goping "github.com/tatsushid/go-fastping"
 
 	"github.com/fuskovic/networker/v3/internal/resolve"
+)
+
+const (
+	notAvailable = "N/A"
+	icmpIpv4     = "ip4:icmp"
+	icmpIpv6     = "ip6:ipv6-icmp"
 )
 
 const (
@@ -77,9 +83,9 @@ func Devices(ctx context.Context) ([]Device, error) {
 			p := goping.NewPinger()
 			_, _ = p.Network("udp")
 
-			netProto := "ip4:icmp"
-			if strings.Index(ip, ":") != -1 {
-				netProto = "ip6:ipv6-icmp"
+			netProto := icmpIpv4
+			if strings.Contains(ip, ":") {
+				netProto = icmpIpv6
 			}
 
 			addr, err := net.ResolveIPAddr(netProto, ip)
@@ -89,8 +95,9 @@ func Devices(ctx context.Context) ([]Device, error) {
 
 			p.AddIPAddr(addr)
 			p.MaxRTT = time.Second
-
-			p.OnRecv = func(addr *net.IPAddr, t time.Duration) { device.Up = true }
+			p.OnRecv = func(addr *net.IPAddr, t time.Duration) {
+				device.Up = true
+			}
 			if err := p.Run(); err != nil {
 				return
 			}
@@ -110,14 +117,9 @@ func getDevice(_ context.Context, ip string) (*Device, error) {
 		return nil, fmt.Errorf("failed to parse ip %q", ip)
 	}
 
-	record, err := resolve.HostNameByIP(ipAddr)
-	if err != nil {
-		return nil, fmt.Errorf("failed to lookup hostname by ip address %q: %w", ip, err)
-	}
-
 	return &Device{
 		LocalIP:  ipAddr,
-		Hostname: record.Hostname,
+		Hostname: resolve.Hostname(ipAddr),
 		Kind:     DeviceKindPeer,
 	}, nil
 }
@@ -128,20 +130,15 @@ func getCurrentDevice(_ context.Context) (*Device, error) {
 		return nil, fmt.Errorf("failed to get local ip of current device: %w", err)
 	}
 
-	remoteIP, err := getCurrentDeviceRemoteIP(localIP)
+	remoteIP, err := getCurrentDeviceRemoteIP()
 	if err != nil {
 		return nil, fmt.Errorf("failed to get remote ip of current device: %w", err)
-	}
-
-	record, err := resolve.HostNameByIP(localIP)
-	if err != nil {
-		return nil, fmt.Errorf("failed to get host: %w", err)
 	}
 
 	return &Device{
 		LocalIP:  localIP,
 		RemoteIP: remoteIP,
-		Hostname: record.Hostname,
+		Hostname: resolve.Hostname(localIP),
 		Kind:     DeviceKindCurrent,
 		Up:       true,
 	}, nil
@@ -153,13 +150,8 @@ func getRouter(_ context.Context) (*Device, error) {
 		return nil, fmt.Errorf("failed to discover gateway: %w", err)
 	}
 
-	record, err := resolve.HostNameByIP(ipAddr)
-	if err != nil {
-		return nil, fmt.Errorf("failed to resolve hostname by ip for gateway: %w", err)
-	}
-
 	return &Device{
-		Hostname: record.Hostname,
+		Hostname: resolve.Hostname(ipAddr),
 		LocalIP:  ipAddr,
 		Kind:     DeviceKindRouter,
 		Up:       true,
@@ -213,14 +205,14 @@ func getCurrentDeviceLocalIP() (net.IP, error) {
 	return localAddr.IP, nil
 }
 
-func getCurrentDeviceRemoteIP(localIP net.IP) (net.IP, error) {
+func getCurrentDeviceRemoteIP() (net.IP, error) {
 	r, err := http.Get("http://myexternalip.com/raw")
 	if err != nil {
 		return nil, err
 	}
 	defer r.Body.Close()
 
-	b, err := ioutil.ReadAll(r.Body)
+	b, err := io.ReadAll(r.Body)
 	if err != nil {
 		return nil, err
 	}
