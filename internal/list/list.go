@@ -79,28 +79,7 @@ func Devices(ctx context.Context) ([]Device, error) {
 			if err != nil || device == nil {
 				return
 			}
-
-			p := goping.NewPinger()
-			_, _ = p.Network("udp")
-
-			netProto := icmpIpv4
-			if strings.Contains(ip, ":") {
-				netProto = icmpIpv6
-			}
-
-			addr, err := net.ResolveIPAddr(netProto, ip)
-			if err != nil {
-				return
-			}
-
-			p.AddIPAddr(addr)
-			p.MaxRTT = time.Second
-			p.OnRecv = func(addr *net.IPAddr, t time.Duration) {
-				device.Up = true
-			}
-			if err := p.Run(); err != nil {
-				return
-			}
+			device.Up = ping(ip)
 
 			mutex.Lock()
 			devices = append(devices, *device)
@@ -246,4 +225,29 @@ func removeIP(ip string, hosts []string) []string {
 		filteredHosts = append(filteredHosts, host)
 	}
 	return filteredHosts
+}
+
+func ping(ip string) bool {
+	p := goping.NewPinger()
+	p.Network("udp")
+
+	netProto := icmpIpv4
+	if strings.Contains(ip, ":") {
+		netProto = icmpIpv6
+	}
+
+	addr, err := net.ResolveIPAddr(netProto, ip)
+	if err != nil {
+		return false
+	}
+
+	p.AddIPAddr(addr)
+	p.MaxRTT = time.Second
+
+	var up bool
+	p.OnRecv = func(addr *net.IPAddr, t time.Duration) {
+		up = true
+	}
+	p.Run()
+	return up
 }
