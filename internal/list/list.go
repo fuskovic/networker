@@ -196,7 +196,13 @@ func getCurrentDeviceRemoteIP() (net.IP, error) {
 		return nil, err
 	}
 
-	remoteIP := net.ParseIP(string(b)).To4()
+	var remoteIP net.IP
+	ipAddr := string(b)
+	if strings.Contains(ipAddr, ":") {
+		remoteIP = net.ParseIP(ipAddr).To16()
+	} else {
+		remoteIP = net.ParseIP(ipAddr).To4()
+	}
 	if remoteIP == nil {
 		return nil, fmt.Errorf("failed to get resolve ip %q as ipv4", b)
 	}

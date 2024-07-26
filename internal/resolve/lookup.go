@@ -78,17 +78,16 @@ func AddrByHostName(hostname string) (*Record, error) {
 		return nil, fmt.Errorf("no addresses found for hostname %q", hostname)
 	}
 
-	ipv4 := ipAddrs[0].To4()
-	if ipv4 == nil {
-		return &Record{
-			Hostname: hostname,
-			IP:       *ipAddrs[0],
-		}, nil
+	var ipAddr net.IP
+	if strings.Contains(string(*ipAddrs[0]), ":") {
+		ipAddr = ipAddrs[0].To16()
+	} else {
+		ipAddr = ipAddrs[0].To4()
 	}
 
 	return &Record{
 		Hostname: hostname,
-		IP:       ipv4,
+		IP:       ipAddr,
 	}, err
 }
 
