@@ -3,6 +3,7 @@ package cmd
 import (
 	"context"
 	"os"
+	"slices"
 
 	"github.com/spf13/cobra"
 
@@ -50,6 +51,12 @@ var listCmd = &cobra.Command{
 		}
 
 		spinner.Stop()
+
+		devices = slices.DeleteFunc(devices,
+			func(d list.Device) bool {
+				return d.Hostname == "N/A" && d.RemoteIP == nil
+			},
+		)
 
 		enc := encoder.New[list.Device](os.Stdout, output)
 		if err := enc.Encode(devices...); err != nil {

@@ -4,6 +4,7 @@ import (
 	"context"
 	"net"
 	"os"
+	"slices"
 
 	"github.com/spf13/cobra"
 
@@ -126,6 +127,12 @@ var scanCmd = &cobra.Command{
 		}
 
 		spinner.Stop()
+
+		scans = slices.DeleteFunc(scans,
+			func(s scanner.Scan) bool {
+				return s.Host == "N/A" && len(s.Ports) == 0
+			},
+		)
 
 		enc := encoder.New[scanner.Scan](os.Stdout, output)
 		if err := enc.Encode(scans...); err != nil {
