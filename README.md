@@ -14,7 +14,7 @@
 
 Install globally using Go (requires Go 1.22^)
 
-        go install github.com/fuskovic/networker/v3@latest
+    go install github.com/fuskovic/networker/v3@latest
 
 Or Download a pre-compiled binary from the [releases](https://github.com/fuskovic/networker/releases) page.
 
